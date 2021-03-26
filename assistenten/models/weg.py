@@ -3,7 +3,7 @@ from assistenten.models import Adresse
 
 
 class Weg(models.Model):
-    entfernung = models.DecimalField(decimal_places=4, max_digits=4)
+    entfernung = models.DecimalField(decimal_places=2, max_digits=5)
     dauer_in_minuten = models.IntegerField()
     adresse1_id = models.ForeignKey(Adresse, on_delete=models.CASCADE, related_name='+')
     adresse2_id = models.ForeignKey(Adresse, on_delete=models.CASCADE, related_name='+')
