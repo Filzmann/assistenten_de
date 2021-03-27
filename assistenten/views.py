@@ -5,7 +5,7 @@ from .models import Lohn
 
 def index(request):
     latest_lohn_list = Lohn.objects.order_by('-id')[:5]
-    template = loader.get_template('polls/index.html')
+    template = loader.get_template('assistenten/index.html')
     context = {
         'latest_question_list': latest_lohn_list,
     }
