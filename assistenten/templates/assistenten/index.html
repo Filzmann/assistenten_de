@@ -1,26 +1,19 @@
-{% extends "base.html" %}
+{% extends "app_base.html" %}
 
-{% block title %}Latest bookmarks{% endblock %}
+{% block title %}Assistent_dashboard{% endblock %}
 
 {% block heading %}
   <h2>Assistentenlohn</h2>
 {% endblock %}
 
 {% block content %}
-  {% if latest_lohn_list %}
+  {% if lohn_list %}
     <ul>
-    {% for lohn in latest_lohn_list %}
-        <li><a href="{% url 'detail' lohn.id %}">{{ lohn.grundlohn }}</a></li>
-    {% endfor %}
+        {% for lohn in lohn_list %}
+            <li><a href="">{{ lohn.grundlohn }}</a></li>
+        {% endfor %}
     </ul>
     {% else %}
-
-<p>No lohn available.</p>
+        <p>No lohn available.</p>
     {% endif %}
 {% endblock %}
-
-
-
-
-</body>
-</html>

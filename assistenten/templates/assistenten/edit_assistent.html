@@ -1,0 +1,18 @@
+{% extends "app_base.html" %}
+
+{% block title %}Assistent bearbeiten{% endblock %}
+
+{% block heading %}
+  <h2>Assistent bearbeiten - Watt, wer bist du denn?</h2>
+{% endblock %}
+
+{% block content %}
+    <div>
+        Hier wird mal sowas von der Assi geedited
+        <form action="{% url 'edit_as' request.user.assistent.id %}" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Speichern">
+    </form>
+    </div>
+{% endblock %}

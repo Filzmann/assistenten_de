@@ -13,6 +13,10 @@
         <link rel="apple-touch-icon" href="{% static "apple-touch-icon.png" %}">
 
         <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
+        <!-- XDSoft DateTimePicker -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css" integrity="sha256-DOS9W6NR+NFe1fUhEE0PGKY/fubbUCnOfTje2JMDw3Y=" crossorigin="anonymous" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script>
+
         <style>
             body {
                 padding-top: 50px;
@@ -29,30 +33,34 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">Assistenzplaner</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          {% block toggle_login %}
-            {% include "toggle_login.html" %}
-          {% endblock %}
-        </div><!--/.navbar-collapse -->
-      </div>
-    </nav>
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Assistenzplaner</a>
+            </div>
 
+            <div id="navbar" class="navbar-collapse collapse">
+                {% block toggle_login %}
+                    {% include "toggle_login.html" %}
+                {% endblock %}
+            </div><!--/.navbar-collapse -->
+        </div>
+    </nav>
+    <div id="navbar_2" class="navbar-collapse collapse">
+        {% block app_menu %}{% endblock %}
+    </div>
 
 
     <div class="container">
       <div>
         {% block heading %}{% endblock %}
       </div>
+
       <div>
           {% block content %}{% endblock %}
       </div>
