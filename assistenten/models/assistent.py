@@ -15,7 +15,7 @@ class Assistent(models.Model):
     name = models.CharField(max_length=30)
     vorname = models.CharField(max_length=30)
     email = models.CharField(max_length=30)
-    einstellungsdatum = models.DateTimeField(default=timezone.now())
+    einstellungsdatum = models.DateField(default=timezone.now)
 
     asn = models.ManyToManyField(ASN, through='AssociationAsAsn')
 

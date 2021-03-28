@@ -1,7 +1,7 @@
-from django.forms import DateTimeInput
+from django.forms import DateInput
 
 
-class XDSoftDateTimePickerInput(DateTimeInput):
+class XDSoftDatePickerInput(DateInput):
     """
     widget to show the datetimepicker from this tutorial
     contains 3 Widgets:
@@ -13,4 +13,4 @@ class XDSoftDateTimePickerInput(DateTimeInput):
     Tutorial:
     https://simpleisbetterthancomplex.com/tutorial/2019/01/03/how-to-use-date-picker-with-django.html
     """
-    template_name = 'widgets/xdsoft_datetime_picker.html'
+    template_name = 'widgets/xdsoft_date_picker.html'
