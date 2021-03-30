@@ -125,7 +125,7 @@ STATICFILES_DIRS = (
 
 LOGIN_URL = 'assistenten_login'
 LOGOUT_URL = 'assistenten_logout'
-LOGIN_REDIRECT_URL = '/assistenten'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'assistenten_login'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
