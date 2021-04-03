@@ -1,6 +1,6 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.views.generic.edit import FormView, UpdateView
+from django.views.generic.edit import UpdateView
 
 from assistenten.models import Assistent
 from assistenten.forms import EditAsForm
@@ -11,8 +11,7 @@ class EditAssistentView(UpdateView):
     form_class = EditAsForm
     model = Assistent
 
-
-    def get_name(request):
+    def get_name(self, request):
         # if this is a POST request we need to process the form data
         if request.method == 'POST':
             # create a form instance and populate it with data from the request:

@@ -43,14 +43,13 @@ class NewVisitorTest(unittest.TestCase):
         passwortbox.send_keys(Keys.ENTER)
         time.sleep(1)
 
-    def test_user_navigiert_zu_Assistent_bearbeiten_und_kann_seine_daten_aendern(self):
-        self.test_user_kann_kann_sich_einloggen()
-
         # nachdem er eingeloggt ist sieht er, dass oben rechts sein benutzername "simon" steht
         hauptmenu = self.browser.find_element_by_id('navbar')
         rows = hauptmenu.find_elements_by_tag_name('a')
         self.assertTrue(any(row.text == 'simon' for row in rows))
-        # dann sieht er das App-Menü auf der rechten Seite
+
+    def test_user_navigiert_zu_Assistent_bearbeiten_und_kann_seine_daten_aendern(self):
+        # Simon sieht das App-Menü auf der rechten Seite
         self.browser.find_element_by_link_text('Menue').click()
         # er möchte gerne seine Assistentendaten bearbeiten. Dafür klickt er auf "Nutzerkonto/Assistent bearbeiten"
         self.browser.find_element_by_link_text('Nutzerkonto/Assistent bearbeiten').click()
@@ -66,6 +65,10 @@ class NewVisitorTest(unittest.TestCase):
         # Dann klickt er auf Abschicken/Enter.
         input_einstellungsdatum.send_keys(Keys.ENTER)
         # Es folgt eine Erfolgsmeldung
+        time.sleep(1)
+        self.browser.find_element_by_id('success message')
+
+
 
         # Simon ist weiterhin auf der gleichen Seite
 
