@@ -29,7 +29,12 @@ class Assistent(models.Model):
 @receiver(post_save, sender=User)
 def create_assistent(sender, instance, created, **kwargs):
     if created:
-        Assistent.objects.create(user=instance)
+        Assistent.objects.create(
+            user=instance,
+            email=instance.email,
+            vorname=instance.first_name,
+            name=instance.last_name
+        )
 
 
 @receiver(post_save, sender=User)

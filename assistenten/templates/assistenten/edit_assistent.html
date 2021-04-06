@@ -10,11 +10,9 @@
     <div>
         Hier wird mal sowas von der Assi geedited
         <form action="{% url 'edit_as' request.user.assistent.id %}" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Speichern">
-
-            {{ form.date }}
-    </form>
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Speichern">
+        </form>
     </div>
 {% endblock %}

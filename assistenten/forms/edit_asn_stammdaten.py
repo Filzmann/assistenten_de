@@ -2,9 +2,9 @@ from django import forms
 from assistenten.models import ASN
 
 
-class EditAsForm(forms.ModelForm):
+class EditAsnStammdatenForm(forms.ModelForm):
     class Meta:
-        fields = ['name', 'vorname', 'email', 'einstellungsdatum']
+        fields = ['name', 'vorname', 'email']
         model = ASN
 
     name = forms.CharField(label='Name', max_length=100)

@@ -1,0 +1,4 @@
+Django~=3.1.7
+selenium~=3.141.0
+SeleniumLogin~=0.0.4
+https://github.com/jpic/django-betterforms/tarball/master
