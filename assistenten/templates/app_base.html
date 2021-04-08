@@ -8,7 +8,7 @@
                     aria-expanded="false">Anlegen/Bearbeiten <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
                     <li><a href="{% url 'edit_as' request.user.assistent.id %}">Nutzerkonto/Assistent bearbeiten</a></li>
-                    <li><a href="">ASN eintragen/bearbeiten</a></li>
+                    <li><a href="{% url 'create_asn' %}">ASN eintragen/bearbeiten</a></li>
                 </ul>
             </li>
         </ul>
