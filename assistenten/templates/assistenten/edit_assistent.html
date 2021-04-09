@@ -10,8 +10,9 @@
     <div>
         Hier wird mal sowas von der Assi geedited
         <form action="{% url 'edit_as' request.user.assistent.id %}" method="post">
-            {% csrf_token %}
-            {{ form }}
+
+            {% include 'betterforms/form_as_fieldsets.html' %}
+
             <input type="submit" value="Speichern">
         </form>
     </div>

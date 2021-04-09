@@ -4,9 +4,10 @@
    Author's custom styles
    ========================================================================== */
 
-input, select
+label
 {
-    display:block;
+    width: 10em;
+    display: inline-block;
 }
 
 
