@@ -17,7 +17,7 @@ class Assistent(models.Model):
     email = models.CharField(max_length=30)
     einstellungsdatum = models.DateField(default=timezone.now)
 
-    asn = models.ManyToManyField(ASN, through='AssociationAsAsn')
+    asns = models.ManyToManyField(ASN, through='AssociationAsAsn', related_name='assistents')
 
     def get_absolute_url(self):
         return reverse('edit_as', kwargs={'pk': self.pk})

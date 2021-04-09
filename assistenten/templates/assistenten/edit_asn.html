@@ -9,12 +9,12 @@
 
 
 {% block content %}
-<ul class="asn-menu" role="menu">
-    <li><a href="">Neuer ASN</a></li>
-    <li><a href="">ASN1</a></li>
-    <li><a href="">...</a></li>
-    <li><a href="">ASN..n</a></li>
-</ul>
+    <ul class="asn-menu" role="menu">
+        <li><a href="{% url 'create_asn' %}">Neuer ASN</a></li>
+        {% for asn_id in asn_liste %}
+            <li><a href="{% url 'edit_asn' asn_id.0 %}">{{ asn_id.1 }}</a></li>
+        {% endfor %}
+    </ul>
     <div>
         <form action="" method="post">
             {% csrf_token %}
