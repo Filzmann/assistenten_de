@@ -9,7 +9,10 @@ label
     width: 10em;
     display: inline-block;
 }
-
+fieldset
+{
+    display: inline-block;
+}
 
 
 

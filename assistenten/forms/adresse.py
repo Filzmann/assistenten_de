@@ -1,12 +1,9 @@
-from betterforms.forms import Fieldset
+from betterforms.forms import Fieldset, BetterModelForm
 from django import forms
 from assistenten.models import Adresse
 
 
-
-
-
-class AddressForm(forms.ModelForm):
+class AddressForm(BetterModelForm):
     class Meta:
         fields = ['bezeichner', 'strasse', 'hausnummer', 'plz', 'stadt']
         model = Adresse
@@ -15,7 +12,7 @@ class AddressForm(forms.ModelForm):
                                         'strasse',
                                         'hausnummer',
                                         'plz',
-                                        'stadt')),
+                                        'stadt'), legend='Adresse'),
         )
 
     bezeichner = forms.CharField(label='Bezeichner', max_length=100)

@@ -1,10 +1,10 @@
-from betterforms.forms import Fieldset
+from betterforms.forms import Fieldset, BetterModelForm
 from django import forms
 from assistenten.models import Assistent
 from assistenten.widgets import XDSoftDatePickerInput
 
 
-class EditAsForm(forms.ModelForm):
+class EditAsForm(BetterModelForm):
     class Meta:
         fields = ['name', 'vorname', 'email', 'einstellungsdatum']
         model = Assistent
@@ -12,7 +12,7 @@ class EditAsForm(forms.ModelForm):
             Fieldset('info', fields=('name',
                                      'vorname',
                                      'email',
-                                     'einstellungsdatum')),
+                                     'einstellungsdatum'), legend='Stammdaten'),
         )
 
     name = forms.CharField(label='Name', max_length=100)
@@ -22,4 +22,3 @@ class EditAsForm(forms.ModelForm):
         input_formats=['%d.%m.%Y'],
         widget=XDSoftDatePickerInput()
     )
-
