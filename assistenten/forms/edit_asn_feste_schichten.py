@@ -1,15 +1,21 @@
+from betterforms.forms import Fieldset
 from django import forms
-from assistenten.models import ASN
+from betterforms.forms import Fieldset, BetterModelForm
+from assistenten.models import FesteSchicht
+from assistenten.widgets import XDSoftTimePickerInput
 
 
-class FesteSchichtenForm(forms.ModelForm):
+class FesteSchichtenForm(BetterModelForm):
     class Meta:
         fields = ['wochentag', 'beginn', 'ende']
-        model = ASN
+        model = FesteSchicht
 
-    name = forms.CharField(label='Name', max_length=100)
-    vorname = forms.CharField(label='Vorname', max_length=100)
-    email = forms.EmailField(label="Email", max_length=100)
+        fieldsets = (
+            Fieldset('feste_schicht', fields=('wochentag',
+                                              'beginn',
+                                              'ende'),
+                     legend='Feste Schicht hinzufügen'),
+        )
 
     CHOICES = [('0', 'Montag'),
                ('1', 'Dienstag'),
@@ -19,4 +25,11 @@ class FesteSchichtenForm(forms.ModelForm):
                ('5', 'Samstag'),
                ('6', 'Sonntag')]
     wochentag = forms.CharField(label='Wochentag', widget=forms.Select(choices=CHOICES))
-
+    beginn = forms.TimeField(
+        input_formats=['%H:%m'],
+        widget=XDSoftTimePickerInput()
+    )
+    ende = forms.TimeField(
+        input_formats=['%H:%m'],
+        widget=XDSoftTimePickerInput()
+    )

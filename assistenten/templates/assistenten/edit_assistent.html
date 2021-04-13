@@ -3,15 +3,16 @@
 {% block title %}Assistent bearbeiten{% endblock %}
 
 {% block heading %}
-  <h2>Assistent bearbeiten - Watt, wer bist du denn?</h2>
+  <h2>Assistent bearbeiten</h2>
 {% endblock %}
 
 {% block content %}
     <div>
-        Hier wird mal sowas von der Assi geedited
         <form action="{% url 'edit_as' request.user.assistent.id %}" method="post">
             {% include 'betterforms/form_as_fieldsets.html' %}
-            <input type="submit" value="Speichern">
+            <div class="buttonleiste">
+                <input type="submit" value="Speichern">
+            </div>
         </form>
     </div>
 {% endblock %}

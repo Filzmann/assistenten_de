@@ -8,3 +8,6 @@ class PFK(models.Model):
 
     def __repr__(self):
         return f"{self.name!r}, {self.vorname!r})"
+
+    def __str__(self):
+        return f"{self.vorname} {self.name}"
