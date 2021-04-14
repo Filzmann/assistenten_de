@@ -16,3 +16,6 @@ class ASN(models.Model):
 
     def __repr__(self):
         return f"ASN(Kürzel={self.kuerzel!r}, Name={self.name!r}, Vorname={self.vorname!r})"
+
+    def _str__(self):
+        return f"{self.kuerzel!r} - Name={self.name!r}, Vorname={self.vorname!r}"

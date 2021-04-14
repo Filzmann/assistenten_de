@@ -18,3 +18,4 @@ class EditAssistentView(LoginRequiredMixin, UpdateView):
             'adresse': self.object.adressen.all().filter(is_home=True)[0]
         })
         return kwargs
+

@@ -21,10 +21,10 @@ class SchichtTemplatesForm(BetterModelForm):
     bezeichner = forms.CharField(label='Bezeichner (z.B. Früh, Spät, Tag-Schicht)', max_length=100)
 
     beginn = forms.TimeField(
-        input_formats=['%H:%m'],
+        input_formats=['%H:%M'],
         widget=XDSoftTimePickerInput()
     )
     ende = forms.TimeField(
-        input_formats=['%H:%m'],
+        input_formats=['%H:%M'],
         widget=XDSoftTimePickerInput()
     )

@@ -34,12 +34,5 @@ class EditAsnStammdatenForm(BetterModelForm):
     CHOICES = [('1', 'Nordost'), ('2', 'West'), ('3', 'Süd')]
     einsatzbuero = forms.CharField(label='Einsatzbüro', widget=forms.Select(choices=CHOICES))
 
-    # CHOICES = EB.objects.all().values_list('id', 'email')
-    # einsatzbegleitung = forms.CharField(label='EB', widget=forms.Select(choices=CHOICES))
-    einsatzbegleitung = forms.ModelChoiceField(queryset=EB.objects.all())
-
-
-    #CHOICES = PFK.objects.all().values_list('id', 'email')
-    #pflegefachkraft = forms.CharField(label='PFK', widget=forms.Select(choices=CHOICES))
-    pflegefachkraft=forms.ModelChoiceField(queryset=PFK.objects.all())
-
+    einsatzbegleitung = forms.ModelChoiceField(queryset=EB.objects.all(), empty_label=None)
+    pflegefachkraft = forms.ModelChoiceField(queryset=PFK.objects.all(), empty_label=None)
