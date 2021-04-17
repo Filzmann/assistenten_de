@@ -8,8 +8,8 @@ class SchichtTemplate(models.Model):
     asn = models.ForeignKey(ASN, on_delete=models.CASCADE)
 
     # extra data
-    beginn = models.DateTimeField()
-    ende = models.DateTimeField()
+    beginn = models.TimeField()
+    ende = models.TimeField()
     bezeichner = models.CharField(max_length=30)
 
     def __repr__(self):

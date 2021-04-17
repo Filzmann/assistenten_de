@@ -10,8 +10,10 @@ class FesteSchicht(models.Model):
 
     # extra Data
     wochentag = models.CharField(max_length=10)
-    beginn = models.DateTimeField()
-    ende = models.DateTimeField()
+    beginn = models.TimeField()
+    ende = models.TimeField()
+
+
 
     def __repr__(self):
         return f"Feste Schicht({self.wochentag!r}, {self.beginn!r} - {self.ende!r})"

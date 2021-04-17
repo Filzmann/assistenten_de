@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic.edit import UpdateView
-from assistenten.models import Assistent, Adresse
+from assistenten.models import Assistent
 from assistenten.forms import EditAsMultiForm
 
 

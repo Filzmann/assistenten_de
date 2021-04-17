@@ -28,6 +28,16 @@ legend
     background-color: #ffffff;
 }
 
+.asn-menu-outer
+{
+    float: left;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    margin: 5px;
+    box-shadow: 3px 3px 5px 5px #efefef;
+}
+
 
 
 
