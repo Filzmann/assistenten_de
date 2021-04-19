@@ -14,7 +14,9 @@ class SchichtTemplatesForm(BetterModelForm):
                 'bezeichner',
                 'beginn',
                 'ende'),
-                legend='Schicht-Vorlage hinzufügen'),
+                legend='Schicht-Vorlage hinzufügen',
+                template_name="assistenten/fieldset_schicht_templates.html",
+                     ),
         )
 
     bezeichner = forms.CharField(label='Bezeichner (z.B. Früh, Spät, Tag-Schicht)',

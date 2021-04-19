@@ -1,0 +1,31 @@
+{% load static %}
+
+<fieldset class="{{ fieldset.css_classes }}">
+  {% if fieldset.legend %}
+  <legend>{{ fieldset.legend }}</legend>
+  {% endif %}
+
+  <div class="liste-in-fieldset">
+    <ul>
+      Schicht-Templates:
+      {% for schicht_template in schicht_template_liste %}
+        <li>
+          <input type="image"
+                 src="{% static 'images/del.png'%}"
+                 formaction="{% url 'del_schicht_template' schicht_template.id %}"
+                 value=""
+                 onClick="return confirm('Wollen Sie wirklich löschen?')"
+          >
+          {{schicht_template.bezeichner}}, {{schicht_template.beginn}} - {{schicht_template.ende}}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="liste-in-fieldset">
+  {{ fieldset.errors }}
+  {% for thing in fieldset %}
+    {% include field_template_name with field=thing %}
+  {% endfor %}
+  </div>
+</fieldset>
+

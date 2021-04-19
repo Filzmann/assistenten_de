@@ -1,0 +1,30 @@
+{% load static %}
+
+<fieldset class="{{ fieldset.css_classes }}">
+  {% if fieldset.legend %}
+  <legend>{{ fieldset.legend }}</legend>
+  {% endif %}
+
+  <div class="liste-in-fieldset">
+    Feste Schichten:
+    <ul>
+      {% for feste_schicht in feste_schichten_liste %}
+        <li>
+          <input type="image"
+                 src="{% static 'images/del.png'%}"
+                 formaction="{% url 'del_feste_schicht' feste_schicht.id %}"
+                 value=""
+                 onClick="return confirm('Wollen Sie wirklich löschen?')"
+          >
+          {{feste_schicht.wochentag}}, {{feste_schicht.beginn}} - {{feste_schicht.ende}}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="liste-in-fieldset">
+  {{ fieldset.errors }}
+  {% for thing in fieldset %}
+    {% include field_template_name with field=thing %}
+  {% endfor %}
+  </div>
+</fieldset>

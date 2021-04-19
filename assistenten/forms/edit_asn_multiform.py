@@ -1,7 +1,4 @@
-from betterforms.forms import Fieldset
 from betterforms.multiform import MultiModelForm
-from django.http import request
-
 from assistenten.forms.adresse import HomeForm
 from assistenten.forms.edit_asn_feste_schichten import FesteSchichtenForm
 from assistenten.forms.edit_asn_schicht_templates import SchichtTemplatesForm

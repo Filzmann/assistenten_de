@@ -38,6 +38,15 @@ legend
     box-shadow: 3px 3px 5px 5px #efefef;
 }
 
+.liste-in-fieldset
+{
+    float: left;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    margin: 5px;
+    box-shadow: 3px 3px 5px 5px #efefef;
+    display: inline-block;
+}
 
 
 

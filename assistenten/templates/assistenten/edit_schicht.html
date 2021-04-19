@@ -9,14 +9,6 @@
 
 
 {% block content %}
-    <div class="asn-menu-outer">
-        <ul class="asn-menu" role="menu">
-            <li><a href="{% url 'create_asn' %}">Neuer ASN</a></li>
-            {% for asn_id in asn_liste %}
-                <li><a href="{% url 'edit_asn' asn_id.0 %}">{{ asn_id.1 }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
     <div>
         <form action="" method="post">
 
