@@ -13,8 +13,8 @@ class Adresse(models.Model):
     stadt = models.CharField(max_length=30)
     is_home = models.BooleanField(default=False)
 
-    assistent = models.ForeignKey(Assistent, related_name='adressen', on_delete=models.CASCADE, null=True)
-    asn = models.ForeignKey(ASN, related_name='adressen', on_delete=models.CASCADE, null=True)
+    assistent = models.ForeignKey(Assistent, related_name='adressen', on_delete=models.CASCADE, null=True, blank=True)
+    asn = models.ForeignKey(ASN, related_name='adressen', on_delete=models.CASCADE, null=True, blank=True)
 
     def __repr__(self):
         return f"Address(id={self.bezeichner!r}, " \
@@ -23,7 +23,10 @@ class Adresse(models.Model):
                f"plz={self.plz!r})"
 
     def __str__(self):
-        return f"{self.strasse} {self.hausnummer}, {self.plz} {self.stadt}"
+        if self.bezeichner and not self.is_home:
+            return f"{self.bezeichner} - {self.strasse} {self.hausnummer}, {self.plz} {self.stadt}"
+        else:
+            return f"{self.strasse} {self.hausnummer}, {self.plz} {self.stadt}"
 
 
 # wird ein neuer Assistent gespeichert bekommt er erstmal eine leere Adresse

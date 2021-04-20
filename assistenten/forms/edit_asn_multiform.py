@@ -16,6 +16,6 @@ class EditAsnMultiForm(MultiModelForm):
     form_classes = {
         'asn_stammdaten': EditAsnStammdatenForm,
         'asn_adresse': HomeForm,
-        'asn_feste_schicht': FesteSchichtenForm,
         'asn_schicht_templates': SchichtTemplatesForm,
+        'asn_feste_schicht': FesteSchichtenForm,
     }
