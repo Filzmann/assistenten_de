@@ -39,7 +39,7 @@ class EditSchichtForm(BetterModelForm):
         )
 
     asn = forms.ModelChoiceField(queryset=ASN.objects.all(),
-                                 empty_label='Bitte auswählen',
+                                 empty_label='Neuer ASN',
                                  widget=forms.Select(attrs={"onChange": 'submit()'}))
 
     beginn = forms.DateTimeField(
@@ -51,14 +51,14 @@ class EditSchichtForm(BetterModelForm):
         widget=XDSoftDateTimePickerInput()
     )
 
-    beginn_adresse = forms.ModelChoiceField(queryset=Adresse.objects.all(), empty_label=None)
-    ende_adresse = forms.ModelChoiceField(queryset=Adresse.objects.all(), empty_label=None)
+    beginn_adresse = forms.ModelChoiceField(queryset=Adresse.objects.all(), empty_label="Zu Hause")
+    ende_adresse = forms.ModelChoiceField(queryset=Adresse.objects.all(), empty_label="Zu Hause")
 
-    ist_kurzfristig = forms.BooleanField(label='BSD/RB')
-    ist_ausfallgeld = forms.BooleanField(label='Ausfallgeld')
-    ist_assistententreffen = forms.BooleanField(label='AT')
-    ist_pcg = forms.BooleanField(label='PCG/PCS')
-    ist_schulung = forms.BooleanField(label='Schulung')
+    ist_kurzfristig = forms.BooleanField(label='BSD/RB', required=False)
+    ist_ausfallgeld = forms.BooleanField(label='Ausfallgeld', required=False)
+    ist_assistententreffen = forms.BooleanField(label='AT', required=False)
+    ist_pcg = forms.BooleanField(label='PCG/PCS', required=False)
+    ist_schulung = forms.BooleanField(label='Schulung', required=False)
 
     # entfernt den Doppelpunkt am Ende jedes Labels
     def __init__(self, *args, **kwargs):
