@@ -21,4 +21,6 @@ class Schicht(models.Model):
     def __repr__(self):
         return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, ASN: {self.asn!r})"
 
+    def __str__(self):
+        return f"Schicht({self.beginn} - {self.ende} - ASN: {self.asn} - AS: {self.assistent}"
 

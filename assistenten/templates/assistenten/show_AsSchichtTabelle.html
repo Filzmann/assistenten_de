@@ -1,0 +1,15 @@
+{% extends "app_base.html" %}
+
+{% block content %}
+    <div>
+        <form name="time_navigator" action="" method="post">
+        {{ nav_timedelta }}
+        </form>
+    </div>
+    <div>{{ summen }}</div>
+    <ul>
+        {% for schicht in schichten %}
+            <li>{{ schicht.beginn }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
