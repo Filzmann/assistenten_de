@@ -1,48 +1,75 @@
 {% extends "app_base.html" %}
-
 {% block title %}ASN bearbeiten{% endblock %}
-
 {% block heading %}
-  <h2>Assistenznehmer (ASN) bearbeiten</h2>
+    <h2>Assistenznehmer (ASN) bearbeiten</h2>
 {% endblock %}
-
-
 
 {% block content %}
     <div>
         <form action="" method="post">
-
-           {% block form_head %}
-              {% if not no_head %}
-                {% if not csrf_exempt %}
-                  {% csrf_token %}
-                {% endif %}
-                {% if next %}
-                  <input type="hidden" name="next" value="{{ next }}">
-                {% endif %}
-                {{ form.media }}
-              {% endif %}
+            {% block form_head %}
+            {% csrf_token %}
             {% endblock %}
-
             {% block form_body %}
-              {{ form.non_field_errors }}
-              {# Hack to allow recursive template inclusion #}
-              {% with fieldset_template_name="betterforms/fieldset_as_div.html" field_template_name="betterforms/field_as_div.html" %}
-                {% for thing in form %}
-                  {% if thing.is_fieldset %}
-                    {% include fieldset_template_name with fieldset=thing %}
-                  {% else %}
-                    {% include field_template_name with field=thing %}
-                  {% endif %}
-                {% endfor %}
-              {% endwith %}
-            {% endblock %}
-            <pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+                {{ form.non_field_errors }}
+                    <fieldset>
+                        <legend>Wer?</legend>
+                            <div>
+                                {{ form.edit_schicht.asn.label_tag }} {{ form.edit_schicht.asn }}
+                            </div>
+                            <fieldset class="inner hideable" >
+                                <legend>Neuer Assistent</legend>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.kuerzel.label_tag }} {{ form.edit_asn_stammdaten.kuerzel }}
+                                </div>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.name.label_tag }} {{ form.edit_asn_stammdaten.name }}
+                                </div>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.vorname.label_tag }} {{ form.edit_asn_stammdaten.vorname }}
+                                </div>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.email.label_tag }} {{ form.edit_asn_stammdaten.email }}
+                                </div>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.einsatzbuero.label_tag }} {{ form.edit_asn_stammdaten.einsatzbuero }}
+                                </div>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.einsatzbegleitung.label_tag }} {{ form.edit_asn_stammdaten.einsatzbegleitung }}
+                                </div>
+                                <div>
+                                    {{ form.edit_asn_stammdaten.pflegefachkraft.label_tag }} {{ form.edit_asn_stammdaten.pflegefachkraft }}
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="inner hideable" >
+                                <legend>Schichtvorlagen</legend>
+                                <div>
+                                     {{ form.edit_schicht.templates }}
+                                </div>
+                            </fieldset>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Wann?</legend>
+                            <div>
+                                {{ form.edit_schicht.beginn.label_tag }} {{ form.edit_schicht.beginn }}
+                            </div><div>
+                                {{ form.edit_schicht.ende.label_tag }} {{ form.edit_schicht.ende }}
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Wo?</legend>
+                            <div>
+                                {{ form.edit_schicht.beginn_adresse.label_tag }} {{ form.edit_schicht.beginn_adresse }}
+                            </div><div>
+                                {{ form.edit_schicht.ende_adresse.label_tag }} {{ form.edit_schicht.ende_adresse }}
+                            </div>
+                        </fieldset>
+                {% endblock %}
 
             <div class="buttonleiste">
                 <input type="submit" value="Speichern">
             </div>
-
         </form>
     </div>
 {% endblock %}

@@ -1,6 +1,6 @@
 from betterforms.forms import Fieldset, BetterModelForm
 from django import forms
-from assistenten.models import ASN, Adresse, Schicht
+from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate
 from assistenten.widgets import XDSoftDateTimePickerInput
 
 
@@ -18,25 +18,6 @@ class EditSchichtForm(BetterModelForm):
             'ist_pcg',
             'ist_schulung']
         model = Schicht
-
-        fieldsets = (
-            Fieldset('wer', fields=('asn',), legend='Bei Wem?'),
-            Fieldset('zeit', fields=(
-                'beginn',
-                'ende',
-            ), legend='Wann?'),
-            Fieldset('ort', fields=(
-                'beginn_adresse',
-                'ende_adresse',
-            ), legend='Wo?'),
-            Fieldset('sonstiges', fields=(
-                'ist_kurzfristig',
-                'ist_ausfallgeld',
-                'ist_assistententreffen',
-                'ist_pcg',
-                'ist_schulung'
-            ), legend='Was?'),
-        )
 
     asn = forms.ModelChoiceField(queryset=ASN.objects.all(),
                                  empty_label='Neuer ASN',
@@ -59,6 +40,10 @@ class EditSchichtForm(BetterModelForm):
     ist_assistententreffen = forms.BooleanField(label='AT', required=False)
     ist_pcg = forms.BooleanField(label='PCG/PCS', required=False)
     ist_schulung = forms.BooleanField(label='Schulung', required=False)
+
+    templates = forms.ModelChoiceField(queryset=SchichtTemplate.objects.all(),
+                                       empty_label=None,
+                                       widget=forms.RadioSelect())
 
     # entfernt den Doppelpunkt am Ende jedes Labels
     def __init__(self, *args, **kwargs):

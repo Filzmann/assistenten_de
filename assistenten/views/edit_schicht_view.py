@@ -3,13 +3,13 @@ from django.urls import reverse_lazy
 from django.views.generic import UpdateView, CreateView
 from django.shortcuts import redirect
 from assistenten.forms.edit_schicht import EditSchichtForm
-from assistenten.forms.edit_schicht_multiform import EditSchichtMultiForm
+from assistenten.forms.edit_schicht_multiform import EditSchichtMultiForm, CreateSchichtMultiForm
 from assistenten.models import Schicht
 
 
 class CreateSchichtView(LoginRequiredMixin, CreateView):
     template_name = "assistenten/edit_schicht.html"
-    form_class = EditSchichtMultiForm
+    form_class = CreateSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('index')
 

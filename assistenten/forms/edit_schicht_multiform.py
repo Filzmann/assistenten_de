@@ -8,7 +8,6 @@ class CreateSchichtMultiForm(MultiModelForm):
     form_classes = {
         'edit_schicht': EditSchichtForm,
         'edit_asn_stammdaten': EditAsnStammdatenForm,
-
     }
 
 

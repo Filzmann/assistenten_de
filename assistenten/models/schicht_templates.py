@@ -14,3 +14,6 @@ class SchichtTemplate(models.Model):
 
     def __repr__(self):
         return f"Template({self.bezeichner!r}, {self.beginn!r} - {self.ende!r})"
+
+    def __str__(self):
+        return f"{self.bezeichner}, {self.beginn.strftime('%H:%M')} - {self.ende.strftime('%H:%M')}"

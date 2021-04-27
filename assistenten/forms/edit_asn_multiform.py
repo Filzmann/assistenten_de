@@ -8,7 +8,8 @@ from assistenten.forms.edit_asn_stammdaten import EditAsnStammdatenForm
 class CreateAsnMultiForm(MultiModelForm):
     form_classes = {
         'asn_stammdaten': EditAsnStammdatenForm,
-        'asn_adresse': HomeForm
+        'asn_adresse': HomeForm,
+
     }
 
 
