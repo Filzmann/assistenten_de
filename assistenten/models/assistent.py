@@ -25,6 +25,9 @@ class Assistent(models.Model):
     def __repr__(self):
         return f"Assistent({self.name!r}, {self.vorname!r})"
 
+    def __str__(self):
+        return f"Assistent({self.name!r}, {self.vorname!r})"
+
 
 @receiver(post_save, sender=User)
 def create_assistent(sender, instance, created, **kwargs):
