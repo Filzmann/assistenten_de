@@ -48,4 +48,8 @@ class EditSchichtForm(BetterModelForm):
     # entfernt den Doppelpunkt am Ende jedes Labels
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.label_suffix = ""  # Removes : as label suffix
+        print(self.fields['asn'])
+
+

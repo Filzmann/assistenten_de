@@ -5,6 +5,8 @@
 {% endblock %}
 
 {% block content %}
+
+
     <div>
         <form action="" method="post">
             {% block form_head %}
@@ -17,37 +19,39 @@
                             <div>
                                 {{ form.edit_schicht.asn.label_tag }} {{ form.edit_schicht.asn }}
                             </div>
-                            <fieldset class="inner hideable" >
-                                <legend>Neuer Assistent</legend>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.kuerzel.label_tag }} {{ form.edit_asn_stammdaten.kuerzel }}
-                                </div>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.name.label_tag }} {{ form.edit_asn_stammdaten.name }}
-                                </div>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.vorname.label_tag }} {{ form.edit_asn_stammdaten.vorname }}
-                                </div>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.email.label_tag }} {{ form.edit_asn_stammdaten.email }}
-                                </div>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.einsatzbuero.label_tag }} {{ form.edit_asn_stammdaten.einsatzbuero }}
-                                </div>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.einsatzbegleitung.label_tag }} {{ form.edit_asn_stammdaten.einsatzbegleitung }}
-                                </div>
-                                <div>
-                                    {{ form.edit_asn_stammdaten.pflegefachkraft.label_tag }} {{ form.edit_asn_stammdaten.pflegefachkraft }}
-                                </div>
-                            </fieldset>
-
-                            <fieldset class="inner hideable" >
-                                <legend>Schichtvorlagen</legend>
-                                <div>
-                                     {{ form.edit_schicht.templates }}
-                                </div>
-                            </fieldset>
+                            {% if not form.edit_schicht.asn.value %}
+                                <fieldset id="fieldset-neuer-assistenznehmer" >
+                                    <legend>Neuer Assistenznehmer</legend>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.kuerzel.label_tag }} {{ form.edit_asn_stammdaten.kuerzel }}
+                                    </div>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.name.label_tag }} {{ form.edit_asn_stammdaten.name }}
+                                    </div>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.vorname.label_tag }} {{ form.edit_asn_stammdaten.vorname }}
+                                    </div>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.email.label_tag }} {{ form.edit_asn_stammdaten.email }}
+                                    </div>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.einsatzbuero.label_tag }} {{ form.edit_asn_stammdaten.einsatzbuero }}
+                                    </div>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.einsatzbegleitung.label_tag }} {{ form.edit_asn_stammdaten.einsatzbegleitung }}
+                                    </div>
+                                    <div>
+                                        {{ form.edit_asn_stammdaten.pflegefachkraft.label_tag }} {{ form.edit_asn_stammdaten.pflegefachkraft }}
+                                    </div>
+                                </fieldset>
+                            {% else %}
+                                <fieldset id="fieldset-schicht-templates">
+                                    <legend>Schichtvorlagen</legend>
+                                    <div>
+                                         {{ form.edit_schicht.templates }}
+                                    </div>
+                                </fieldset>
+                            {% endif %}
                         </fieldset>
                         <fieldset>
                             <legend>Wann?</legend>
@@ -57,6 +61,23 @@
                                 {{ form.edit_schicht.ende.label_tag }} {{ form.edit_schicht.ende }}
                             </div>
                         </fieldset>
+                        <fieldset>
+                            <legend>
+                                Was noch?
+                            </legend>
+                            <div>
+                                {{ form.edit_schicht.ist_kurzfristig }} {{ form.edit_schicht.ist_kurzfristig.label_tag }}
+                            </div><div>
+                                {{ form.edit_schicht.ist_ausfallgeld }} {{ form.edit_schicht.ist_ausfallgeld.label_tag }}
+                            </div><div>
+                                {{ form.edit_schicht.ist_assistententreffen }} {{ form.edit_schicht.ist_assistententreffen.label_tag }}
+                            </div><div>
+                                {{ form.edit_schicht.ist_pcg}} {{ form.edit_schicht.ist_pcg.label_tag }}
+                            </div><div>
+                                {{ form.edit_schicht.ist_schulung }} {{ form.edit_schicht.ist_schulung.label_tag }}
+                            </div>
+                        </fieldset>
+
                         <fieldset>
                             <legend>Wo?</legend>
                             <div>
@@ -72,4 +93,5 @@
             </div>
         </form>
     </div>
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
 {% endblock %}
