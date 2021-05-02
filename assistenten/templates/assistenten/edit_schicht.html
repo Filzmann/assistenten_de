@@ -17,38 +17,38 @@
                     <fieldset>
                         <legend>Wer?</legend>
                             <div>
-                                {{ form.edit_schicht.asn.label_tag }} {{ form.edit_schicht.asn }}
+                                {{ form.schicht.asn.label_tag }} {{ form.schicht.asn }}
                             </div>
-                            {% if not form.edit_schicht.asn.value %}
+                            {% if not form.schicht.asn.value %}
                                 <fieldset id="fieldset-neuer-assistenznehmer" >
                                     <legend>Neuer Assistenznehmer</legend>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.kuerzel.label_tag }} {{ form.edit_asn_stammdaten.kuerzel }}
+                                        {{ form.asn_stammdaten.kuerzel.label_tag }} {{ form.asn_stammdaten.kuerzel }}
                                     </div>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.name.label_tag }} {{ form.edit_asn_stammdaten.name }}
+                                        {{ form.asn_stammdaten.name.label_tag }} {{ form.asn_stammdaten.name }}
                                     </div>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.vorname.label_tag }} {{ form.edit_asn_stammdaten.vorname }}
+                                        {{ form.asn_stammdaten.vorname.label_tag }} {{ form.asn_stammdaten.vorname }}
                                     </div>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.email.label_tag }} {{ form.edit_asn_stammdaten.email }}
+                                        {{ form.asn_stammdaten.email.label_tag }} {{ form.asn_stammdaten.email }}
                                     </div>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.einsatzbuero.label_tag }} {{ form.edit_asn_stammdaten.einsatzbuero }}
+                                        {{ form.asn_stammdaten.einsatzbuero.label_tag }} {{ form.asn_stammdaten.einsatzbuero }}
                                     </div>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.einsatzbegleitung.label_tag }} {{ form.edit_asn_stammdaten.einsatzbegleitung }}
+                                        {{ form.asn_stammdaten.einsatzbegleitung.label_tag }} {{ form.asn_stammdaten.einsatzbegleitung }}
                                     </div>
                                     <div>
-                                        {{ form.edit_asn_stammdaten.pflegefachkraft.label_tag }} {{ form.edit_asn_stammdaten.pflegefachkraft }}
+                                        {{ form.asn_stammdaten.pflegefachkraft.label_tag }} {{ form.asn_stammdaten.pflegefachkraft }}
                                     </div>
                                 </fieldset>
                             {% else %}
                                 <fieldset id="fieldset-schicht-templates">
                                     <legend>Schichtvorlagen</legend>
                                     <div>
-                                         {{ form.edit_schicht.templates }}
+                                         {{ form.schicht.templates }}
                                     </div>
                                 </fieldset>
                             {% endif %}
@@ -56,9 +56,9 @@
                         <fieldset>
                             <legend>Wann?</legend>
                             <div>
-                                {{ form.edit_schicht.beginn.label_tag }} {{ form.edit_schicht.beginn }}
+                                {{ form.schicht.beginn.label_tag }} {{ form.schicht.beginn }}
                             </div><div>
-                                {{ form.edit_schicht.ende.label_tag }} {{ form.edit_schicht.ende }}
+                                {{ form.schicht.ende.label_tag }} {{ form.schicht.ende }}
                             </div>
                         </fieldset>
                         <fieldset>
@@ -66,24 +66,24 @@
                                 Was noch?
                             </legend>
                             <div>
-                                {{ form.edit_schicht.ist_kurzfristig }} {{ form.edit_schicht.ist_kurzfristig.label_tag }}
+                                {{ form.schicht.ist_kurzfristig }} {{ form.schicht.ist_kurzfristig.label_tag }}
                             </div><div>
-                                {{ form.edit_schicht.ist_ausfallgeld }} {{ form.edit_schicht.ist_ausfallgeld.label_tag }}
+                                {{ form.schicht.ist_ausfallgeld }} {{ form.schicht.ist_ausfallgeld.label_tag }}
                             </div><div>
-                                {{ form.edit_schicht.ist_assistententreffen }} {{ form.edit_schicht.ist_assistententreffen.label_tag }}
+                                {{ form.schicht.ist_assistententreffen }} {{ form.schicht.ist_assistententreffen.label_tag }}
                             </div><div>
-                                {{ form.edit_schicht.ist_pcg}} {{ form.edit_schicht.ist_pcg.label_tag }}
+                                {{ form.schicht.ist_pcg}} {{ form.schicht.ist_pcg.label_tag }}
                             </div><div>
-                                {{ form.edit_schicht.ist_schulung }} {{ form.edit_schicht.ist_schulung.label_tag }}
+                                {{ form.schicht.ist_schulung }} {{ form.schicht.ist_schulung.label_tag }}
                             </div>
                         </fieldset>
 
                         <fieldset>
                             <legend>Wo?</legend>
                             <div>
-                                {{ form.edit_schicht.beginn_adresse.label_tag }} {{ form.edit_schicht.beginn_adresse }}
+                                {{ form.schicht.beginn_adresse.label_tag }} {{ form.schicht.beginn_adresse }}
                             </div><div>
-                                {{ form.edit_schicht.ende_adresse.label_tag }} {{ form.edit_schicht.ende_adresse }}
+                                {{ form.schicht.ende_adresse.label_tag }} {{ form.schicht.ende_adresse }}
                             </div>
                         </fieldset>
                 {% endblock %}

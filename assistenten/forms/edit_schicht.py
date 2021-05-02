@@ -19,7 +19,7 @@ class EditSchichtForm(BetterModelForm):
             'ist_schulung']
         model = Schicht
 
-    asn = forms.ModelChoiceField(queryset=ASN.objects.all(),
+    asn = forms.ModelChoiceField(queryset=None,
                                  empty_label='Neuer ASN',
                                  widget=forms.Select(attrs={"onChange": 'submit()'}))
 
@@ -41,15 +41,21 @@ class EditSchichtForm(BetterModelForm):
     ist_pcg = forms.BooleanField(label='PCG/PCS', required=False)
     ist_schulung = forms.BooleanField(label='Schulung', required=False)
 
-    templates = forms.ModelChoiceField(queryset=SchichtTemplate.objects.all(),
+    templates = forms.ModelChoiceField(queryset=None,
                                        empty_label=None,
                                        widget=forms.RadioSelect())
 
     # entfernt den Doppelpunkt am Ende jedes Labels
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+        """ Grants access to the request object so that only members of the current user
+                are given as options"""
+        # TODO irgendwo eher den request schon aus der instance auspacken
+        print(kwargs)
+        self.request = kwargs['instance'].pop('request')
+        kwargs.pop('instance')
         self.label_suffix = ""  # Removes : as label suffix
-        print(self.fields['asn'])
+        super(EditSchichtForm, self).__init__(*args, **kwargs)
+        self.fields['asn'].queryset = self.request.user.assistent.asns
+
 
 
