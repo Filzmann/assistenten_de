@@ -16,10 +16,10 @@ class AddressForm(BetterModelForm):
         )
 
     bezeichner = forms.CharField(label='Bezeichner', max_length=100)
-    strasse = forms.CharField(label='Straße', max_length=100)
-    hausnummer = forms.CharField(label="Hausnummer", max_length=5)
-    plz = forms.CharField(label="PLZ", max_length=5)
-    stadt = forms.CharField(label="Stadt", max_length=100)
+    strasse = forms.CharField(label='Straße', max_length=100, required=False)
+    hausnummer = forms.CharField(label="Hausnummer", max_length=5, required=False)
+    plz = forms.CharField(label="PLZ", max_length=5, required=False)
+    stadt = forms.CharField(label="Stadt", max_length=100, required=False)
 
 
 class HomeForm(AddressForm):

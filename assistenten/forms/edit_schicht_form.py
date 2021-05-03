@@ -1,5 +1,5 @@
 
-from betterforms.forms import Fieldset, BetterModelForm
+from betterforms.forms import BetterModelForm
 from django import forms
 from django.utils.datetime_safe import datetime
 
@@ -74,7 +74,8 @@ class EditSchichtForm(BetterModelForm):
             # und da zufällig ein asn für die Schicht ausgewählt ist
             if kwargs['data']['schicht-asn']:
                 # werden seine Templates geladen
-                self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=kwargs['data']['schicht-asn'])
+                self.fields['templates'].queryset = SchichtTemplate.objects.filter(
+                    asn__id=kwargs['data']['schicht-asn'])
 
                 # und seine Adresslisten
                 self.fields['beginn_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])

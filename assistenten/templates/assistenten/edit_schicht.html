@@ -6,6 +6,22 @@
 
 {% block content %}
 
+    {% for formular in form %}
+        {% if formular.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in formular.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {%  endfor %}
 
     <div>
         <form action="" method="post">
