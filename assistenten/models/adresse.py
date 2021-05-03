@@ -17,7 +17,7 @@ class Adresse(models.Model):
     asn = models.ForeignKey(ASN, related_name='adressen', on_delete=models.CASCADE, null=True, blank=True)
 
     def __repr__(self):
-        return f"Address(id={self.bezeichner!r}, " \
+        return f"Address(bezeichner={self.bezeichner!r}, " \
                f"strasse={self.strasse!r}, " \
                f"hausnummer={self.hausnummer!r}, " \
                f"plz={self.plz!r})"

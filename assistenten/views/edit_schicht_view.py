@@ -22,12 +22,13 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
+        print(form)
         schicht = form['edit_schicht'].save()
         assistent = self.request.user.assistent
         schicht.assistents.add(assistent)
-        schicht.save()
+        # schicht.save()
 
-        return redirect('edit_asn', pk=schicht.id)
+        # return redirect('edit_asn', pk=schicht.id)
 
 
 class EditSchichtView(LoginRequiredMixin, UpdateView):
