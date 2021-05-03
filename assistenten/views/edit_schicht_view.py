@@ -19,6 +19,9 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
 
         })
         kwargs['request'] = self.request
+
+        print(kwargs)
+        # kwargs['data']['']
         return kwargs
 
     def form_valid(self, form):

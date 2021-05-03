@@ -1,5 +1,8 @@
+
 from betterforms.forms import Fieldset, BetterModelForm
 from django import forms
+from django.utils.datetime_safe import datetime
+
 from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate
 from assistenten.widgets import XDSoftDateTimePickerInput
 
@@ -24,19 +27,23 @@ class EditSchichtForm(BetterModelForm):
                                  widget=forms.Select(attrs={"onChange": 'submit()'}))
 
     beginn = forms.DateTimeField(
-        input_formats=['%d.%m.%Y'],
-        widget=XDSoftDateTimePickerInput()
+        input_formats=['%d.%m.%Y %H:%M'],
+        widget=XDSoftDateTimePickerInput(),
+        initial=datetime.now().strftime('%d.%m.%Y %H:%M')
     )
     ende = forms.DateTimeField(
-        input_formats=['%d.%m.%Y'],
-        widget=XDSoftDateTimePickerInput()
+        input_formats=['%d.%m.%Y %H:%M'],
+        widget=XDSoftDateTimePickerInput(),
+        initial=datetime.now().strftime('%d.%m.%Y %H:%M')
     )
 
     beginn_adresse = forms.ModelChoiceField(queryset=Adresse.objects.filter(asn=None),
-                                            empty_label='Neue Adresse eingeben'
+                                            empty_label='Neue Adresse eingeben',
+                                            required=False
                                             )
     ende_adresse = forms.ModelChoiceField(queryset=Adresse.objects.filter(asn=None),
-                                          empty_label='Neue Adresse eingeben'
+                                          empty_label='Neue Adresse eingeben',
+                                          required=False
                                           )
 
     ist_kurzfristig = forms.BooleanField(label='BSD/RB', required=False)
@@ -46,8 +53,9 @@ class EditSchichtForm(BetterModelForm):
     ist_schulung = forms.BooleanField(label='Schulung', required=False)
 
     templates = forms.ModelChoiceField(queryset=None,
+                                       required=False,
                                        empty_label=None,
-                                       widget=forms.RadioSelect())
+                                       widget=forms.RadioSelect(attrs={"onClick": 'use_template()'}))
 
     # entfernt den Doppelpunkt am Ende jedes Labels
     def __init__(self, *args, **kwargs):
