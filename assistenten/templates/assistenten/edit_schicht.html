@@ -6,22 +6,7 @@
 
 {% block content %}
 
-    {% for formular in form %}
-        {% if formular.errors %}
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <div class="alert alert-danger">
-                        <strong>{{ error|escape }}</strong>
-                    </div>
-                {% endfor %}
-            {% endfor %}
-            {% for error in formular.non_field_errors %}
-                <div class="alert alert-danger">
-                    <strong>{{ error|escape }}</strong>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {%  endfor %}
+
 
     <div>
         <form action="" method="post">
@@ -78,11 +63,21 @@
                                             var bis = vonbis[1];
 
                                             var beginnfeld = document.getElementById('id_schicht-beginn').value;
-                                            var beginntag = beginnfeld.split(" ")[0];
-                                            
-                                            beginnArray= beginntag.split('.');
-                                            beginnDateTime = new Date(beginnArray[2], beginnArray[1], beginnArray[0], von.split(':')[0], von.split(':')[1]);
-                                            endeDateTime = new Date(beginnArray[2], beginnArray[1], beginnArray[0], bis.split(':')[0], bis.split(':')[1]);
+                                            if (beginnfeld != '')
+                                            {
+                                                var beginntag = beginnfeld.split(" ")[0];
+                                                beginnArray= beginntag.split('.');
+                                                beginnDateTime = new Date(beginnArray[2], beginnArray[1], beginnArray[0], von.split(':')[0], von.split(':')[1]);
+                                            }
+                                            else{
+                                                beginnDateTime = new Date();
+                                                beginnDateTime.setHours(von.split(':')[0]);
+                                                beginnDateTime.setMinutes(von.split(':')[1]);
+                                            }
+                                            endeDateTime = new Date(beginnDateTime.getFullYear(),
+                                                                    beginnDateTime.getMonth(),
+                                                                    beginnDateTime.getDate(),
+                                                                    bis.split(':')[0], bis.split(':')[1]);
                                             // check ob tag oder nachtschicht, wir vernachlässigen die minuten
                                             // bei nachtschicht Ende am Folgetag
                                             if( beginnDateTime.getHours() > endeDateTime.getHours())
@@ -120,11 +115,23 @@
                         </fieldset>
                         <fieldset>
                             <legend>Wann?</legend>
+
                             <div>
                                 {{ form.schicht.beginn.label_tag }} {{ form.schicht.beginn }}
-                            </div><div>
+                            </div>
+                            {% for error in form.schicht.beginn.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                            <div>
                                 {{ form.schicht.ende.label_tag }} {{ form.schicht.ende }}
                             </div>
+                            {% for error in form.schicht.end.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
                         </fieldset>
                         <fieldset>
                             <legend>
@@ -147,17 +154,47 @@
                                 <legend>Wo?</legend>
                                 <div>
                                     {{ form.schicht.beginn_adresse.label_tag }} {{ form.schicht.beginn_adresse }}
-                                </div><div>
+                                </div>
+                                {% for error in form.schicht.beginn_adresse.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                                <div>
                                     {{ form.schicht.ende_adresse.label_tag }} {{ form.schicht.ende_adresse }}
                                 </div>
+                                {% for error in form.schicht.ende_adresse.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
                             </fieldset>
                         {% endif %}
                 {% endblock %}
 
             <div class="buttonleiste">
-                <input type="submit" value="Speichern">
+                <input type="submit" value="Speichern" name="just_save">
+                <input type="submit" value="Speichern und neu" name="save_and_new">
+
             </div>
         </form>
     </div>
 <pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
 {% endblock %}
+    {% for formular in form %}
+        {% if formular.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        {{ field.label_tag }}
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in formular.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }} </strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {%  endfor %}
