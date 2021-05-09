@@ -23,6 +23,15 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         print(self.request.GET)
+        print(kwargs)
+        if 'year' in self.request.GET:
+            self.act_date = datetime(year=int(self.request.GET['year']),
+                                     month=int(self.request.GET['month']),
+                                     day=1)
+        elif 'year' in kwargs:
+            self.act_date = datetime(year=int(kwargs['year']),
+                                     month=int(kwargs['month']),
+                                     day=1)
 
         context = super().get_context_data(**kwargs)
         # Add in a QuerySet of all the books
@@ -71,11 +80,11 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                  year=1,
                                  day=1).strftime('%m')] = datetime(month=i,
                                                                    year=1,
-                                                                   day=1).strftime('%B')
+                                                                   day=1).strftime('%b')
 
         jahresliste = []
-        for j in range(datetime.now().year, datetime.now().year-40, -1):
-            jahresliste.append(j)
+        for j in range(datetime.now().year + 2, datetime.now().year-40, -1):
+            jahresliste.append(str(j))
 
         return {
             'act_date': act_date,

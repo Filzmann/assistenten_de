@@ -48,7 +48,10 @@ legend
     display: inline-block;
 }
 
-
+.inline
+{
+    display: inline-block;
+}
 
 
 

@@ -3,24 +3,34 @@
 {% block content %}
     <div>
         <a href="{% url 'schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
-        {{ nav_timedelta.act_date|date:"M Y" }}
-        <a href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}">Einen Monat weiter</a>
 
         <div class ="inline">
             <form method="get" action="">
                 <select name="month" onchange="form.submit()">
                     {% for key, value in nav_timedelta.monatsliste.items %}
-                        <option value="{{ key }}"> {{ value }} </option>
+                        <option value="{{ key }}"
+                        {% if key == nav_timedelta.act_date|date:"m" %}
+                            selected="selected"
+                        {% endif %}
+
+                        > {{ value }} </option>
                     {% endfor %}
                 </select>
                 <select name="year" onchange="form.submit()">
                     {% for year in nav_timedelta.jahresliste %}
-                        <option value="{{ year }}"> {{ year }} </option>
+
+                        <option value="{{ year }}"
+                        {% if year == nav_timedelta.act_date|date:"Y" %}
+                            selected="selected"
+                        {% endif %}
+                        > {{ year }} </option>
                     {% endfor %}
                 </select>
 
             </form>
         </div>
+        <a href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
+
     </div>
     <div>{{ summen }}</div>
     <ul>
