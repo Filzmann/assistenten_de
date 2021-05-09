@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import request
 from django.utils.datetime_safe import datetime
 from django.views.generic import ListView, TemplateView
 from assistenten.models import Schicht
@@ -16,6 +17,13 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     context_object_name = 'as_schicht_tabellen_monat'
     template_name = 'assistenten/show_AsSchichtTabelle.html'
     act_date = datetime.now()
+
+    def __init__(self):
+
+        super().__init__()
+        print(self)
+
+        self.act_date = datetime.now()
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -41,23 +49,41 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         vormonat = {
             'year': act_date.year,
             'month': act_date.month - 1,
-            'day:
+
         }
         if vormonat['month'] == 0:
             vormonat['month'] = 12
-            vormonat['jahr'] -= 1
+            vormonat['year'] -= 1
 
-
+        vormonat_date = datetime(year=vormonat['year'], month=vormonat['month'], day=1)
 
         nachmonat = {
             'year': act_date.year,
             'month': act_date.month + 1,
+
         }
         if nachmonat['month'] == 13:
             nachmonat['month'] = 1
-            nachmonat['jahr'] += 1
+            nachmonat['year'] += 1
+
+        nachmonat_date = datetime(year=nachmonat['year'], month=nachmonat['month'], day=1)
+
+        monatsliste = {}
+        for i in range(1, 13):
+            monatsliste[datetime(month=i,
+                                 year=1,
+                                 day=1).strftime('%m')] = datetime(month=i,
+                                                                   year=1,
+                                                                   day=1).strftime('%B')
+
+        jahresliste = []
+        for j in range(datetime.now().year, datetime.now().year-40, -1):
+            jahresliste.append(j)
 
         return {
-            'act_date': act_date.strftime('%d.%m.%Y'),
-            'nachmonat': '.'.join()
-                }
+            'act_date': act_date,
+            'vormonat_date': vormonat_date,
+            'nachmonat_date': nachmonat_date,
+            'monatsliste': monatsliste,
+            'jahresliste': jahresliste
+        }

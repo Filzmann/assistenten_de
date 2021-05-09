@@ -2,9 +2,25 @@
 
 {% block content %}
     <div>
-        <form name="time_navigator" action="" method="post">
-        {{ nav_timedelta }}
-        </form>
+        <a href="{% url 'schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
+        {{ nav_timedelta.act_date|date:"M Y" }}
+        <a href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}">Einen Monat weiter</a>
+
+        <div class ="inline">
+            <form method="get" action="">
+                <select name="month" onchange="form.submit()">
+                    {% for key, value in nav_timedelta.monatsliste.items %}
+                        <option value="{{ key }}"> {{ value }} </option>
+                    {% endfor %}
+                </select>
+                <select name="year" onchange="form.submit()">
+                    {% for year in nav_timedelta.jahresliste %}
+                        <option value="{{ year }}"> {{ year }} </option>
+                    {% endfor %}
+                </select>
+
+            </form>
+        </div>
     </div>
     <div>{{ summen }}</div>
     <ul>

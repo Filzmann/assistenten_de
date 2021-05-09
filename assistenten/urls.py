@@ -8,6 +8,7 @@ from .views.schicht_tabelle_view import AsSchichtTabellenView
 urlpatterns = [
     # path('', views.index, name='index'),
     path('', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
+    path('schicht_tabelle/<int:year>/<int:month>', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('edit_as/<int:pk>', EditAssistentView.as_view(), name='edit_as'),
     path('create_asn', CreateAsnView.as_view(), name='create_asn'),
     path('edit_asn/<int:pk>', EditAsnView.as_view(), name='edit_asn'),
