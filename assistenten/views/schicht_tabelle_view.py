@@ -18,15 +18,12 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     template_name = 'assistenten/show_AsSchichtTabelle.html'
     act_date = datetime.now()
 
-    def __init__(self):
 
-        super().__init__()
-        print(self)
-
-        self.act_date = datetime.now()
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
+        print(self.request.GET)
+
         context = super().get_context_data(**kwargs)
         # Add in a QuerySet of all the books
         context['nav_timedelta'] = self.get_time_navigation_data()
