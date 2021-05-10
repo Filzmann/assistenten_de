@@ -2,7 +2,7 @@
 
 {% block content %}
     <div>
-        <a href="{% url 'schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
+        <a class="buttonlink inline" href="{% url 'schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
 
         <div class ="inline">
             <form method="get" action="">
@@ -29,13 +29,58 @@
 
             </form>
         </div>
-        <a href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
+        <a class="buttonlink inline" href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
 
     </div>
-    <div>{{ summen }}</div>
-    <ul>
-        {% for schicht in schichten %}
-            <li>{{ schicht.beginn }}</li>
+
+    <table border="1">
+        <tr>
+            <td>Tag</td>
+            <td>von</td>
+            <td>bis</td>
+            <td>ASN</td>
+            <td>Stunden</td>
+            <td>Lohn</td>
+            <td>BSD/RB</td>
+            <td>Stunden<br>Nacht</td>
+            <td>Nachtzschlg.</td>
+            <td>Orga</td>
+            <td>Wechselschicht</td>
+            <td>{{ schicht.schichtlohn }}</td>
+
+        </tr>
+        {% for tag, schichten in schichttabelle.items %}
+            {% if schichten %}
+                {% for schicht in schichten %}
+                    <tr >
+                        <td>
+                            {{ tag }}
+                        </td>
+                        <td>{{ schicht.von }}</td>
+                        <td>{{ schicht.bis }}</td>
+                        <td>{{ schicht.asn }}</td>
+                        <td>{{ schicht.stunden }}</td>
+                        <td>{{ schicht.schichtlohn }}</td>
+                        <td>{{ schicht.bsd }}</td>
+                        <td>{{ schicht.nachstunden }}</td>
+                        <td>{{ schicht.nachtzuschlag_schicht }}</td>
+                        <td>{{ schicht.orgazulage_schicht }}</td>
+                        <td>{{ schicht.wechselzulage_schicht }}</td>
+
+                    </tr>
+                {% endfor %}
+
+            {% else %}
+                <tr>
+                    <td>
+                        {{ tag }}
+                    </td>
+                </tr>
+            {% endif %}
         {% endfor %}
-    </ul>
+    </table>
+    <div>{{ summen }}</div>
+
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
 {% endblock %}
+

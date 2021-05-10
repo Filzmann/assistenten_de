@@ -53,6 +53,14 @@ legend
     display: inline-block;
 }
 
+.buttonlink
+{
+    border: 1px solid black;
+    width: 10em;
+    height: 1.5em;
+    text-align: center;
+    vertical-align: middle;
+}
 
 
 
