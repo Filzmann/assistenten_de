@@ -32,8 +32,8 @@
         <a class="buttonlink inline" href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
 
     </div>
-
-    <table border="1">
+    <div class="inline">
+        <table border="1">
         <tr>
             <td>Tag</td>
             <td>von</td>
@@ -59,13 +59,13 @@
                         <td>{{ schicht.von }}</td>
                         <td>{{ schicht.bis }}</td>
                         <td>{{ schicht.asn }}</td>
-                        <td>{{ schicht.stunden }}</td>
-                        <td>{{ schicht.schichtlohn }}</td>
-                        <td>{{ schicht.bsd }}</td>
-                        <td>{{ schicht.nachstunden }}</td>
-                        <td>{{ schicht.nachtzuschlag_schicht }}</td>
-                        <td>{{ schicht.orgazulage_schicht }}</td>
-                        <td>{{ schicht.wechselzulage_schicht }}</td>
+                        <td class="right">{{ schicht.stunden }}</td>
+                        <td class="right">{{ schicht.schichtlohn }}</td>
+                        <td class="right">{{ schicht.bsd }}</td>
+                        <td class="right">{{ schicht.nachtstunden }}</td>
+                        <td class="right">{{ schicht.nachtzuschlag_schicht }}</td>
+                        <td class="right">{{ schicht.orgazulage_schicht }}</td>
+                        <td class="right">{{ schicht.wechselzulage_schicht }}</td>
 
                     </tr>
                 {% endfor %}
@@ -79,7 +79,62 @@
             {% endif %}
         {% endfor %}
     </table>
-    <div>{{ summen }}</div>
+    </div>
+    <div class="inline">
+        <table>
+            <tr>
+                <td>Bezeichner</td>
+                <td>Stunden</td>
+                <td>pro Stunde</td>
+                <td>Gesamt</td>
+            </tr>
+            <tr>
+                <td>Lohn</td>
+                <td class="right">{{summen.arbeitsstunden|floatformat:1}}</td>
+                <td class="right">{{summen.stundenlohn|floatformat:2}}€</td>
+                <td class="right">{{summen.lohn|floatformat:2}}€</td>
+            </tr>
+            <tr>
+                <td>Nachtzuschlag</td>
+                <td class="right">{{summen.nachtstunden|floatformat:1}}</td>
+                <td class="right">{{summen.nachtzuschlag|floatformat:2}}€</td>
+                <td class="right">{{summen.nachtzuschlag_kumuliert|floatformat:2}}€</td>
+            </tr>
+            {% if summen.bsd %}
+                <tr>
+                    <td>kurzfristig RB/BSD</td>
+                    <td class="right">{{summen.bsd_stunden|floatformat:1}}</td>
+                    <td class="right">{{summen.bsd_lohn|floatformat:2}}€</td>
+                    <td class="right">{{summen.bsd_kumuliert|floatformat:2}}€</td>
+                </tr>
+                <tr>
+                    <td>Wegegeld BSD</td>
+                    <td colspan="3">kommt bald </td>
+                </tr>
+            {% endif %}
+            <tr>
+                <td>Orgazuschlag</td>
+                <td class="right">{{summen.arbeitsstunden|floatformat:1}}</td>
+                <td class="right">{{summen.orga_zuschlag|floatformat:2}}€</td>
+                <td class="right">{{summen.orga_zuschlag_kumuliert|floatformat:2}}€</td>
+            </tr>
+            <tr>
+                <td>Wechselschichtzuschlag</td>
+                <td class="right">{{summen.arbeitsstunden|floatformat:1}}</td>
+                <td class="right">{{summen.wechselschicht_zuschlag|floatformat:2}}€</td>
+                <td class="right">{{summen.wechselschicht_zuschlag_kumuliert|floatformat:2}}€</td>
+            </tr>
+            <tr>
+                <td>Bruttolohn</td>
+                <td></td>
+                <td></td>
+                <td class="right">{{summen.bruttolohn|floatformat:2}}€</td>
+            </tr>
+
+        </table>
+
+
+    </div>
 
 <pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
 {% endblock %}

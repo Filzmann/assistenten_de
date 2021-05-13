@@ -55,19 +55,19 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht: Schicht):
                           'stunden_steuerpflichtig': 0,
                           'add_info': check_feiertag(anfang)
                           }
-    elif datetime(year=anfang.year, month=anfang.month, day=anfang.day) == \
-            datetime(anfang.year, 12, 24) or \
-            datetime(anfang.year, anfang.month, anfang.day) == \
-            datetime(anfang.year, 12, 31):
-        if datetime(anfang.year, anfang.month, anfang.day) == \
-                datetime(anfang.year, 12, 24):
+    elif datetime(year=anfang.year, month=anfang.month, day=anfang.day, tzinfo=UTC) == \
+            datetime(anfang.year, 12, 24, tzinfo=UTC) or \
+            datetime(anfang.year, anfang.month, anfang.day, tzinfo=UTC) == \
+            datetime(anfang.year, 12, 31, tzinfo=UTC):
+        if datetime(anfang.year, anfang.month, anfang.day, tzinfo=UTC) == \
+                datetime(anfang.year, 12, 24, tzinfo=UTC):
             zuschlagsgrund = 'Hl. Abend'
         if datetime(anfang.year, anfang.month, anfang.day) == \
-                datetime(anfang.year, 12, 31):
+                datetime(anfang.year, 12, 31, tzinfo=UTC):
             zuschlagsgrund = 'Silvester'
 
-        sechsuhr = datetime(anfang.year, anfang.month, anfang.day, 6, 0, 0)
-        vierzehn_uhr = datetime(anfang.year, anfang.month, anfang.day, 14, 0, 0)
+        sechsuhr = datetime(anfang.year, anfang.month, anfang.day, 6, 0, 0, tzinfo=UTC)
+        vierzehn_uhr = datetime(anfang.year, anfang.month, anfang.day, 14, 0, 0, tzinfo=UTC)
 
         if anfang < sechsuhr:
             if ende <= sechsuhr:
@@ -102,8 +102,8 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht: Schicht):
                           'add_info': ''
                           }
     elif anfang.weekday() == 5:
-        dreizehn_uhr = datetime(anfang.year, anfang.month, anfang.day, 13, 0, 0)
-        einundzwanzig_uhr = datetime(anfang.year, anfang.month, anfang.day, 21, 0, 0)
+        dreizehn_uhr = datetime(anfang.year, anfang.month, anfang.day, 13, 0, 0, tzinfo=UTC)
+        einundzwanzig_uhr = datetime(anfang.year, anfang.month, anfang.day, 21, 0, 0, tzinfo=UTC)
 
         if anfang < dreizehn_uhr:
             if ende < dreizehn_uhr:
@@ -200,11 +200,11 @@ def check_feiertag(datum):
 def get_monatserster(datum):
     return datetime(year=datum.year,
                     month=datum.month,
-                    day=1,
+                    day=1, tzinfo=UTC
                     )
 
 
-def get_erfahrungsstufe(assistent, datum=datetime.now()):
+def get_erfahrungsstufe(assistent, datum=timezone.now()):
     delta = get_duration(assistent.einstellungsdatum, datum, 'years')
     # einstieg mit 1
     # nach 1 Jahr insgesamt 2
@@ -291,7 +291,7 @@ def get_sliced_schichten(start, end):
     return sliced_schichten
 
 
-def get_duration(then, now=datetime.now(), interval="default"):
+def get_duration(then, now=timezone.now(), interval="default"):
     # Returns a duration as specified by variable interval
     # Functions, except totalDuration, returns [quotient, remainder]
 
@@ -496,6 +496,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         }
 
     def get_context_data(self, **kwargs):
+        self.reset()
         # Call the base implementation first to get a context
         if 'year' in self.request.GET:
             self.act_date = datetime(year=int(self.request.GET['year']),
@@ -516,7 +517,9 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         context['schichttabelle'] = self.get_table_data()
         self.calc_add_sum_data()
         context['summen'] = self.summen
+        self.reset()
         return context
+
 
     def calc_add_sum_data(self):
         self.summen['bruttolohn'] = float(
@@ -577,7 +580,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                     # Grund zu lower-case mit "_" statt " " und ohne punkte,
                     # damit es dem Spaltennamen der Tabelle entspricht
                     spaltenname = grund.lower().replace('.', '').replace(' ', '_') + '_zuschlag'
-                    stundenzuschlag = getattr(lohn, spaltenname)
+                    stundenzuschlag = float(getattr(lohn, spaltenname))
                     schichtzuschlag = zuschlaege['stunden_gesamt'] * stundenzuschlag
                     zuschlaege_text = grund + ': ' \
                                       + "{:,.2f}".format(zuschlaege['stunden_gesamt']) \
@@ -596,15 +599,15 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                     'stunden': "{:,.2f}".format(stunden),
                     'stundenlohn': "{:,.2f}€".format(lohn.grundlohn),
                     'schichtlohn': "{:,.2f}€".format(float(lohn.grundlohn) * stunden),
-                    'bsd': "{:,.2f}€".format(lohn.grundlohn * stunden * 0.2) if schicht['ist_kurzfristig'] else ' ',
+                    'bsd': "{:,.2f}€".format(lohn.grundlohn * stunden * 0.2) if schicht['ist_kurzfristig'] else '',
                     'orgazulage': "{:,.2f}€".format(lohn.orga_zuschlag),
                     'orgazulage_schicht': "{:,.2f}€".format(float(lohn.orga_zuschlag) * stunden),
                     'wechselzulage': "{:,.2f}€".format(lohn.wechselschicht_zuschlag),
                     'wechselzulage_schicht': "{:,.2f}€".format(float(lohn.wechselschicht_zuschlag) * stunden),
-                    'nachtstunden': "{:,.2f}".format(nachtstunden) if nachtstunden > 0 else ' ',
+                    'nachtstunden': "{:,.2f}".format(nachtstunden) if nachtstunden > 0 else '',
                     'nachtzuschlag': "{:,.2f}€".format(lohn.nacht_zuschlag),
                     'nachtzuschlag_schicht': "{:,.2f}€".format(
-                        float(lohn.nacht_zuschlag) * nachtstunden) if nachtstunden > 0 else ' ',
+                        float(lohn.nacht_zuschlag) * nachtstunden) if nachtstunden > 0 else '',
                     'zuschlaege': zuschlaege_text,
                     'type': 'schicht'
                 }
@@ -653,7 +656,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         if 'year' in self.request.POST:
             self.act_date = datetime(year=self.request.POST['year'],
                                      month=self.request.POST['month'],
-                                     day=1
+                                     day=1,
+                                     tzinfo=UTC
                                      )
 
         act_date = get_monatserster(self.act_date)
@@ -676,4 +680,34 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             'nachmonat_date': nachmonat_date,
             'monatsliste': monatsliste,
             'jahresliste': jahresliste
+        }
+
+    def reset(self):
+        self.summen = {
+            'arbeitsstunden': 0,
+            'stundenlohn': 0,
+            'lohn': 0,
+            'nachtstunden': 0,
+            'nachtzuschlag': 0,
+            'nachtzuschlag_kumuliert': 0,
+            'bsd': 0,
+            'bsd_stunden': 0,
+            'bsd_kumuliert': 0,
+            'wegegeld_bsd': 0,
+            'orga_zuschlag': 0,
+            'orga_zuschlag_kumuliert': 0,
+            'wechselschicht_zuschlag': 0,
+            'wechselschicht_zuschlag_kumuliert': 0,
+            'freizeitausgleich': 0,
+            'bruttolohn': 0,
+            'anzahl_feiertage': 0,
+            'freie_sonntage': 52,
+            'moegliche_arbeitssonntage': 37,
+            'urlaubsstunden': 0,
+            'stundenlohn_urlaub': 0,
+            'urlaubslohn': 0,
+            'austunden': 0,
+            'stundenlohn_au': 0,
+            'aulohn': 0
+
         }

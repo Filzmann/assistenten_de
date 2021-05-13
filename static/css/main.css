@@ -51,6 +51,19 @@ legend
 .inline
 {
     display: inline-block;
+    vertical-align: top;
+    margin: 5px;
+
+}
+
+.right
+{
+    text-align: right;
+}
+
+.inline table
+{
+    margin: 0px auto;
 }
 
 .buttonlink
