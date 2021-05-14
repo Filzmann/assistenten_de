@@ -1,5 +1,7 @@
 {% extends "app_base.html" %}
 
+{% load static %}
+
 {% block content %}
     <div>
         <a class="buttonlink inline" href="{% url 'schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
@@ -35,6 +37,7 @@
     <div class="inline">
         <table border="1">
         <tr>
+            <td></td>
             <td>Tag</td>
             <td>von</td>
             <td>bis</td>
@@ -47,12 +50,33 @@
             <td>Orga</td>
             <td>Wechselschicht</td>
             <td>{{ schicht.schichtlohn }}</td>
-
         </tr>
         {% for tag, schichten in schichttabelle.items %}
             {% if schichten %}
                 {% for schicht in schichten %}
                     <tr >
+                        <td>
+                            <form method="post">
+                                 {% csrf_token %}
+                                <input type="image"
+                                       src="{% static 'images/del.png'%}"
+                                       formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                       value=""
+                                       onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                >
+                                <input type="image"
+                                       src="{% static 'images/edit.png'%}"
+                                       formaction="{% url 'edit_schicht' 11 %}"
+                                       value=""
+                                >
+                                <input type="image"
+                                       src="{% static 'images/add.png'%}"
+                                       formaction="{% url 'create_schicht'  %}"
+                                       value=""
+                                >
+                            </form>
+                        </td>
+
                         <td>
                             {{ tag }}
                         </td>
@@ -66,12 +90,11 @@
                         <td class="right">{{ schicht.nachtzuschlag_schicht }}</td>
                         <td class="right">{{ schicht.orgazulage_schicht }}</td>
                         <td class="right">{{ schicht.wechselzulage_schicht }}</td>
-
                     </tr>
                 {% endfor %}
-
             {% else %}
                 <tr>
+                    <td></td>
                     <td>
                         {{ tag }}
                     </td>
@@ -130,12 +153,7 @@
                 <td></td>
                 <td class="right">{{summen.bruttolohn|floatformat:2}}€</td>
             </tr>
-
         </table>
-
-
     </div>
-
 <pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
 {% endblock %}
-

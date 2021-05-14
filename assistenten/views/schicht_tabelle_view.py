@@ -2,12 +2,10 @@ from datetime import timedelta
 from time import strptime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import request
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
-from django.views.generic import ListView, TemplateView
+from django.views.generic import TemplateView
 from pytz import UTC
-
 from assistenten.models import Schicht, Lohn
 
 
@@ -448,7 +446,7 @@ def shift_month(date: datetime, step: int = 1):
         for i in range(0, abs(step)):
             nachmonat = {
                 'year': act_date.year,
-                'month': act_date.month -1,
+                'month': act_date.month - 1,
 
             }
             if nachmonat['month'] == 0:
@@ -460,40 +458,39 @@ def shift_month(date: datetime, step: int = 1):
     return act_date
 
 
-
 class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     model = Schicht
     context_object_name = 'as_schicht_tabellen_monat'
     template_name = 'assistenten/show_AsSchichtTabelle.html'
     act_date = timezone.now()
     summen = {
-            'arbeitsstunden': 0,
-            'stundenlohn': 0,
-            'lohn': 0,
-            'nachtstunden': 0,
-            'nachtzuschlag': 0,
-            'nachtzuschlag_kumuliert': 0,
-            'bsd': 0,
-            'bsd_stunden': 0,
-            'bsd_kumuliert': 0,
-            'wegegeld_bsd': 0,
-            'orga_zuschlag': 0,
-            'orga_zuschlag_kumuliert': 0,
-            'wechselschicht_zuschlag': 0,
-            'wechselschicht_zuschlag_kumuliert': 0,
-            'freizeitausgleich': 0,
-            'bruttolohn': 0,
-            'anzahl_feiertage': 0,
-            'freie_sonntage': 52,
-            'moegliche_arbeitssonntage': 37,
-            'urlaubsstunden': 0,
-            'stundenlohn_urlaub': 0,
-            'urlaubslohn': 0,
-            'austunden': 0,
-            'stundenlohn_au': 0,
-            'aulohn': 0
+        'arbeitsstunden': 0,
+        'stundenlohn': 0,
+        'lohn': 0,
+        'nachtstunden': 0,
+        'nachtzuschlag': 0,
+        'nachtzuschlag_kumuliert': 0,
+        'bsd': 0,
+        'bsd_stunden': 0,
+        'bsd_kumuliert': 0,
+        'wegegeld_bsd': 0,
+        'orga_zuschlag': 0,
+        'orga_zuschlag_kumuliert': 0,
+        'wechselschicht_zuschlag': 0,
+        'wechselschicht_zuschlag_kumuliert': 0,
+        'freizeitausgleich': 0,
+        'bruttolohn': 0,
+        'anzahl_feiertage': 0,
+        'freie_sonntage': 52,
+        'moegliche_arbeitssonntage': 37,
+        'urlaubsstunden': 0,
+        'stundenlohn_urlaub': 0,
+        'urlaubslohn': 0,
+        'austunden': 0,
+        'stundenlohn_au': 0,
+        'aulohn': 0
 
-        }
+    }
 
     def get_context_data(self, **kwargs):
         self.reset()
@@ -512,7 +509,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.act_date = get_monatserster(timezone.now())
 
         context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
         context['nav_timedelta'] = self.get_time_navigation_data()
         context['schichttabelle'] = self.get_table_data()
         self.calc_add_sum_data()
@@ -532,9 +528,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['aulohn']) + float(
             self.summen['freizeitausgleich'])
 
-
     def get_table_data(self):
-        #TODO optimieren!!!
+        # TODO optimieren!!!
 
         start = self.act_date
         ende = get_first_of_next_month(this_month=start)
@@ -565,7 +560,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
             # stunden
             stunden = berechne_stunden(schicht)
-
 
             lohn = get_lohn(assistent=self.request.user.assistent, datum=schicht['beginn'])
 
@@ -630,17 +624,13 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['wechselschicht_zuschlag'] = lohn.wechselschicht_zuschlag
             self.summen['wechselschicht_zuschlag_kumuliert'] += lohn.wechselschicht_zuschlag
 
-
-
-
-
             # mehrere Schichten an jedem Tag nach schichtbeginn sortieren
         for key in schichten_view_data:
             schichten_view_data[key] = sort_schicht_data_by_beginn(schichten_view_data[key])
 
         monatsletzter = (shift_month(self.act_date, step=1) - timedelta(days=1)).day
         table_array = {}
-        for i in range(1, monatsletzter+1):
+        for i in range(1, monatsletzter + 1):
             key = str(i).zfill(2)
             if key in schichten_view_data:
                 table_array[key] = schichten_view_data[key]

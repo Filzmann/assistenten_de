@@ -1,6 +1,5 @@
 from betterforms.forms import BetterModelForm
 from django import forms
-from django.utils.datetime_safe import datetime
 
 from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate
 from assistenten.widgets import XDSoftDateTimePickerInput
@@ -23,16 +22,17 @@ class EditSchichtForm(BetterModelForm):
 
     asn = forms.ModelChoiceField(queryset=ASN.objects.all(),
                                  empty_label='Neuer ASN',
-                                 widget=forms.Select(attrs={"onChange": 'submit()'}))
+                                 widget=forms.Select(attrs={"onChange": 'submit()'}),
+                                 required=False)
 
     beginn = forms.DateTimeField(
         input_formats=('%d.%m.%Y %H:%M', '%d.%m.%Y %H:%M:%S',),
-        widget=XDSoftDateTimePickerInput(),
+        widget=XDSoftDateTimePickerInput(attrs={'autocomplete': 'off'}),
         # initial=datetime.now().strftime('%d.%m.%Y %H:%M')
     )
     ende = forms.DateTimeField(
         input_formats=('%d.%m.%Y %H:%M', '%d.%m.%Y %H:%M:%S',),
-        widget=XDSoftDateTimePickerInput(),
+        widget=XDSoftDateTimePickerInput(attrs={'autocomplete': 'off'}),
         # initial=datetime.now().strftime('%d.%m.%Y %H:%M')
     )
 
@@ -85,7 +85,7 @@ class EditSchichtForm(BetterModelForm):
         # Daher muss zwingend erst instance und dann kwargs[data abgefragt werden.]
         if kwargs['data']:
             # und da zufällig ein asn für die Schicht ausgewählt ist
-            if kwargs['data']['schicht-asn']:
+            if 'schicht-asn' in kwargs['data']:
                 # werden seine Templates geladen
                 self.fields['templates'].queryset = SchichtTemplate.objects.filter(
                     asn__id=kwargs['data']['schicht-asn'])

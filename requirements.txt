@@ -4,3 +4,5 @@ SeleniumLogin~=0.0.4
 mysqlclient
 https://github.com/jpic/django-betterforms/tarball/master
 django_crispy_forms
+
+pytz~=2021.1
