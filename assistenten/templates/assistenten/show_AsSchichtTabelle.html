@@ -64,16 +64,13 @@
                                        value=""
                                        onClick="return confirm('Wollen Sie wirklich löschen?')"
                                 >
-                                <input type="image"
-                                       src="{% static 'images/edit.png'%}"
-                                       formaction="{% url 'edit_schicht' 11 %}"
-                                       value=""
-                                >
-                                <input type="image"
-                                       src="{% static 'images/add.png'%}"
-                                       formaction="{% url 'create_schicht'  %}"
-                                       value=""
-                                >
+                                <a href="{% url 'edit_schicht' schicht.schicht_id %}">
+                                    <img src="{% static 'images/edit.png'%}">
+                                </a>
+                                <a href="{% url 'create_schicht' nav_timedelta.act_date|date:"Y" nav_timedelta.act_date|date:"m" tag %}">
+                                    <img src="{% static 'images/add.png'%}">
+                                </a>
+
                             </form>
                         </td>
 
@@ -94,7 +91,11 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td></td>
+                    <td>
+                        <a href="{% url 'create_schicht' nav_timedelta.act_date|date:"Y" nav_timedelta.act_date|date:"m" tag %}">
+                            <img src="{% static 'images/add.png'%}">
+                        </a>
+                    </td>
                     <td>
                         {{ tag }}
                     </td>

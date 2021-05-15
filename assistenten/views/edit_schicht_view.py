@@ -1,5 +1,8 @@
+from datetime import timezone
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.utils.datetime_safe import datetime
 from django.views.generic import UpdateView, CreateView, DeleteView
 from django.shortcuts import redirect
 from assistenten.forms.edit_schicht_multiform import EditSchichtMultiForm, CreateSchichtMultiForm
@@ -15,10 +18,22 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
     def get_form_kwargs(self):
 
         kwargs = super(CreateSchichtView, self).get_form_kwargs()
+        print(self.kwargs)
+
+        if self.kwargs['y']:
+            beginnende = str(self.kwargs['d']) + '.' \
+                         + str(self.kwargs['m']) + '.' \
+                         + str(self.kwargs['y']) + ' ' \
+                         + datetime.now().strftime('%H:%M')
+            local_kwargs_data = {'schicht-beginn': beginnende,
+                                 'schicht-ende': beginnende}
+            kwargs.update({
+                'data': local_kwargs_data
+            })
 
         # wenn asn in POST select home-adresse für beginn und ende der schicht
         if self.request.method in ('POST', 'PUT'):
-            if kwargs['data']['schicht-asn']:
+            if 'schicht-asn' in kwargs['data']:
                 local_post = self.request.POST.copy()
                 home_address_id = Adresse.objects.filter(
                     is_home=True).filter(
@@ -52,7 +67,7 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
             asn_home.asn = schicht.asn
             asn_home.is_home = True
             asn_home.save()
-            print(asn_home)
+            # print(asn_home)
             schicht.beginn_adresse = asn_home
             schicht.ende_adresse = asn_home
 
@@ -70,13 +85,11 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('edit_schicht')
 
     def get_form_kwargs(self):
-        print(self.object)
         kwargs = super(EditSchichtView, self).get_form_kwargs()
         # wenn asn in POST select home-adresse für beginn und ende der schicht
-
         if self.request.method in ('POST', 'PUT'):
+            local_post = self.request.POST.copy()
             if 'schicht-asn' in kwargs['data']:
-                local_post = self.request.POST.copy()
                 home_address_id = Adresse.objects.filter(
                     is_home=True).filter(
                     asn=ASN.objects.get(
@@ -86,21 +99,18 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
                 local_post['schicht-beginn_adresse'] = home_address_id
                 local_post['schicht-ende_adresse'] = home_address_id
 
-                kwargs.update({
-                    'data': local_post
-                })
+            kwargs.update({
+                'data': local_post
+            })
 
         kwargs.update(instance={
             'schicht': self.object,
         },
             request=self.request
         )
-        print(kwargs)
         return kwargs
 
     def form_valid(self, form):
-        print(self.request.POST)
-
         schicht = form['schicht'].save(commit=False)
         schicht.save()
         # TODO manchmal muss man 2 mal auf save klicken. warum?
@@ -116,4 +126,3 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
 class DeleteSchichtView(LoginRequiredMixin, DeleteView):
     model = Schicht
     success_url = reverse_lazy('schicht_tabelle')
-

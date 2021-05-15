@@ -15,7 +15,7 @@ urlpatterns = [
     path('del_feste_schicht/<int:pk>', DeleteFesteSchichtenView.as_view(), name='del_feste_schicht'),
     path('del_schicht_template/<int:pk>', DeleteSchichtTemplateView.as_view(), name='del_schicht_template'),
     path('create_schicht', CreateSchichtView.as_view(), name='create_schicht'),
-    path('create_schicht/<int:pk>', CreateSchichtView.as_view(), name='create_schicht'),
+    path('create_schicht/<int:y>/<int:m>/<int:d>', CreateSchichtView.as_view(), name='create_schicht'),
     path('edit_schicht/<int:pk>', EditSchichtView.as_view(), name='edit_schicht'),
     path('del_schicht/<int:pk>', DeleteSchichtView.as_view(), name='del_schicht'),
 
