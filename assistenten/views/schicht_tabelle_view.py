@@ -1,11 +1,9 @@
 from datetime import timedelta
 from time import strptime
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
-from pytz import UTC
 from assistenten.models import Schicht, Lohn
 
 
@@ -31,10 +29,10 @@ def berechne_ostern(jahr):
             m = 0
         tmp = tmp - 31
 
-    return datetime(year=jahr, month=3 + m, day=tmp)
+    return timezone.make_aware(datetime(year=jahr, month=3 + m, day=tmp))
 
 
-def berechne_sa_so_weisil_feiertagszuschlaege(schicht: Schicht):
+def berechne_sa_so_weisil_feiertagszuschlaege(schicht):
     feiertagsstunden = 0
     feiertagsstunden_steuerfrei = 0
     feiertagsstunden_steuerpflichtig = 0
@@ -53,19 +51,19 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht: Schicht):
                           'stunden_steuerpflichtig': 0,
                           'add_info': check_feiertag(anfang)
                           }
-    elif datetime(year=anfang.year, month=anfang.month, day=anfang.day, tzinfo=UTC) == \
-            datetime(anfang.year, 12, 24, tzinfo=UTC) or \
-            datetime(anfang.year, anfang.month, anfang.day, tzinfo=UTC) == \
-            datetime(anfang.year, 12, 31, tzinfo=UTC):
-        if datetime(anfang.year, anfang.month, anfang.day, tzinfo=UTC) == \
-                datetime(anfang.year, 12, 24, tzinfo=UTC):
+    elif timezone.make_aware(datetime(year=anfang.year, month=anfang.month, day=anfang.day)) == \
+            timezone.make_aware(datetime(anfang.year, 12, 24)) or \
+            timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day)) == \
+            timezone.make_aware(datetime(anfang.year, 12, 31)):
+        if timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day)) == \
+                timezone.make_aware(datetime(anfang.year, 12, 24)):
             zuschlagsgrund = 'Hl. Abend'
-        if datetime(anfang.year, anfang.month, anfang.day) == \
-                datetime(anfang.year, 12, 31, tzinfo=UTC):
+        if timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day)) == \
+                timezone.make_aware(datetime(anfang.year, 12, 31)):
             zuschlagsgrund = 'Silvester'
 
-        sechsuhr = datetime(anfang.year, anfang.month, anfang.day, 6, 0, 0, tzinfo=UTC)
-        vierzehn_uhr = datetime(anfang.year, anfang.month, anfang.day, 14, 0, 0, tzinfo=UTC)
+        sechsuhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 6, 0, 0))
+        vierzehn_uhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 14, 0, 0))
 
         if anfang < sechsuhr:
             if ende <= sechsuhr:
@@ -100,8 +98,8 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht: Schicht):
                           'add_info': ''
                           }
     elif anfang.weekday() == 5:
-        dreizehn_uhr = datetime(anfang.year, anfang.month, anfang.day, 13, 0, 0, tzinfo=UTC)
-        einundzwanzig_uhr = datetime(anfang.year, anfang.month, anfang.day, 21, 0, 0, tzinfo=UTC)
+        dreizehn_uhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 13, 0, 0))
+        einundzwanzig_uhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 21, 0, 0))
 
         if anfang < dreizehn_uhr:
             if ende < dreizehn_uhr:
@@ -196,10 +194,9 @@ def check_feiertag(datum):
 
 
 def get_monatserster(datum):
-    return datetime(year=datum.year,
-                    month=datum.month,
-                    day=1, tzinfo=UTC
-                    )
+    return timezone.make_aware(datetime(year=datum.year,
+                                        month=datum.month,
+                                        day=1))
 
 
 def get_erfahrungsstufe(assistent, datum=timezone.now()):
@@ -240,18 +237,18 @@ def get_nachtstunden(schicht):
 
     nachtstunden = 0
 
-    null_uhr = datetime(year=schicht['beginn'].year,
-                        month=schicht['beginn'].month,
-                        day=schicht['beginn'].day,
-                        hour=0, minute=0, second=0, tzinfo=UTC)
-    sechs_uhr = datetime(year=schicht['beginn'].year,
-                         month=schicht['beginn'].month,
-                         day=schicht['beginn'].day,
-                         hour=6, minute=0, second=0, tzinfo=UTC)
-    einundzwanzig_uhr = datetime(year=schicht['beginn'].year,
-                                 month=schicht['beginn'].month,
-                                 day=schicht['beginn'].day,
-                                 hour=21, minute=0, second=0, tzinfo=UTC)
+    null_uhr = timezone.make_aware(datetime(year=schicht['beginn'].year,
+                                            month=schicht['beginn'].month,
+                                            day=schicht['beginn'].day,
+                                            hour=0, minute=0, second=0))
+    sechs_uhr = timezone.make_aware(datetime(year=schicht['beginn'].year,
+                                             month=schicht['beginn'].month,
+                                             day=schicht['beginn'].day,
+                                             hour=6, minute=0, second=0))
+    einundzwanzig_uhr = timezone.make_aware(datetime(year=schicht['beginn'].year,
+                                                     month=schicht['beginn'].month,
+                                                     day=schicht['beginn'].day,
+                                                     hour=21, minute=0, second=0))
 
     # schicht beginnt zwischen 0 und 6 uhr
     if null_uhr <= schicht['beginn'] <= sechs_uhr:
@@ -343,7 +340,7 @@ def get_first_of_next_month(this_month: datetime):
     if month == 13:
         month = 1
         year += 1
-    return datetime(year=year, month=month, day=day, tzinfo=UTC)
+    return timezone.make_aware(datetime(year=year, month=month, day=day))
 
 
 def sort_schicht_data_by_beginn(schichten: list):
@@ -353,9 +350,9 @@ def sort_schicht_data_by_beginn(schichten: list):
 
     for schicht in schichten:
         insert_flag = False
-        beginn_akt_schicht = strptime(schicht['von'], "%H:%M")
+        beginn_akt_schicht = schicht['von']
         for zaehler in range(0, len(ausgabe)):
-            if beginn_akt_schicht < strptime(ausgabe[zaehler]['von'], "%H:%M"):
+            if beginn_akt_schicht < ausgabe[zaehler]['von']:
                 ausgabe.insert(zaehler, schicht)
                 insert_flag = True
                 break
@@ -372,11 +369,10 @@ def split_by_null_uhr(schicht):
         rest = dict(start=schicht.beginn, ende=schicht.ende)
         while rest['start'] <= rest['ende']:
             r_start = rest['start']
-            neuer_start_rest = datetime(year=r_start.year,
-                                        month=r_start.month,
-                                        day=r_start.day,
-                                        tzinfo=UTC,
-                                        ) + timedelta(days=1)
+            neuer_start_rest = timezone.make_aware(datetime(year=r_start.year,
+                                                            month=r_start.month,
+                                                            day=r_start.day
+                                                            )) + timedelta(days=1)
 
             if neuer_start_rest <= rest['ende']:
                 ausgabe.append({'beginn': rest['start'],
@@ -409,7 +405,6 @@ def split_by_null_uhr(schicht):
 
             rest['start'] = neuer_start_rest
     else:
-        # ausgabe.append(schicht)
         ausgabe.append({
             'beginn': schicht.beginn,
             'ende': schicht.ende,
@@ -424,7 +419,6 @@ def split_by_null_uhr(schicht):
             'beginn_adresse': schicht.beginn_adresse,
             'ende_adresse': schicht.ende_adresse
         })
-
     return ausgabe
 
 
@@ -441,7 +435,7 @@ def shift_month(date: datetime, step: int = 1):
                 nachmonat['month'] = 1
                 nachmonat['year'] += 1
 
-            act_date = datetime(year=nachmonat['year'], month=nachmonat['month'], day=1, tzinfo=UTC)
+            act_date = timezone.make_aware(datetime(year=nachmonat['year'], month=nachmonat['month'], day=1))
     elif step < 0:
         for i in range(0, abs(step)):
             nachmonat = {
@@ -453,7 +447,7 @@ def shift_month(date: datetime, step: int = 1):
                 nachmonat['month'] = 12
                 nachmonat['year'] -= 1
 
-            act_date = datetime(year=nachmonat['year'], month=nachmonat['month'], day=1, tzinfo=UTC)
+            act_date = timezone.make_aware(datetime(year=nachmonat['year'], month=nachmonat['month'], day=1))
 
     return act_date
 
@@ -496,15 +490,13 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         self.reset()
         # Call the base implementation first to get a context
         if 'year' in self.request.GET:
-            self.act_date = datetime(year=int(self.request.GET['year']),
-                                     month=int(self.request.GET['month']),
-                                     day=1,
-                                     tzinfo=UTC)
+            self.act_date = timezone.make_aware(datetime(year=int(self.request.GET['year']),
+                                                         month=int(self.request.GET['month']),
+                                                         day=1))
         elif 'year' in kwargs:
-            self.act_date = datetime(year=int(kwargs['year']),
-                                     month=int(kwargs['month']),
-                                     day=1,
-                                     tzinfo=UTC)
+            self.act_date = timezone.make_aware(datetime(year=int(kwargs['year']),
+                                                         month=int(kwargs['month']),
+                                                         day=1))
         else:
             self.act_date = get_monatserster(timezone.now())
 
@@ -515,7 +507,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         context['summen'] = self.summen
         self.reset()
         return context
-
 
     def calc_add_sum_data(self):
         self.summen['bruttolohn'] = float(
@@ -584,11 +575,12 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             schicht_id = schicht['schicht_id']
 
             asn_add += schicht['asn'].kuerzel if schicht['asn'] else ''
+            print(schicht)
             schichten_view_data[schicht['beginn'].strftime('%d')].append(
                 {
                     'schicht_id': schicht_id,
-                    'von': schicht['beginn'].strftime('%H:%M'),
-                    'bis': schicht['ende'].strftime('%H:%M'),
+                    'von': schicht['beginn'],
+                    'bis': schicht['ende'],
                     'asn': asn_add,
                     'stunden': "{:,.2f}".format(stunden),
                     'stundenlohn': "{:,.2f}€".format(lohn.grundlohn),
@@ -644,22 +636,21 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.act_date = self.request.POST['act_date']
 
         if 'year' in self.request.POST:
-            self.act_date = datetime(year=self.request.POST['year'],
-                                     month=self.request.POST['month'],
-                                     day=1,
-                                     tzinfo=UTC
-                                     )
+            self.act_date = timezone.make_aware(datetime(year=self.request.POST['year'],
+                                                         month=self.request.POST['month'],
+                                                         day=1))
 
         act_date = get_monatserster(self.act_date)
         vormonat_date = shift_month(get_monatserster(self.act_date), step=-1)
         nachmonat_date = shift_month(get_monatserster(self.act_date), step=1)
         monatsliste = {}
         for i in range(1, 13):
-            monatsliste[datetime(month=i,
-                                 year=1,
-                                 day=1).strftime('%m')] = datetime(month=i,
-                                                                   year=1,
-                                                                   day=1).strftime('%b')
+            monatsliste[
+                datetime(month=i,
+                         year=1,
+                         day=1).strftime('%m')] = datetime(month=i,
+                                                           year=1,
+                                                           day=1).strftime('%b')
         jahresliste = []
         for j in range(datetime.now().year + 2, datetime.now().year - 40, -1):
             jahresliste.append(str(j))

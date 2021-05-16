@@ -60,7 +60,8 @@ class EditSchichtForm(BetterModelForm):
         """ entfernt den Doppelpunkt am Ende jedes Labels
             und schleust den request in die Form ein"""
         # TODO irgendwo eher den request schon aus der instance auspacken
-        self.request = kwargs.pop('request')
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
         self.label_suffix = ""  # Removes : as label suffix
 
         super(EditSchichtForm, self).__init__(*args, **kwargs)
@@ -68,7 +69,7 @@ class EditSchichtForm(BetterModelForm):
         self.fields['asn'].queryset = ASN.objects.filter(assistents__id=self.request.user.assistent.id)
 
         # wenn irgendwelche Daten schon in der instance sind, nehme ich die von da
-        if kwargs['instance']:
+        if 'instance' in kwargs:
             # werden seine Templates geladen
             self.fields['templates'].queryset = SchichtTemplate.objects.filter(
                 asn__id=kwargs['instance'].asn.id)
@@ -83,17 +84,18 @@ class EditSchichtForm(BetterModelForm):
         # in der createView sind die Daten noch im Post-Array
         # sollte was im PostArray sein, wird überschrieben.
         # Daher muss zwingend erst instance und dann kwargs[data abgefragt werden.]
-        if kwargs['data']:
+        if 'data' in kwargs:
             # und da zufällig ein asn für die Schicht ausgewählt ist
-            if 'schicht-asn' in kwargs['data']:
-                # werden seine Templates geladen
-                self.fields['templates'].queryset = SchichtTemplate.objects.filter(
-                    asn__id=kwargs['data']['schicht-asn'])
+            if kwargs['data']:
+                if 'schicht-asn' in kwargs['data']:
+                    # werden seine Templates geladen
+                    self.fields['templates'].queryset = SchichtTemplate.objects.filter(
+                        asn__id=kwargs['data']['schicht-asn'])
 
-                # und seine Adresslisten
-                self.fields['beginn_adresse'].queryset = Adresse.objects.filter(
-                    asn__id=kwargs['data']['schicht-asn'])
-                # damit fliegt das empty_label raus und muss neu rangehangen werden...
-                self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-                self.fields['ende_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
-                self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
+                    # und seine Adresslisten
+                    self.fields['beginn_adresse'].queryset = Adresse.objects.filter(
+                        asn__id=kwargs['data']['schicht-asn'])
+                    # damit fliegt das empty_label raus und muss neu rangehangen werden...
+                    self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
+                    self.fields['ende_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
+                    self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'

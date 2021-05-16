@@ -1,6 +1,7 @@
 {% extends "app_base.html" %}
 
 {% load static %}
+{% load tz %}
 
 {% block content %}
     <div>
@@ -77,8 +78,8 @@
                         <td>
                             {{ tag }}
                         </td>
-                        <td>{{ schicht.von }}</td>
-                        <td>{{ schicht.bis }}</td>
+                        <td>{{ schicht.von|localtime|date:"H:i" }}</td>
+                        <td>{{ schicht.bis|localtime|date:"H:i" }}</td>
                         <td>{{ schicht.asn }}</td>
                         <td class="right">{{ schicht.stunden }}</td>
                         <td class="right">{{ schicht.schichtlohn }}</td>

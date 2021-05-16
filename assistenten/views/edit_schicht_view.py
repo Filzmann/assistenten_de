@@ -16,14 +16,12 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('index')
 
     def get_form_kwargs(self):
-
         kwargs = super(CreateSchichtView, self).get_form_kwargs()
-        print(self.kwargs)
-
-        if self.kwargs['y']:
-            beginnende = str(self.kwargs['d']) + '.' \
-                         + str(self.kwargs['m']) + '.' \
-                         + str(self.kwargs['y']) + ' ' \
+        kwargs.update({'request': self.request})
+        if 'y' in self.kwargs:
+            beginnende = self.kwargs['d'] + '.' \
+                         + self.kwargs['m'] + '.' \
+                         + self.kwargs['y'] + ' ' \
                          + datetime.now().strftime('%H:%M')
             local_kwargs_data = {'schicht-beginn': beginnende,
                                  'schicht-ende': beginnende}
@@ -47,17 +45,15 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
                 kwargs.update({
                     'data': local_post
                 })
+            if self.object:
+                kwargs.update(
+                    instance={'schicht': self.object, },
 
-        kwargs.update(instance={
-            'schicht': self.object,
-        },
-            request=self.request
-        )
-        # print(kwargs)
+                )
+        print(kwargs)
         return kwargs
 
     def form_valid(self, form):
-
         schicht = form['schicht'].save(commit=False)
         if 'asn' not in form['schicht']:
             schicht.asn = form['asn_stammdaten'].save()
@@ -74,7 +70,6 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
         assistent = self.request.user.assistent
         schicht.assistent = assistent
         schicht.save()
-
         return redirect('edit_schicht', pk=schicht.id)
 
 
@@ -103,16 +98,17 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
                 'data': local_post
             })
 
-        kwargs.update(instance={
-            'schicht': self.object,
-        },
+        kwargs.update(
+            instance={'schicht': self.object, },
             request=self.request
         )
+        print(kwargs)
         return kwargs
 
     def form_valid(self, form):
         schicht = form['schicht'].save(commit=False)
         schicht.save()
+
         # TODO manchmal muss man 2 mal auf save klicken. warum?
 
         if 'just_save' in self.request.POST:
