@@ -59,12 +59,12 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
 
         kwargs.update(data=local_kwargs_data)
 
-        print(kwargs)
+        # print(kwargs)
         return kwargs
 
     def form_valid(self, form):
         schicht = form['schicht'].save(commit=False)
-        if not form['schicht'].asn:
+        if not schicht.asn:
             schicht.asn = form['asn_stammdaten'].save()
             schicht.asn.assistents.add(self.request.user.assistent)
             asn_home = form['asn_home'].save(commit=False)
@@ -79,8 +79,9 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
         assistent = self.request.user.assistent
         schicht.assistent = assistent
         schicht.save()
-        print(schicht)
-        print('//////////////////////////////////////////////////////////////7')
+        # print('//////////////////////////////////////////////////////////////7')
+        # print(schicht)
+        # print('//////////////////////////////////////////////////////////////7')
         return redirect('edit_schicht', pk=schicht.id)
 
 
@@ -92,8 +93,17 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super(EditSchichtView, self).get_form_kwargs()
-        print(kwargs)
-        print('-----------------------------------------------------------------')
+
+        # übergebe den request in die kwargs, damit er im Form verfügbar ist.
+        kwargs.update({'request': self.request})
+
+        # haben wir schon daten im Objekt? dann kommen diese in die kwargs
+        if self.object:
+            kwargs.update(
+                instance={'schicht': self.object, },
+
+            )
+
         local_kwargs_data = kwargs['data'].copy() if 'data' in kwargs else {}
 
         # wenn asn in POST select home-adresse für beginn und ende der schicht
@@ -114,12 +124,10 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
                 for key in local_post:
                     local_kwargs_data[key] = local_post[key]
 
-        kwargs.update(
-            instance={'schicht': self.object, },
-            request=self.request,
-            data=local_kwargs_data
-        )
-        print(kwargs)
+        if local_kwargs_data:
+            kwargs.update(
+                data=local_kwargs_data
+            )
         return kwargs
 
     def form_valid(self, form):

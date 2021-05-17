@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
-from assistenten.models import Schicht, Lohn
+from assistenten.models import Schicht, Lohn, Urlaub, Brutto, AU
 
 
 def berechne_ostern(jahr):
@@ -128,6 +128,55 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht):
 
 def berechne_stunden(schicht):
     return get_duration(schicht['beginn'], schicht['ende'], "minutes") / 60
+
+
+def berechne_urlaub_au_saetze(datum, assistent):
+    akt_monat = timezone.make_aware(datetime(year=datum.year, month=datum.month, day=1))
+    for zaehler in range(1, 7):
+        vormonat_letzter = akt_monat - timedelta(days=1)
+        akt_monat = timezone.make_aware(datetime(year=vormonat_letzter.year, month=vormonat_letzter.month, day=1))
+    startmonat = akt_monat
+    endmonat = timezone.make_aware(datetime(year=datum.year, month=datum.month, day=1))
+
+    bruttosumme = 0
+    stundensumme = 0
+    zaehler = 0
+
+    bruttoloehne = Brutto.objects.filter(
+        monat__range=(startmonat, endmonat)).filter(
+        assistent=assistent
+    )
+
+    for brutto in bruttoloehne:
+        bruttosumme += brutto.bruttolohn
+        stundensumme += brutto.stunden_gesamt
+        zaehler += 1
+    if zaehler == 0 or stundensumme == 0:
+        return {
+            'stunden_pro_tag': 1,
+            'pro_stunde': 5
+        }
+    return {
+        'stunden_pro_tag': float((stundensumme / zaehler) / 30),
+        'pro_stunde': float(bruttosumme / stundensumme)
+    }
+
+
+def brutto_in_db(brutto, stunden, monat, assistent):
+    # check ob für diesen monat vorhanden
+    updatebrutto = Brutto.objects.filter(monat=monat)
+    if updatebrutto:
+        updatebrutto[0].bruttolohn = brutto
+        updatebrutto[0].stunden_gesamt = stunden
+        updatebrutto[0].save()
+    else:
+        insertbrutto = Brutto(
+            monat=monat,
+            bruttolohn=brutto,
+            stunden_gesamt=stunden,
+            assistent=assistent
+        )
+        insertbrutto.save()
 
 
 def check_mehrtaegig(schicht):
@@ -505,6 +554,15 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         context['schichttabelle'] = self.get_table_data()
         self.calc_add_sum_data()
         context['summen'] = self.summen
+
+        # brutto in db speichern
+        brutto_in_db(
+            brutto=self.summen['bruttolohn'],
+            stunden=self.summen['arbeitsstunden'],
+            monat=self.act_date,
+            assistent=self.request.user.assistent
+        )
+
         self.reset()
         return context
 
@@ -575,7 +633,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             schicht_id = schicht['schicht_id']
 
             asn_add += schicht['asn'].kuerzel if schicht['asn'] else ''
-            print(schicht)
             schichten_view_data[schicht['beginn'].strftime('%d')].append(
                 {
                     'schicht_id': schicht_id,
@@ -585,7 +642,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                     'stunden': "{:,.2f}".format(stunden),
                     'stundenlohn': "{:,.2f}€".format(lohn.grundlohn),
                     'schichtlohn': "{:,.2f}€".format(float(lohn.grundlohn) * stunden),
-                    'bsd': "{:,.2f}€".format(lohn.grundlohn * stunden * 0.2) if schicht['ist_kurzfristig'] else '',
+                    'bsd': "{:,.2f}€".format(float(lohn.grundlohn) * stunden * (lohn.kurzfristig_zuschlag_prozent / 100)) if schicht[
+                        'ist_kurzfristig'] else '',
                     'orgazulage': "{:,.2f}€".format(lohn.orga_zuschlag),
                     'orgazulage_schicht': "{:,.2f}€".format(float(lohn.orga_zuschlag) * stunden),
                     'wechselzulage': "{:,.2f}€".format(lohn.wechselschicht_zuschlag),
@@ -608,8 +666,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['nachtzuschlag'] = lohn.nacht_zuschlag
             self.summen['nachtzuschlag_kumuliert'] += nachtstunden * float(lohn.nacht_zuschlag)
             self.summen['bsd_stunden'] += stunden if 'ist_kurzfristig' in schicht else 0
-            self.summen['bsd_lohn'] = 0.2 * float(lohn.grundlohn)
-            self.summen['bsd_kumuliert'] += (0.2 * float(lohn.grundlohn) * stunden)
+            self.summen['bsd_lohn'] = (lohn.kurzfristig_zuschlag_prozent / 100) * lohn.grundlohn
+            self.summen['bsd_kumuliert'] += (float(lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden)
             # self.summen['bsd_wegegeld'] += 0  # TODO
             self.summen['orga_zuschlag'] = lohn.orga_zuschlag
             self.summen['orga_zuschlag_kumuliert'] += lohn.orga_zuschlag
@@ -619,6 +677,95 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             # mehrere Schichten an jedem Tag nach schichtbeginn sortieren
         for key in schichten_view_data:
             schichten_view_data[key] = sort_schicht_data_by_beginn(schichten_view_data[key])
+
+        # Urlaube ermitteln
+
+        # finde alle urlaube, der anfang, ende oder mitte (anfanf ist vor beginn und ende nach ende dieses Monats)
+        # in diesem Urlaub liegt
+        urlaube = Urlaub.objects.filter(beginn__range=(start, ende)) | Urlaub.objects.filter(
+            ende__range=(start, ende)) | Urlaub.objects.filter(beginn__lte=start).filter(ende__gte=ende)
+
+        for urlaub in urlaube:
+            erster_tag = urlaub.beginn.day if urlaub.beginn > start.date() else start.day
+            letzter_tag = urlaub.ende.day if urlaub.ende < ende.date() else (ende - timedelta(days=1)).day
+            urlaubsstunden = berechne_urlaub_au_saetze(datum=start,
+                                                       assistent=self.request.user.assistent)['stunden_pro_tag']
+            urlaubslohn = berechne_urlaub_au_saetze(datum=start,
+                                                    assistent=self.request.user.assistent)['pro_stunde']
+            for tag in range(erster_tag, letzter_tag + 1):
+                if tag not in schichten_view_data.keys():
+                    schichten_view_data["{:02d}".format(tag)] = []
+                schichten_view_data["{:02d}".format(tag)].append(
+                    {
+                        'schicht_id': urlaub.id,
+                        'von': ' ',
+                        'bis': ' ',
+                        'asn': 'Urlaub',
+                        'stunden': "{:,.2f}".format(urlaubsstunden),
+                        'stundenlohn': "{:,.2f}€".format(urlaubslohn),
+                        'schichtlohn': "{:,.2f}€".format(urlaubslohn * urlaubsstunden),
+                        'bsd': ' ',
+                        'orgazulage': ' ',
+                        'orgazulage_schicht': ' ',
+                        'wechselzulage': ' ',
+                        'wechselzulage_schicht': ' ',
+                        'nachtstunden': ' ',
+                        'nachtzuschlag': ' ',
+                        'nachtzuschlag_schicht': ' ',
+                        'zuschlaege': ' ',
+                        'type': 'urlaub'
+                    }
+                )
+
+                self.summen['urlaubsstunden'] += urlaubsstunden
+                self.summen['stundenlohn_urlaub'] = urlaubslohn
+                self.summen['urlaubslohn'] += urlaubsstunden * urlaubslohn
+
+
+
+        # AU ermitteln
+
+        # finde alle AU, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
+        # in diesem AU liegt
+        aus = AU.objects.filter(beginn__range=(start, ende)) | AU.objects.filter(
+            ende__range=(start, ende)) | AU.objects.filter(beginn__lte=start).filter(ende__gte=ende)
+
+        for au in aus:
+            erster_tag = au.beginn.day if au.beginn > start.date() else start.day
+            letzter_tag = au.ende.day if au.ende < ende.date() else (ende - timedelta(days=1)).day
+            austunden = berechne_urlaub_au_saetze(datum=start,
+                                                  assistent=self.request.user.assistent)['stunden_pro_tag']
+            aulohn = berechne_urlaub_au_saetze(datum=start,
+                                               assistent=self.request.user.assistent)['pro_stunde']
+
+            for tag in range(erster_tag, letzter_tag + 1):
+                print('blubb')
+                if tag not in schichten_view_data.keys():
+                    schichten_view_data["{:02d}".format(tag)] = []
+                schichten_view_data["{:02d}".format(tag)].append(
+                    {
+                        'schicht_id': au.id,
+                        'von': ' ',
+                        'bis': ' ',
+                        'asn': 'AU/krank',
+                        'stunden': "{:,.2f}".format(austunden),
+                        'stundenlohn': "{:,.2f}€".format(aulohn),
+                        'schichtlohn': "{:,.2f}€".format(aulohn * austunden),
+                        'bsd': ' ',
+                        'orgazulage': ' ',
+                        'orgazulage_schicht': ' ',
+                        'wechselzulage': ' ',
+                        'wechselzulage_schicht': ' ',
+                        'nachtstunden': ' ',
+                        'nachtzuschlag': ' ',
+                        'nachtzuschlag_schicht': ' ',
+                        'zuschlaege': ' ',
+                        'type': 'au'
+                    }
+                )
+                self.summen['austunden'] += austunden
+                self.summen['stundenlohn_au'] = aulohn
+                self.summen['aulohn'] += austunden * aulohn
 
         monatsletzter = (shift_month(self.act_date, step=1) - timedelta(days=1)).day
         table_array = {}

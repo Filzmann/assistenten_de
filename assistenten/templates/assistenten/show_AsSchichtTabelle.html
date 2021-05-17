@@ -57,6 +57,8 @@
                 {% for schicht in schichten %}
                     <tr >
                         <td>
+
+                            {% if schicht.type == 'schicht' %}
                             <form method="post">
                                  {% csrf_token %}
                                 <input type="image"
@@ -73,6 +75,36 @@
                                 </a>
 
                             </form>
+                            {% elif schicht.type == 'urlaub' %}
+                            <form method="post">
+                                 {% csrf_token %}
+                                <input type="image"
+                                       src="{% static 'images/del.png'%}"
+                                       formaction="{% url 'del_urlaub' schicht.schicht_id %}"
+                                       value=""
+                                       onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                >
+                                <a href="{% url 'edit_urlaub' schicht.schicht_id %}">
+                                    <img src="{% static 'images/edit.png'%}">
+                                </a>
+                            </form>
+                            {% elif schicht.type == 'au' %}
+                            <form method="post">
+                                 {% csrf_token %}
+                                <input type="image"
+                                       src="{% static 'images/del.png'%}"
+                                       formaction="{% url 'del_au' schicht.schicht_id %}"
+                                       value=""
+                                       onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                >
+                                <a href="{% url 'edit_au' schicht.schicht_id %}">
+                                    <img src="{% static 'images/edit.png'%}">
+                                </a>
+                            </form>
+                            {% endif %}
+
+
+
                         </td>
 
                         <td>
@@ -149,6 +181,22 @@
                 <td class="right">{{summen.wechselschicht_zuschlag|floatformat:2}}€</td>
                 <td class="right">{{summen.wechselschicht_zuschlag_kumuliert|floatformat:2}}€</td>
             </tr>
+            {% if summen.urlaubsstunden %}
+            <tr>
+                <td>Urlaub</td>
+                <td class="right">{{summen.urlaubsstunden|floatformat:1}}</td>
+                <td class="right">{{summen.stundenlohn_urlaub|floatformat:2}}€</td>
+                <td class="right">{{summen.urlaubslohn|floatformat:2}}€</td>
+            </tr>
+            {% endif %}
+            {% if summen.austunden %}
+                <tr>
+                    <td>AU/krank</td>
+                    <td class="right">{{summen.austunden|floatformat:1}}</td>
+                    <td class="right">{{summen.stundenlohn_au|floatformat:2}}€</td>
+                    <td class="right">{{summen.aulohn|floatformat:2}}€</td>
+                </tr>
+            {% endif %}
             <tr>
                 <td>Bruttolohn</td>
                 <td></td>

@@ -5,6 +5,6 @@ from assistenten.models import Assistent
 
 class AU(models.Model):
     assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE)
-    beginn = models.DateTimeField()
-    ende = models.DateTimeField()
+    beginn = models.DateField()
+    ende = models.DateField()
 
