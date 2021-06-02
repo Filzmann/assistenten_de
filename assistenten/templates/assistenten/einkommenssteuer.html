@@ -1,0 +1,25 @@
+{% extends "app_base.html" %}
+
+{% block title %}Einkommenssteuer{% endblock %}
+
+{% block heading %}
+  <h2>Einkommenssteuer</h2>
+{% endblock %}
+
+{% block content %}
+    <div>
+        <form action="" method="get">
+            <select name="jahreswaehler" id="jahreswaehler" onchange="form.submit()">
+            {% for jahr, jahrstring in jahre.items reversed %}
+            <option
+                {% if jahr == selected_jahr %}
+                    selected="selected"
+                {% endif %}
+                value="{{ jahr }}">{{ jahrstring }}</option>
+            {% endfor %}
+            </select>
+        </form>
+    </div>
+
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+{% endblock %}

@@ -328,9 +328,19 @@ def get_nachtstunden(schicht):
 
 def get_sliced_schichten(start, end):
     schichten = Schicht.objects.filter(beginn__range=(start, end)) | Schicht.objects.filter(ende__range=(start, end))
+    # print(schichten)
     sliced_schichten = []
     for schicht in schichten:
-        sliced_schichten += split_by_null_uhr(schicht)
+        print(schicht)
+        ergebnis=split_by_null_uhr(schicht)
+        print('~~~~~~~~~~~~~~~~~')
+        print(ergebnis)
+        print('-----------------------')
+        if(ergebnis):
+            sliced_schichten.append(*ergebnis)
+
+
+
 
     return sliced_schichten
 
