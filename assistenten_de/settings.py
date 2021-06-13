@@ -133,3 +133,4 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'assistenten_login'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+GOOGLE_API_KEY = 'AIzaSyDQyXwWqUFbS-qe0SpavPK-wZx7zEzLN9A'
