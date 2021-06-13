@@ -1,10 +1,9 @@
 from datetime import timedelta
-from time import strptime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
-from assistenten.models import Schicht, Lohn, Urlaub, Brutto, AU
+from assistenten.models import Schicht, Lohn, Urlaub, Brutto, AU, FesteSchicht, Adresse
 
 
 def berechne_ostern(jahr):
@@ -187,6 +186,20 @@ def check_mehrtaegig(schicht):
         return 1
 
 
+def check_au(datum):
+    if AU.objects.filter(beginn__lte=datum).filter(ende__gte=datum).count():
+        return True
+    else:
+        return False
+
+
+def check_urlaub(datum):
+    if Urlaub.objects.filter(beginn__lte=datum).filter(ende__gte=datum).count():
+        return True
+    else:
+        return False
+
+
 def check_feiertag(datum):
     jahr = datum.year
     feiertage = []
@@ -242,10 +255,40 @@ def check_feiertag(datum):
     return ausgabe
 
 
+def check_schicht(datum: datetime):
+    """prüft, ob an einem gegeben Datum eine Schicht ist."""
+    tagbeginn = timezone.make_aware(datetime(year=datum.year,
+                                             month=datum.month,
+                                             day=datum.day,
+                                             hour=0,
+                                             minute=0,
+                                             second=0))
+    tagende = timezone.make_aware(datetime(year=datum.year,
+                                           month=datum.month,
+                                           day=datum.day,
+                                           hour=23,
+                                           minute=59,
+                                           second=59))
+
+    # alle schichten, die "heute" anfangen, heute enden oder vor heute anfangen und nach heute enden.
+    schichten = Schicht.objects.filter(beginn__range=(tagbeginn, tagende)) | Schicht.objects.filter(
+        ende__range=(tagbeginn, tagende)) | Schicht.objects.filter(beginn__lte=tagbeginn).filter(ende__gte=tagende)
+    if schichten:
+        return True
+    return False
+
+
 def get_monatserster(datum):
     return timezone.make_aware(datetime(year=datum.year,
                                         month=datum.month,
                                         day=1))
+
+
+def get_ersten_xxtag(int_weekday, erster=datetime.now()):
+    for counter in range(1, 8):
+        if timezone.make_aware(datetime(year=erster.year, month=erster.month, day=counter, hour=0,
+                                        minute=0)).weekday() == int_weekday:
+            return counter
 
 
 def get_erfahrungsstufe(assistent, datum=timezone.now()):
@@ -506,6 +549,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     context_object_name = 'as_schicht_tabellen_monat'
     template_name = 'assistenten/show_AsSchichtTabelle.html'
     act_date = timezone.now()
+    schichten_view_data = {}
     summen = {
         'arbeitsstunden': 0,
         'stundenlohn': 0,
@@ -531,9 +575,61 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         'urlaubslohn': 0,
         'austunden': 0,
         'stundenlohn_au': 0,
-        'aulohn': 0
+        'aulohn': 0,
+        'ueberstunden': 0,
+        'ueberstunden_pro_stunde': 0,
+        'ueberstunden_kumuliert': 0
 
     }
+
+    def add_feste_schichten(self, erster_tag, letzter_tag):
+        feste_schichten = FesteSchicht.objects.filter(assistent=self.request.user.assistent)
+
+        for feste_schicht in feste_schichten:
+            wtag_int = int(feste_schicht.wochentag)
+            erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
+            monat = erster_tag.month
+            year = erster_tag.year
+            maxday = (letzter_tag - timedelta(days=1)).day
+            asn = feste_schicht.asn
+            for woche in range(0, 5):
+                tag = woche * 7 + erster_xxtag_des_monats
+                if tag <= maxday:
+                    if feste_schicht.beginn < feste_schicht.ende:
+                        start = timezone.make_aware(datetime(year=year,
+                                                             month=monat,
+                                                             day=tag,
+                                                             hour=feste_schicht.beginn.hour,
+                                                             minute=feste_schicht.beginn.minute))
+                        end = timezone.make_aware(datetime(year=year,
+                                                           month=monat,
+                                                           day=tag,
+                                                           hour=feste_schicht.ende.hour,
+                                                           minute=feste_schicht.ende.minute))
+                    # nachtschicht. es gibt keine regelmäßigen dienstreisen!
+                    else:
+                        start = timezone.make_aware(datetime(year=year,
+                                                             month=monat,
+                                                             day=tag,
+                                                             hour=feste_schicht.beginn.hour,
+                                                             minute=feste_schicht.beginn.minute))
+                        end = timezone.make_aware(datetime(year=year,
+                                                           month=monat,
+                                                           day=tag,
+                                                           hour=feste_schicht.ende.hour,
+                                                           minute=feste_schicht.ende.minute) + timedelta(days=1))
+                    if not check_au(datum=start) and not check_urlaub(
+                            datum=start) and not check_au(
+                            datum=end - timedelta(minutes=1)) and not check_urlaub(
+                            datum=end - timedelta(minutes=1)):
+                        home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
+                        schicht_neu = Schicht(beginn=start,
+                                              ende=end,
+                                              asn=asn,
+                                              assistent=self.request.user.assistent,
+                                              beginn_adresse=home,
+                                              ende_adresse=home)
+                        schicht_neu.save()
 
     def get_context_data(self, **kwargs):
         self.reset()
@@ -567,6 +663,15 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         return context
 
     def calc_add_sum_data(self):
+        # print(self.summen)
+        self.calc_freizeitausgleich()
+        # print(self.summen)
+        self.calc_ueberstunden_zuschlag()
+        # print(self.summen)
+        self.summen['freie_sonntage'] = self.calc_freie_sonntage()
+        self.summen['moegliche_arbeitssonntage'] = self.summen['freie_sonntage'] - 15
+        # print(self.summen)
+
         self.summen['bruttolohn'] = float(
             self.summen['lohn']) + float(
             self.summen['nachtzuschlag_kumuliert']) + float(
@@ -575,30 +680,73 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['bsd_kumuliert']) + float(
             self.summen['urlaubslohn']) + float(
             self.summen['aulohn']) + float(
-            self.summen['freizeitausgleich'])
+            self.summen['freizeitausgleich']) + float(
+            self.summen['ueberstunden_kumuliert'])
 
-    def get_table_data(self):
-        # TODO optimieren!!!
+    def calc_freizeitausgleich(self):
+        # anzahl aller feiertage ermitteln
+        start = get_monatserster(self.act_date)
+        end = get_first_of_next_month(start)
 
-        start = self.act_date
-        ende = get_first_of_next_month(this_month=start)
+        letzter_tag = (end - timedelta(seconds=1)).day
+        ausgleichsstunden = berechne_urlaub_au_saetze(datum=start,
+                                                      assistent=self.request.user.assistent)['stunden_pro_tag']
+        ausgleichslohn = berechne_urlaub_au_saetze(datum=start,
+                                                   assistent=self.request.user.assistent)['pro_stunde']
+        for tag in range(1, letzter_tag + 1):
+            if check_feiertag(datetime(year=start.year, month=start.month, day=tag)):
+                self.summen['anzahl_feiertage'] += 1
+                self.summen['freizeitausgleich'] += ausgleichslohn * ausgleichsstunden
+
+    def calc_ueberstunden_zuschlag(self):
+        # überstunden
+        ueberstunden = self.summen['arbeitsstunden'] + self.summen['urlaubsstunden'] + self.summen['austunden'] - 168.5
+        if ueberstunden > 0:
+            lohn = get_lohn(assistent=self.request.user.assistent, datum=self.act_date)
+            self.summen['ueberstunden'] = ueberstunden
+            self.summen['ueberstunden_pro_stunde'] = float(lohn.ueberstunden_zuschlag)
+            self.summen['ueberstunden_kumuliert'] = float(lohn.ueberstunden_zuschlag) * ueberstunden
+
+    def calc_freie_sonntage(self):
+        year = self.act_date.year
+        # erster sonntag
+        janfirst = datetime(year, 1, 1)
+        sunday = (7 - janfirst.weekday()) % 7
+        sunday = timezone.make_aware(datetime(year=year,
+                                              month=1,
+                                              day=sunday))
+
+        wochencounter = 0
+        sontagsschichtcounter = 0
+        for kw in range(1, 54):
+            if sunday.year == year:
+                wochencounter += 1
+                # print('---------------')
+                if check_schicht(sunday):
+                    sontagsschichtcounter += 1
+
+            sunday = sunday + timedelta(days=7)
+
+        return wochencounter - sontagsschichtcounter
+
+    def calc_schichten(self, start, ende):
+
         schichten = get_sliced_schichten(
             start=self.act_date,
             end=ende
         )
 
         # feste Schichten
-        # if not schichten:
-        #     self.add_feste_schichten(self.start, self.end)
-        #     schichten = get_sliced_schichten(
-        #         start=self.act_date,
-        #         end=ende
-        #     )
+        if not schichten:
+            self.add_feste_schichten(erster_tag=start, letzter_tag=ende)
+            schichten = get_sliced_schichten(
+                start=self.act_date,
+                end=ende
+            )
 
-        schichten_view_data = {}
         for schicht in schichten:
-            if not schicht['beginn'].strftime('%d') in schichten_view_data.keys():
-                schichten_view_data[schicht['beginn'].strftime('%d')] = []
+            if not schicht['beginn'].strftime('%d') in self.schichten_view_data.keys():
+                self.schichten_view_data[schicht['beginn'].strftime('%d')] = []
 
             # at etc
             asn_add = ''
@@ -625,33 +773,31 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                     spaltenname = grund.lower().replace('.', '').replace(' ', '_') + '_zuschlag'
                     stundenzuschlag = float(getattr(lohn, spaltenname))
                     schichtzuschlag = zuschlaege['stunden_gesamt'] * stundenzuschlag
-                    zuschlaege_text = grund + ': ' \
-                                      + "{:,.2f}".format(zuschlaege['stunden_gesamt']) \
-                                      + ' Std = ' \
-                                      + "{:,.2f}€".format(schichtzuschlag)
+                    zuschlaege_text = grund + ': ' + "{:,.2f}".format(
+                        zuschlaege['stunden_gesamt']
+                    ) + ' Std = ' + "{:,.2f}€".format(schichtzuschlag)
 
             schicht_id = schicht['schicht_id']
 
             asn_add += schicht['asn'].kuerzel if schicht['asn'] else ''
-            schichten_view_data[schicht['beginn'].strftime('%d')].append(
+            self.schichten_view_data[schicht['beginn'].strftime('%d')].append(
                 {
                     'schicht_id': schicht_id,
                     'von': schicht['beginn'],
                     'bis': schicht['ende'],
                     'asn': asn_add,
-                    'stunden': "{:,.2f}".format(stunden),
-                    'stundenlohn': "{:,.2f}€".format(lohn.grundlohn),
-                    'schichtlohn': "{:,.2f}€".format(float(lohn.grundlohn) * stunden),
-                    'bsd': "{:,.2f}€".format(float(lohn.grundlohn) * stunden * (lohn.kurzfristig_zuschlag_prozent / 100)) if schicht[
-                        'ist_kurzfristig'] else '',
-                    'orgazulage': "{:,.2f}€".format(lohn.orga_zuschlag),
-                    'orgazulage_schicht': "{:,.2f}€".format(float(lohn.orga_zuschlag) * stunden),
-                    'wechselzulage': "{:,.2f}€".format(lohn.wechselschicht_zuschlag),
-                    'wechselzulage_schicht': "{:,.2f}€".format(float(lohn.wechselschicht_zuschlag) * stunden),
-                    'nachtstunden': "{:,.2f}".format(nachtstunden) if nachtstunden > 0 else '',
-                    'nachtzuschlag': "{:,.2f}€".format(lohn.nacht_zuschlag),
-                    'nachtzuschlag_schicht': "{:,.2f}€".format(
-                        float(lohn.nacht_zuschlag) * nachtstunden) if nachtstunden > 0 else '',
+                    'stunden': stunden,
+                    'stundenlohn': lohn.grundlohn,
+                    'schichtlohn': float(lohn.grundlohn) * stunden,
+                    'bsd': float(lohn.grundlohn) * stunden * (
+                            lohn.kurzfristig_zuschlag_prozent / 100) if schicht['ist_kurzfristig'] else 0,
+                    'orgazulage': lohn.orga_zuschlag,
+                    'orgazulage_schicht': float(lohn.orga_zuschlag) * stunden,
+                    'wechselzulage': lohn.wechselschicht_zuschlag,
+                    'wechselzulage_schicht': float(lohn.wechselschicht_zuschlag) * stunden,
+                    'nachtstunden': nachtstunden,
+                    'nachtzuschlag': lohn.nacht_zuschlag,
+                    'nachtzuschlag_schicht': float(lohn.nacht_zuschlag) * nachtstunden,
                     'zuschlaege': zuschlaege_text,
                     'type': 'schicht'
                 }
@@ -665,19 +811,25 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['nachtstunden'] += nachtstunden
             self.summen['nachtzuschlag'] = lohn.nacht_zuschlag
             self.summen['nachtzuschlag_kumuliert'] += nachtstunden * float(lohn.nacht_zuschlag)
-            self.summen['bsd_stunden'] += stunden if 'ist_kurzfristig' in schicht else 0
-            self.summen['bsd_lohn'] = (lohn.kurzfristig_zuschlag_prozent / 100) * lohn.grundlohn
-            self.summen['bsd_kumuliert'] += (float(lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden)
+            self.summen['bsd_stunden'] += stunden if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
+            self.summen['bsd_lohn'] = (lohn.kurzfristig_zuschlag_prozent / 100) * lohn.grundlohn \
+                if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
+            self.summen['bsd_kumuliert'] += (float(lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden)\
+                if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
             # self.summen['bsd_wegegeld'] += 0  # TODO
             self.summen['orga_zuschlag'] = lohn.orga_zuschlag
-            self.summen['orga_zuschlag_kumuliert'] += lohn.orga_zuschlag
+            self.summen['orga_zuschlag_kumuliert'] += float(lohn.orga_zuschlag) * stunden
             self.summen['wechselschicht_zuschlag'] = lohn.wechselschicht_zuschlag
-            self.summen['wechselschicht_zuschlag_kumuliert'] += lohn.wechselschicht_zuschlag
+            self.summen['wechselschicht_zuschlag_kumuliert'] += float(lohn.wechselschicht_zuschlag) * stunden
 
+        # Deckelung des Wechselschichtzuschlages:
+        if self.summen['wechselschicht_zuschlag_kumuliert'] > 105:
+            self.summen['wechselschicht_zuschlag_kumuliert'] = 105
             # mehrere Schichten an jedem Tag nach schichtbeginn sortieren
-        for key in schichten_view_data:
-            schichten_view_data[key] = sort_schicht_data_by_beginn(schichten_view_data[key])
+        for key in self.schichten_view_data:
+            self.schichten_view_data[key] = sort_schicht_data_by_beginn(self.schichten_view_data[key])
 
+    def calc_urlaube(self, start, ende):
         # Urlaube ermitteln
 
         # finde alle urlaube, der anfang, ende oder mitte (anfanf ist vor beginn und ende nach ende dieses Monats)
@@ -693,26 +845,26 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             urlaubslohn = berechne_urlaub_au_saetze(datum=start,
                                                     assistent=self.request.user.assistent)['pro_stunde']
             for tag in range(erster_tag, letzter_tag + 1):
-                if tag not in schichten_view_data.keys():
-                    schichten_view_data["{:02d}".format(tag)] = []
-                schichten_view_data["{:02d}".format(tag)].append(
+                if tag not in self.schichten_view_data.keys():
+                    self.schichten_view_data["{:02d}".format(tag)] = []
+                self.schichten_view_data["{:02d}".format(tag)].append(
                     {
                         'schicht_id': urlaub.id,
-                        'von': ' ',
-                        'bis': ' ',
+                        'von': '',
+                        'bis': '',
                         'asn': 'Urlaub',
-                        'stunden': "{:,.2f}".format(urlaubsstunden),
-                        'stundenlohn': "{:,.2f}€".format(urlaubslohn),
-                        'schichtlohn': "{:,.2f}€".format(urlaubslohn * urlaubsstunden),
-                        'bsd': ' ',
-                        'orgazulage': ' ',
-                        'orgazulage_schicht': ' ',
-                        'wechselzulage': ' ',
-                        'wechselzulage_schicht': ' ',
-                        'nachtstunden': ' ',
-                        'nachtzuschlag': ' ',
-                        'nachtzuschlag_schicht': ' ',
-                        'zuschlaege': ' ',
+                        'stunden': urlaubsstunden,
+                        'stundenlohn': urlaubslohn,
+                        'schichtlohn': urlaubslohn * urlaubsstunden,
+                        'bsd': 0,
+                        'orgazulage': 0,
+                        'orgazulage_schicht': 0,
+                        'wechselzulage': 0,
+                        'wechselzulage_schicht': 0,
+                        'nachtstunden': 0,
+                        'nachtzuschlag': 0,
+                        'nachtzuschlag_schicht': 0,
+                        'zuschlaege': 0,
                         'type': 'urlaub'
                     }
                 )
@@ -721,8 +873,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                 self.summen['stundenlohn_urlaub'] = urlaubslohn
                 self.summen['urlaubslohn'] += urlaubsstunden * urlaubslohn
 
-
-
+    def calc_au(self, start, ende):
         # AU ermitteln
 
         # finde alle AU, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
@@ -739,27 +890,26 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                assistent=self.request.user.assistent)['pro_stunde']
 
             for tag in range(erster_tag, letzter_tag + 1):
-                print('blubb')
-                if tag not in schichten_view_data.keys():
-                    schichten_view_data["{:02d}".format(tag)] = []
-                schichten_view_data["{:02d}".format(tag)].append(
+                if tag not in self.schichten_view_data.keys():
+                    self.schichten_view_data["{:02d}".format(tag)] = []
+                self.schichten_view_data["{:02d}".format(tag)].append(
                     {
                         'schicht_id': au.id,
-                        'von': ' ',
-                        'bis': ' ',
+                        'von': '',
+                        'bis': '',
                         'asn': 'AU/krank',
-                        'stunden': "{:,.2f}".format(austunden),
-                        'stundenlohn': "{:,.2f}€".format(aulohn),
-                        'schichtlohn': "{:,.2f}€".format(aulohn * austunden),
-                        'bsd': ' ',
-                        'orgazulage': ' ',
-                        'orgazulage_schicht': ' ',
-                        'wechselzulage': ' ',
-                        'wechselzulage_schicht': ' ',
-                        'nachtstunden': ' ',
-                        'nachtzuschlag': ' ',
-                        'nachtzuschlag_schicht': ' ',
-                        'zuschlaege': ' ',
+                        'stunden': austunden,
+                        'stundenlohn': aulohn,
+                        'schichtlohn': aulohn * austunden,
+                        'bsd': 0,
+                        'orgazulage': 0,
+                        'orgazulage_schicht': 0,
+                        'wechselzulage': 0,
+                        'wechselzulage_schicht': 0,
+                        'nachtstunden': 0,
+                        'nachtzuschlag': 0,
+                        'nachtzuschlag_schicht': 0,
+                        'zuschlaege': 0,
                         'type': 'au'
                     }
                 )
@@ -767,14 +917,31 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                 self.summen['stundenlohn_au'] = aulohn
                 self.summen['aulohn'] += austunden * aulohn
 
+    def get_table_data(self):
+        # TODO optimieren!!!
+
+        start = self.act_date
+        ende = get_first_of_next_month(this_month=start)
+
+        # schichten berechnen und in schicht_view_data bzw. summen einsortieren
+        self.calc_schichten(start=start, ende=ende)
+
+        # urlaube berechnen und in schicht_view_data bzw. summen einsortieren
+        self.calc_urlaube(start=start, ende=ende)
+
+        # au/krank berechnen und in schicht_view_data bzw. summen einsortieren
+        self.calc_au(start=start, ende=ende)
+
+        # schichtsammlung durch ergänzung von leeren Tagen zu Kalender konvertieren
         monatsletzter = (shift_month(self.act_date, step=1) - timedelta(days=1)).day
         table_array = {}
         for i in range(1, monatsletzter + 1):
             key = str(i).zfill(2)
-            if key in schichten_view_data:
-                table_array[key] = schichten_view_data[key]
+            datakey = datetime(year=self.act_date.year, month=self.act_date.month, day=i)
+            if key in self.schichten_view_data:
+                table_array[datakey] = self.schichten_view_data[key]
             else:
-                table_array[key] = []
+                table_array[datakey] = []
 
         return table_array
 
@@ -811,6 +978,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         }
 
     def reset(self):
+        self.schichten_view_data = {}
         self.summen = {
             'arbeitsstunden': 0,
             'stundenlohn': 0,
@@ -836,6 +1004,9 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             'urlaubslohn': 0,
             'austunden': 0,
             'stundenlohn_au': 0,
-            'aulohn': 0
+            'aulohn': 0,
+            'ueberstunden': 0,
+            'ueberstunden_pro_stunde': 0,
+            'ueberstunden_kumuliert': 0
 
         }

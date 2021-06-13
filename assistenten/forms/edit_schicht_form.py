@@ -88,14 +88,15 @@ class EditSchichtForm(BetterModelForm):
             # und da zufällig ein asn für die Schicht ausgewählt ist
             if kwargs['data']:
                 if 'schicht-asn' in kwargs['data']:
-                    # werden seine Templates geladen
-                    self.fields['templates'].queryset = SchichtTemplate.objects.filter(
-                        asn__id=kwargs['data']['schicht-asn'])
+                    if kwargs['data']['schicht-asn'] != '':
+                        # werden seine Templates geladen
+                        self.fields['templates'].queryset = SchichtTemplate.objects.filter(
+                            asn__id=kwargs['data']['schicht-asn'])
 
-                    # und seine Adresslisten
-                    self.fields['beginn_adresse'].queryset = Adresse.objects.filter(
-                        asn__id=kwargs['data']['schicht-asn'])
-                    # damit fliegt das empty_label raus und muss neu rangehangen werden...
-                    self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-                    self.fields['ende_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
-                    self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
+                        # und seine Adresslisten
+                        self.fields['beginn_adresse'].queryset = Adresse.objects.filter(
+                            asn__id=kwargs['data']['schicht-asn'])
+                        # damit fliegt das empty_label raus und muss neu rangehangen werden...
+                        self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
+                        self.fields['ende_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
+                        self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'

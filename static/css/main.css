@@ -61,6 +61,11 @@ legend
     text-align: right;
 }
 
+.center
+{
+    text-align: center;
+}
+
 .inline table
 {
     margin: 0px auto;

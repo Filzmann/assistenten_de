@@ -179,8 +179,12 @@
             </div>
         </form>
     </div>
-<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+
 {% endblock %}
+
+
+
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
     {% for formular in form %}
         {% if formular.errors %}
             {% for field in form %}
