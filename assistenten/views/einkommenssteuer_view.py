@@ -110,6 +110,7 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
         user_home = Adresse.objects.get(assistent=self.request.user.assistent, is_home=True)
         # TODO Stufen für Verpflegungsmehraufwand aus DB
         stufen = {0: 0, 8: 0, 24: 0}
+        an_abfahrten = 0
         for schicht in schichten:
             dauer = get_duration(schicht.beginn, schicht.ende, 'minutes')
             # hinweg
@@ -132,15 +133,24 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
                 self.wege[weg_id] += 1
 
             schicht_stufe = 0
-            if dauer/60 > 24
-
-            for stufe in stufen.keys():
-                if dauer / 60 >= float(stufe):
-                    schicht_stufe = stufe
-            if schicht_stufe not in stufen:
-                stufen[schicht_stufe] = 1
+            if dauer/60 >= 48:
+                # Reisebegleitung
+                dm = divmod(dauer/60, 24)
+                anzahl_24 = dm[0]
+                if dm[1] == 0:
+                    anzahl_24 -= 1
+                stufen[24] += anzahl_24
+                an_abfahrten += 2
             else:
-                stufen[schicht_stufe] += 1
+                # normale schichten unter 48 Stunden
+                for stufe in stufen.keys():
+                    if dauer / 60 >= float(stufe):
+                        schicht_stufe = stufe
+                if schicht_stufe not in stufen:
+                    stufen[schicht_stufe] = 1
+                else:
+                    stufen[schicht_stufe] += 1
 
+        print(an_abfahrten)
         print(stufen)
         print(self.wege)
