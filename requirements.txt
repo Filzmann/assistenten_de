@@ -6,3 +6,4 @@ https://github.com/jpic/django-betterforms/tarball/master
 django_crispy_forms
 
 pytz~=2021.1
+googlemaps~=4.4.5
