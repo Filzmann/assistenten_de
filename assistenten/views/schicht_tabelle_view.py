@@ -375,15 +375,12 @@ def get_sliced_schichten(start, end):
     sliced_schichten = []
     for schicht in schichten:
         print(schicht)
-        ergebnis=split_by_null_uhr(schicht)
+        ergebnisse=split_by_null_uhr(schicht)
         print('~~~~~~~~~~~~~~~~~')
-        print(ergebnis)
+        print(ergebnisse)
         print('-----------------------')
-        if(ergebnis):
-            sliced_schichten.append(*ergebnis)
-
-
-
+        for ergebnis in ergebnisse:
+            sliced_schichten.append(ergebnis)
 
     return sliced_schichten
 
