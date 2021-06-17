@@ -83,7 +83,7 @@ class EditSchichtForm(BetterModelForm):
 
         # in der createView sind die Daten noch im Post-Array
         # sollte was im PostArray sein, wird überschrieben.
-        # Daher muss zwingend erst instance und dann kwargs[data abgefragt werden.]
+        # Daher muss zwingend erst instance und dann kwargs[data] abgefragt werden.
         if 'data' in kwargs:
             # und da zufällig ein asn für die Schicht ausgewählt ist
             if kwargs['data']:
@@ -98,5 +98,6 @@ class EditSchichtForm(BetterModelForm):
                             asn__id=kwargs['data']['schicht-asn'])
                         # damit fliegt das empty_label raus und muss neu rangehangen werden...
                         self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-                        self.fields['ende_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
+                        self.fields['ende_adresse'].queryset = \
+                            Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
                         self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'

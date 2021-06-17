@@ -136,6 +136,7 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         schicht = form['schicht'].save(commit=False)
         schicht.save()
+
         if 'just_save' in self.request.POST:
             return redirect('schicht_tabelle', year=schicht.beginn.year, month=schicht.beginn.month)
         elif 'save_and_new' in self.request.POST:

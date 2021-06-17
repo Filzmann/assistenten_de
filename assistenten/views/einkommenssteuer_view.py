@@ -87,13 +87,21 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
         else:
             self.act_year = timezone.now().year
             context['selected_jahr'] = -1
-
-        context['wege'] = self.calculate_wege()
+        self.reset()
+        self.calculate_wege()
+        context['wege'] = self.wege
+        context['abwesenheit'] = self.abwesenheit
+        self.reset()
         return context
 
         # print(GOOGLE_API_KEY)
 
+    def reset(self):
+        self.wege = {}
+        self.abwesenheit = {}
+
     def calculate_wege(self):
+        # TODO kombinierte Schichten beachten
         # alle Schichten aus dem gewählten Jahr
         # um die schichten manipipulierbar zu machen, werden sie direkt in eine Liste gepackt.
         schichten = list(
@@ -119,18 +127,19 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
             dauer += weg.dauer_in_minuten
             # print(weg)
             if weg_id not in self.wege:
-                self.wege[weg_id] = 1
+                self.wege[weg_id] = {'count': 1, 'weg': weg}
             else:
-                self.wege[weg_id] += 1
+                self.wege[weg_id]['count'] += 1
             # rückweg
             weg_id = get_weg_id(adresse1=schicht.ende_adresse, adresse2=user_home)
             weg = Weg.objects.get(pk=weg_id)
             dauer += weg.dauer_in_minuten
+            
             # print(weg)
             if weg_id not in self.wege:
-                self.wege[weg_id] = 1
+                self.wege[weg_id] = {'count': 1, 'weg': weg, }
             else:
-                self.wege[weg_id] += 1
+                self.wege[weg_id]['count'] += 1
 
             schicht_stufe = 0
             if dauer/60 >= 48:
@@ -151,6 +160,16 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
                 else:
                     stufen[schicht_stufe] += 1
 
-        print(an_abfahrten)
-        print(stufen)
-        print(self.wege)
+        self.abwesenheit = {
+            'über 8 Stunden': stufen[8],
+            'über 24 Stunden (Reise)': stufen[24],
+            'An-/Abreisetage': an_abfahrten
+        }
+
+        # Berechnung der km-Pauschale
+        # TODO für einige Jahre haben wege über 21 km eine erhöhte Pauschale.
+        for weg_id in self.wege:
+            self.wege[weg_id]['formel'] = \
+                str(self.wege[weg_id]['count']) + ' * ' + str(self.wege[weg_id]['weg'].entfernung) + 'km * 0.30 € '
+            self.wege[weg_id]['pauschale'] = \
+                self.wege[weg_id]['count'] * float(self.wege[weg_id]['weg'].entfernung) * 0.3

@@ -20,6 +20,34 @@
             </select>
         </form>
     </div>
+    <div>
+        <h3>Verpflegungsmehraufwand</h3>
+        <table>
+            {% for grund, stunden in abwesenheit.items %}
+            <tr>
+                <td>{{ grund }} </td>
+                <td> {{ stunden }} Tage</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <h3>Reisekosten</h3>
+        <table border="1">
+            <tr>
+                <td>Bezeichnung</td>
 
-<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+                <td>Ergebnis</td>
+            </tr>
+            {% for weg_id, weg_eintrag in wege.items %}
+            <tr>
+                <td width="80%">
+                    {{ weg_eintrag.count }} Fahrten zwischen {{ weg_eintrag.weg.adresse1.strasse }}, {{ weg_eintrag.weg.adresse1.plz }}, {{ weg_eintrag.weg.adresse1.stadt }} und {{ weg_eintrag.weg.adresse2.strasse }}, {{ weg_eintrag.weg.adresse2.plz }}, {{ weg_eintrag.weg.adresse2.stadt }} = {{ weg_eintrag.formel }}
+                </td>
+                <td align="right"> {{ weg_eintrag.pauschale|floatformat:2 }} € </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+
 {% endblock %}
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>

@@ -70,7 +70,7 @@
                                 <a href="{% url 'edit_schicht' schicht.schicht_id %}">
                                     <img src="{% static 'images/edit.png'%}">
                                 </a>
-                                <a href="{% url 'create_schicht' nav_timedelta.act_date|date:"Y" nav_timedelta.act_date|date:"m" tag %}">
+                                <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                                     <img src="{% static 'images/add.png'%}">
                                 </a>
 
@@ -102,9 +102,6 @@
                                 </a>
                             </form>
                             {% endif %}
-
-
-
                         </td>
 
                         <td class="center">
@@ -125,7 +122,7 @@
             {% else %}
                 <tr>
                     <td>
-                        <a href="{% url 'create_schicht' tag|localtime|date:"Y" tag|localtime|date:"m"  tag|localtime|date:"d" %}">
+                        <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                             <img src="{% static 'images/add.png'%}">
                         </a>
                     </td>
@@ -261,6 +258,7 @@
         </table>
     </div>
 </div>
-<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+
 
 {% endblock %}
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
