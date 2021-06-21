@@ -1,6 +1,14 @@
-from django.db import models
+from datetime import timedelta
 
-from assistenten.models import Adresse
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.http import request
+from django.utils import timezone
+from django.utils.datetime_safe import datetime
+from django.utils.timezone import localtime
+
+from assistenten.models import Adresse, Urlaub, AU
 from assistenten.models.assistent import Assistent
 from assistenten.models.assistenznehmer import ASN
 
@@ -24,3 +32,39 @@ class Schicht(models.Model):
     def __str__(self):
         return f"Schicht({self.beginn} - {self.ende} - ASN: {self.asn} - AS: {self.assistent}"
 
+
+# Lösche Schicht, wenn Urlaub gespeichert wird.
+@receiver(post_save, sender=Urlaub)
+def delete_urlaubsschicht(sender, instance, created, **kwargs):
+    time = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+    # DELETE-query
+    Schicht.objects.filter(
+        beginn__range=(
+            datetime.combine(instance.beginn, time),
+            datetime.combine(instance.ende + timedelta(days=1), time)
+        )
+    ).filter(assistent=instance.assistent).delete() | Schicht.objects.filter(
+        ende__range=(
+            datetime.combine(instance.beginn, time),
+            datetime.combine(instance.ende + timedelta(days=1), time)
+        )
+    ).filter(assistent=instance.assistent).delete()
+
+
+# Lösche Schicht, wenn AU gespeichert wird.
+@receiver(post_save, sender=AU)
+def delete_urlaubsschicht(sender, instance, created, **kwargs):
+    time = localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+    # DELETE-query
+    Schicht.objects.filter(
+        beginn__range=(
+            datetime.combine(instance.beginn, time),
+            datetime.combine(instance.ende + timedelta(days=1), time)
+        )
+    ).filter(assistent=instance.assistent).delete()
+    Schicht.objects.filter(
+        ende__range=(
+            datetime.combine(instance.beginn, time),
+            datetime.combine(instance.ende + timedelta(days=1), time)
+        )
+    ).filter(assistent=instance.assistent).delete()

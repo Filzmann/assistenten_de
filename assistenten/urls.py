@@ -1,5 +1,4 @@
 from django.urls import path
-
 from .views.askhole import AskholeView
 from .views.edit_asn_view import CreateAsnView, EditAsnView, DeleteFesteSchichtenView, DeleteSchichtTemplateView
 from .views.edit_assistent_view import EditAssistentView
@@ -7,9 +6,11 @@ from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
 from .views.edit_schicht_view import CreateSchichtView, EditSchichtView, DeleteSchichtView
 from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
 from .views.einkommenssteuer_view import EinkommenssteuerView
+from .views.hilfe_view import HilfeView
 from .views.schicht_tabelle_view import AsSchichtTabellenView
 
 urlpatterns = [
+    path('hife', HilfeView.as_view(), name='hilfe'),
     path('', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('schicht_tabelle/<int:year>/<int:month>', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('edit_as/<int:pk>', EditAssistentView.as_view(), name='edit_as'),
