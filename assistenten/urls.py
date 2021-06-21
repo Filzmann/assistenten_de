@@ -11,6 +11,7 @@ from .views.schicht_tabelle_view import AsSchichtTabellenView
 
 urlpatterns = [
     path('hife', HilfeView.as_view(), name='hilfe'),
+    path('', AsSchichtTabellenView.as_view(), name='index'),
     path('', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('schicht_tabelle/<int:year>/<int:month>', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('edit_as/<int:pk>', EditAssistentView.as_view(), name='edit_as'),
