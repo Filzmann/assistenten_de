@@ -63,11 +63,14 @@
                                             var bis = vonbis[1];
 
                                             var beginnfeld = document.getElementById('id_schicht-beginn').value;
+
                                             if (beginnfeld != '')
                                             {
                                                 var beginntag = beginnfeld.split(" ")[0];
                                                 beginnArray= beginntag.split('.');
-                                                beginnDateTime = new Date(beginnArray[2], beginnArray[1], beginnArray[0], von.split(':')[0], von.split(':')[1]);
+
+                                                beginnDateTime = new Date(parseInt(beginnArray[2], 10), parseInt(beginnArray[1],10)-1, parseInt(beginnArray[0],10), parseInt(von.split(':')[0],10), parseInt(von.split(':')[1],10));
+
                                             }
                                             else{
                                                 beginnDateTime = new Date();
@@ -88,7 +91,7 @@
                                             }
                                             //alert(beginnDateTime);
                                             beginnfeld = (beginnDateTime.getDate()).toString().padStart(2,'0') +"."
-                                            + beginnDateTime.getMonth().toString().padStart(2,'0') +"."
+                                            + (beginnDateTime.getMonth() + 1).toString().padStart(2,'0') +"."
                                             + beginnDateTime.getFullYear() +" "
                                             + beginnDateTime.getHours().toString().padStart(2,'0') +":"
                                             + beginnDateTime.getMinutes().toString().padStart(2,'0');
@@ -96,7 +99,7 @@
 
                                             //alert(endeDateTime);
                                             endfeld= (endeDateTime.getDate()).toString().padStart(2,'0') +"."
-                                            + endeDateTime.getMonth().toString().padStart(2,'0') +"."
+                                            + (endeDateTime.getMonth() + 1).toString().padStart(2,'0') +"."
                                             + endeDateTime.getFullYear() +" "
                                             + endeDateTime.getHours().toString().padStart(2,'0') +":"
                                             + endeDateTime.getMinutes().toString().padStart(2,'0');
