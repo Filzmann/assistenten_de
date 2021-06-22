@@ -834,8 +834,9 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
     def calc_urlaube(self, start, ende):
         # Urlaube ermitteln
-
-        # finde alle urlaube, der anfang, ende oder mitte (anfanf ist vor beginn und ende nach ende dieses Monats)
+        # es soll kein urlaub gefunden werden, der genau am nächsten monatsersten um 0:00 Uhr beginnt
+        ende = ende - timedelta(minutes=2)
+        # finde alle urlaube, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
         # in diesem Urlaub liegt
         urlaube = Urlaub.objects.filter(beginn__range=(start, ende)) | Urlaub.objects.filter(
             ende__range=(start, ende)) | Urlaub.objects.filter(beginn__lte=start).filter(ende__gte=ende)
@@ -879,6 +880,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     def calc_au(self, start, ende):
         # AU ermitteln
 
+        # es soll keine au gefunden werden, die genau am nächsten monatsersten um 0:00 Uhr beginnt
+        ende = ende - timedelta(minutes=2)
         # finde alle AU, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
         # in diesem AU liegt
         aus = AU.objects.filter(beginn__range=(start, ende)) | AU.objects.filter(
