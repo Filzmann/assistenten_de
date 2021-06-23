@@ -715,6 +715,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         # erster sonntag
         janfirst = datetime(year, 1, 1)
         sunday = (7 - janfirst.weekday()) % 7
+        sunday = 7 if sunday == 0 else sunday
         sunday = timezone.make_aware(datetime(year=year,
                                               month=1,
                                               day=sunday))
@@ -849,7 +850,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             urlaubslohn = berechne_urlaub_au_saetze(datum=start,
                                                     assistent=self.request.user.assistent)['pro_stunde']
             for tag in range(erster_tag, letzter_tag + 2):
-                print(tag)
+                # print(tag)
                 if tag not in self.schichten_view_data.keys():
                     self.schichten_view_data["{:02d}".format(tag)] = []
                 self.schichten_view_data["{:02d}".format(tag)].append(
