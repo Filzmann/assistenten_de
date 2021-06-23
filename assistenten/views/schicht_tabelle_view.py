@@ -848,7 +848,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                        assistent=self.request.user.assistent)['stunden_pro_tag']
             urlaubslohn = berechne_urlaub_au_saetze(datum=start,
                                                     assistent=self.request.user.assistent)['pro_stunde']
-            for tag in range(erster_tag, letzter_tag + 1):
+            for tag in range(erster_tag, letzter_tag + 2):
+                print(tag)
                 if tag not in self.schichten_view_data.keys():
                     self.schichten_view_data["{:02d}".format(tag)] = []
                 self.schichten_view_data["{:02d}".format(tag)].append(
@@ -896,6 +897,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                assistent=self.request.user.assistent)['pro_stunde']
 
             for tag in range(erster_tag, letzter_tag + 1):
+                print(tag)
                 if tag not in self.schichten_view_data.keys():
                     self.schichten_view_data["{:02d}".format(tag)] = []
                 self.schichten_view_data["{:02d}".format(tag)].append(

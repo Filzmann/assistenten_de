@@ -119,9 +119,9 @@ class EditAsnView(LoginRequiredMixin, UpdateView):
 
 class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):
     model = FesteSchicht
-    success_url = reverse_lazy('edit_asn')
+    success_url = reverse_lazy('create_asn')
 
 
 class DeleteSchichtTemplateView(LoginRequiredMixin, DeleteView):
     model = SchichtTemplate
-    success_url = reverse_lazy('edit_asn')
+    success_url = reverse_lazy('create_asn')
