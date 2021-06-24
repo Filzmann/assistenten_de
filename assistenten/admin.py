@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Assistent, Schicht
+from .models import Assistent, Schicht, Weg
 from .models import ASN
 from .models import EB
 from .models import PFK
@@ -15,3 +15,4 @@ admin.site.register(PFK)
 admin.site.register(Lohn)
 admin.site.register(Adresse)
 admin.site.register(Schicht)
+admin.site.register(Weg)

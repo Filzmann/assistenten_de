@@ -1,5 +1,7 @@
 import googlemaps
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView
 
@@ -23,6 +25,7 @@ def get_schicht_hauptanteil(schicht):
 
 def make_weg(adresse1, adresse2):
     gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
+
     adresse1_string = \
         adresse1.strasse + ' ' \
         + adresse1.hausnummer + ', ' \
@@ -40,13 +43,16 @@ def make_weg(adresse1, adresse2):
                                          mode="transit",
                                          departure_time=timezone.now())
 
-    distance = directions_result[0]['legs'][0]['distance']['value'] / 1000
-    duration = round(directions_result[0]['legs'][0]['duration']['value'] / 60 + 0.5)
+    if directions_result:
+        distance = directions_result[0]['legs'][0]['distance']['value'] / 1000
+        duration = round(directions_result[0]['legs'][0]['duration']['value'] / 60 + 0.5)
 
-    weg = Weg(adresse1=adresse1, adresse2=adresse2, entfernung=distance, dauer_in_minuten=duration)
-    weg.save()
+        weg = Weg(adresse1=adresse1, adresse2=adresse2, entfernung=distance, dauer_in_minuten=duration)
+        weg.save()
 
-    return weg.pk
+        return weg.pk
+    else:
+        return False
 
 
 def get_weg_id(adresse1, adresse2):
@@ -57,7 +63,11 @@ def get_weg_id(adresse1, adresse2):
     if wege:
         return wege[0].pk
     else:
-        return make_weg(adresse1, adresse2)
+        weg = make_weg(adresse1, adresse2)
+        if weg:
+            return weg
+        else:
+            return False
     # bei bedarf insert, werte für weg + zeit per google api ermitteln
 
 
@@ -116,15 +126,29 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
                     schichten.remove(schicht)
 
         user_home = Adresse.objects.get(assistent=self.request.user.assistent, is_home=True)
+        if user_home.strasse == '' or user_home.plz == '':
+            redirect('schicht_tabelle')
+
         # TODO Stufen für Verpflegungsmehraufwand aus DB
         stufen = {0: 0, 8: 0, 24: 0}
         an_abfahrten = 0
         for schicht in schichten:
             dauer = get_duration(schicht.beginn, schicht.ende, 'minutes')
+            # TODO bessere Lösung als einfach nur weiterleiten bei fehlender Adresse
+            if schicht.beginn_adresse.strasse == '' or schicht.beginn_adresse.plz == '':
+                redirect('edit_asn', schicht.asn.pk)
+            if schicht.ende_adresse.strasse == '' or schicht.ende_adresse.plz == '':
+                redirect('edit_asn', schicht.asn.pk)
+
             # hinweg
             weg_id = get_weg_id(adresse1=user_home, adresse2=schicht.beginn_adresse)
-            weg = Weg.objects.get(pk=weg_id)
-            dauer += weg.dauer_in_minuten
+            if weg_id:
+                weg = Weg.objects.get(pk=weg_id)
+                dauer += weg.dauer_in_minuten
+            else:
+                weg_id = 0
+                dauer = 0
+
             # print(weg)
             if weg_id not in self.wege:
                 self.wege[weg_id] = {'count': 1, 'weg': weg}
@@ -132,19 +156,22 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
                 self.wege[weg_id]['count'] += 1
             # rückweg
             weg_id = get_weg_id(adresse1=schicht.ende_adresse, adresse2=user_home)
-            weg = Weg.objects.get(pk=weg_id)
-            dauer += weg.dauer_in_minuten
-            
-            # print(weg)
+            if weg_id:
+                weg = Weg.objects.get(pk=weg_id)
+                dauer += weg.dauer_in_minuten
+            else:
+                weg_id = 0
+                dauer = 0
+
             if weg_id not in self.wege:
                 self.wege[weg_id] = {'count': 1, 'weg': weg, }
             else:
                 self.wege[weg_id]['count'] += 1
 
             schicht_stufe = 0
-            if dauer/60 >= 48:
+            if dauer / 60 >= 48:
                 # Reisebegleitung
-                dm = divmod(dauer/60, 24)
+                dm = divmod(dauer / 60, 24)
                 anzahl_24 = dm[0]
                 if dm[1] == 0:
                     anzahl_24 -= 1
@@ -168,6 +195,9 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
 
         # Berechnung der km-Pauschale
         # TODO für einige Jahre haben wege über 21 km eine erhöhte Pauschale.
+
+        self.wege.pop('0', 0)
+
         for weg_id in self.wege:
             self.wege[weg_id]['formel'] = \
                 str(self.wege[weg_id]['count']) + ' * ' + str(self.wege[weg_id]['weg'].entfernung) + 'km * 0.30 € '
