@@ -581,7 +581,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         'aulohn': 0,
         'ueberstunden': 0,
         'ueberstunden_pro_stunde': 0,
-        'ueberstunden_kumuliert': 0
+        'ueberstunden_kumuliert': 0,
+        'zuschlaege': {}
 
     }
 
@@ -623,8 +624,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                            minute=feste_schicht.ende.minute) + timedelta(days=1))
                     if not check_au(datum=start) and not check_urlaub(
                             datum=start) and not check_au(
-                            datum=end - timedelta(minutes=1)) and not check_urlaub(
-                            datum=end - timedelta(minutes=1)):
+                        datum=end - timedelta(minutes=1)) and not check_urlaub(
+                        datum=end - timedelta(minutes=1)):
                         home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
                         schicht_neu = Schicht(beginn=start,
                                               ende=end,
@@ -685,6 +686,9 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['aulohn']) + float(
             self.summen['freizeitausgleich']) + float(
             self.summen['ueberstunden_kumuliert'])
+
+        for zuschlag in self.summen['zuschlaege'].values():
+            self.summen['bruttolohn'] += float(zuschlag['kumuliert'])
 
     def calc_freizeitausgleich(self):
         # anzahl aller feiertage ermitteln
@@ -774,12 +778,27 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                     grund = zuschlaege['zuschlagsgrund']
                     # Grund zu lower-case mit "_" statt " " und ohne punkte,
                     # damit es dem Spaltennamen der Tabelle entspricht
-                    spaltenname = grund.lower().replace('.', '').replace(' ', '_') + '_zuschlag'
+                    grund_formatiert = grund.lower().replace('.', '').replace(' ', '_')
+                    spaltenname = grund_formatiert + '_zuschlag'
                     stundenzuschlag = float(getattr(lohn, spaltenname))
                     schichtzuschlag = zuschlaege['stunden_gesamt'] * stundenzuschlag
                     zuschlaege_text = grund + ': ' + "{:,.2f}".format(
                         zuschlaege['stunden_gesamt']
                     ) + ' Std = ' + "{:,.2f}€".format(schichtzuschlag)
+
+                    # in Summen
+                    # print(self.summen['zuschlaege'])
+                    if grund_formatiert in self.summen['zuschlaege']:
+                        self.summen['zuschlaege'][grund_formatiert]["stunden"] += zuschlaege['stunden_gesamt']
+                        self.summen['zuschlaege'][grund_formatiert]["kumuliert"] += schichtzuschlag
+                    else:
+                        self.summen['zuschlaege'][grund_formatiert] = \
+                            {
+                                'bezeichner': grund,
+                                'stunden': zuschlaege['stunden_gesamt'],
+                                'pro_stunde': stundenzuschlag,
+                                'kumuliert': schichtzuschlag
+                            }
 
             schicht_id = schicht['schicht_id']
 
@@ -818,7 +837,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['bsd_stunden'] += stunden if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
             self.summen['bsd_lohn'] = (lohn.kurzfristig_zuschlag_prozent / 100) * lohn.grundlohn \
                 if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
-            self.summen['bsd_kumuliert'] += (float(lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden)\
+            self.summen['bsd_kumuliert'] += (float(lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden) \
                 if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
             # self.summen['bsd_wegegeld'] += 0  # TODO
             self.summen['orga_zuschlag'] = lohn.orga_zuschlag
@@ -898,7 +917,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                assistent=self.request.user.assistent)['pro_stunde']
 
             for tag in range(erster_tag, letzter_tag + 1):
-                print(tag)
+                # print(tag)
                 if tag not in self.schichten_view_data.keys():
                     self.schichten_view_data["{:02d}".format(tag)] = []
                 self.schichten_view_data["{:02d}".format(tag)].append(
@@ -1016,6 +1035,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             'aulohn': 0,
             'ueberstunden': 0,
             'ueberstunden_pro_stunde': 0,
-            'ueberstunden_kumuliert': 0
+            'ueberstunden_kumuliert': 0,
+            'zuschlaege': {}
 
         }

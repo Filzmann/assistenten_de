@@ -49,8 +49,8 @@
             <td>Stunden<br>Nacht</td>
             <td>Nachtzschlg.</td>
             <td>Orga</td>
-            <td>Wechselschicht</td>
-            <td>{{ schicht.schichtlohn }}</td>
+            <td>Wechsel</td>
+            <td>Zuschläge</td>
         </tr>
         {% for tag, schichten in schichttabelle.items %}
             {% if schichten %}
@@ -117,6 +117,7 @@
                         <td class="right">{% if schicht.nachtzuschlag_schicht %}{{ schicht.nachtzuschlag_schicht|floatformat:2}}€{% endif %}</td>
                         <td class="right">{% if schicht.orgazulage_schicht %}{{ schicht.orgazulage_schicht|floatformat:2}}€{% endif %}</td>
                         <td class="right">{% if schicht.wechselzulage_schicht %}{{ schicht.wechselzulage_schicht|floatformat:2}}€{% endif %}</td>
+                        <td>{% if schicht.zuschlaege %}{{schicht.zuschlaege}}{% endif %}</td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -203,10 +204,20 @@
                         <td class="right">{{summen.ueberstunden_kumuliert|floatformat:2}}€</td>
                     </tr>
                 {% endif %}
+                {% if summen.zuschlaege %}
+                    {% for key, zuschlag in summen.zuschlaege.items %}
+                        <tr>
+                            <td>{{zuschlag.bezeichner}}</td>
+                            <td class="right">{{zuschlag.stunden|floatformat:1}}</td>
+                            <td class="right">{{zuschlag.pro_stunde|floatformat:2}}€</td>
+                            <td class="right">{{zuschlag.kumuliert|floatformat:2}}€</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
                 {% if summen.anzahl_feiertage %}
                     <tr>
                         <td>Freizeitausgleich Feiertage</td>
-                        <td class="right"></td>
+                        <td class="right">{{summen.anzahl_feiertage}} Tage</td>
                         <td class="right"></td>
                         <td class="right">{{summen.freizeitausgleich|floatformat:2}}€</td>
                     </tr>
@@ -259,6 +270,6 @@
     </div>
 </div>
 
-
+<pre>
 {% endblock %}
-<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
+{% filter force_escape %} {% debug %} {% endfilter %} </pre>

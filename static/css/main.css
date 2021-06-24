@@ -80,7 +80,10 @@ legend
     vertical-align: middle;
 }
 
-
+.container
+{
+    width: 100%
+}
 
 
 
