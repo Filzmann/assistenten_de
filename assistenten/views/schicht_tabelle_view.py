@@ -369,8 +369,8 @@ def get_nachtstunden(schicht):
     return nachtstunden
 
 
-def get_sliced_schichten(start, end):
-    schichten = Schicht.objects.filter(beginn__range=(start, end)) | Schicht.objects.filter(ende__range=(start, end))
+def get_sliced_schichten(start, end, assistent):
+    schichten = Schicht.objects.filter(beginn__range=(start, end)).filter(assistent=assistent) | Schicht.objects.filter(ende__range=(start, end)).filter(assistent=assistent)
 
     sliced_schichten = []
     for schicht in schichten:
@@ -741,7 +741,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
         schichten = get_sliced_schichten(
             start=self.act_date,
-            end=ende
+            end=ende,
+            assistent=self.request.user.assistent
         )
 
         # feste Schichten
@@ -749,7 +750,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.add_feste_schichten(erster_tag=start, letzter_tag=ende)
             schichten = get_sliced_schichten(
                 start=self.act_date,
-                end=ende
+                end=ende,
+                assistent=self.request.user.assistent
             )
 
         for schicht in schichten:
@@ -858,8 +860,10 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         ende = ende - timedelta(minutes=2)
         # finde alle urlaube, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
         # in diesem Urlaub liegt
-        urlaube = Urlaub.objects.filter(beginn__range=(start, ende)) | Urlaub.objects.filter(
-            ende__range=(start, ende)) | Urlaub.objects.filter(beginn__lte=start).filter(ende__gte=ende)
+        urlaube = Urlaub.objects.filter(beginn__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+                  Urlaub.objects.filter(ende__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+                  Urlaub.objects.filter(beginn__lte=start).filter(ende__gte=ende).filter(
+                      assistent=self.request.user.assistent)
 
         for urlaub in urlaube:
             erster_tag = urlaub.beginn.day if urlaub.beginn > start.date() else start.day
@@ -905,8 +909,9 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         ende = ende - timedelta(minutes=2)
         # finde alle AU, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
         # in diesem AU liegt
-        aus = AU.objects.filter(beginn__range=(start, ende)) | AU.objects.filter(
-            ende__range=(start, ende)) | AU.objects.filter(beginn__lte=start).filter(ende__gte=ende)
+        aus = AU.objects.filter(beginn__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+              AU.objects.filter(ende__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+              AU.objects.filter(beginn__lte=start).filter(ende__gte=ende).filter(assistent=self.request.user.assistent)
 
         for au in aus:
             erster_tag = au.beginn.day if au.beginn > start.date() else start.day

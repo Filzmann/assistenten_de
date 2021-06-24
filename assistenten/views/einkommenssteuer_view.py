@@ -114,8 +114,10 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
         # TODO kombinierte Schichten beachten
         # alle Schichten aus dem gewählten Jahr
         # um die schichten manipipulierbar zu machen, werden sie direkt in eine Liste gepackt.
+        weg = False
         schichten = list(
-            Schicht.objects.filter(beginn__year=self.act_year) | Schicht.objects.filter(ende__year=self.act_year)
+            Schicht.objects.filter(beginn__year=self.act_year).filter(assistent=self.request.user.assistent) |
+            Schicht.objects.filter(ende__year=self.act_year).filter(assistent=self.request.user.assistent)
         )
 
         # prüfen ob der hauptanteil der randschichten im aktuellen jahr liegt.
