@@ -55,7 +55,13 @@
         {% for tag, schichten in schichttabelle.items %}
             {% if schichten %}
                 {% for schicht in schichten %}
-                    <tr >
+                    <tr class="
+                        {% if tag|localtime|date:"w" == "0" %}
+                            sonntag
+                        {% elif tag|localtime|date:"w" == "6" %}
+                            samstag
+                        {% endif %}
+                    ">
                         <td>
 
                             {% if schicht.type == 'schicht' %}
@@ -121,7 +127,13 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr>
+                <tr class="
+                    {% if tag|localtime|date:"w" == "0" %}
+                        sonntag
+                    {% elif tag|localtime|date:"w" == "6" %}
+                        samstag
+                    {% endif %}
+                ">
                     <td>
                         <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                             <img src="{% static 'images/add.png'%}">
