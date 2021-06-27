@@ -370,7 +370,9 @@ def get_nachtstunden(schicht):
 
 
 def get_sliced_schichten(start, end, assistent):
-    schichten = Schicht.objects.filter(beginn__range=(start, end)).filter(assistent=assistent) | Schicht.objects.filter(ende__range=(start, end)).filter(assistent=assistent)
+    schichten = \
+        Schicht.objects.filter(beginn__range=(start, end)).filter(assistent=assistent) | \
+        Schicht.objects.filter(ende__range=(start, end)).filter(assistent=assistent)
 
     sliced_schichten = []
     for schicht in schichten:
@@ -622,10 +624,10 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                            day=tag,
                                                            hour=feste_schicht.ende.hour,
                                                            minute=feste_schicht.ende.minute) + timedelta(days=1))
-                    if not check_au(datum=start) and not check_urlaub(
-                            datum=start) and not check_au(
-                        datum=end - timedelta(minutes=1)) and not check_urlaub(
-                        datum=end - timedelta(minutes=1)):
+                    if not check_au(datum=start) and \
+                            not check_urlaub(datum=start) and \
+                            not check_au(datum=end - timedelta(minutes=1)) \
+                            and not check_urlaub(datum=end - timedelta(minutes=1)):
                         home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
                         schicht_neu = Schicht(beginn=start,
                                               ende=end,
@@ -775,6 +777,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             # zuschläge
             zuschlaege = berechne_sa_so_weisil_feiertagszuschlaege(schicht)
             zuschlaege_text = ''
+
             if zuschlaege:
                 if zuschlaege['stunden_gesamt'] > 0:
                     grund = zuschlaege['zuschlagsgrund']
@@ -839,7 +842,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['bsd_stunden'] += stunden if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
             self.summen['bsd_lohn'] = (lohn.kurzfristig_zuschlag_prozent / 100) * lohn.grundlohn \
                 if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
-            self.summen['bsd_kumuliert'] += (float(lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden) \
+            self.summen['bsd_kumuliert'] += (float(
+                lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden) \
                 if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
             # self.summen['bsd_wegegeld'] += 0  # TODO
             self.summen['orga_zuschlag'] = lohn.orga_zuschlag
@@ -860,10 +864,11 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         ende = ende - timedelta(minutes=2)
         # finde alle urlaube, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
         # in diesem Urlaub liegt
-        urlaube = Urlaub.objects.filter(beginn__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
-                  Urlaub.objects.filter(ende__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
-                  Urlaub.objects.filter(beginn__lte=start).filter(ende__gte=ende).filter(
-                      assistent=self.request.user.assistent)
+        urlaube = \
+            Urlaub.objects.filter(beginn__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+            Urlaub.objects.filter(ende__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+            Urlaub.objects.filter(beginn__lte=start).filter(
+                ende__gte=ende).filter(assistent=self.request.user.assistent)
 
         for urlaub in urlaube:
             erster_tag = urlaub.beginn.day if urlaub.beginn > start.date() else start.day
@@ -909,9 +914,10 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         ende = ende - timedelta(minutes=2)
         # finde alle AU, der anfang, ende oder mitte (anfang ist vor beginn und ende nach ende dieses Monats)
         # in diesem AU liegt
-        aus = AU.objects.filter(beginn__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
-              AU.objects.filter(ende__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
-              AU.objects.filter(beginn__lte=start).filter(ende__gte=ende).filter(assistent=self.request.user.assistent)
+        aus = \
+            AU.objects.filter(beginn__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+            AU.objects.filter(ende__range=(start, ende)).filter(assistent=self.request.user.assistent) | \
+            AU.objects.filter(beginn__lte=start).filter(ende__gte=ende).filter(assistent=self.request.user.assistent)
 
         for au in aus:
             erster_tag = au.beginn.day if au.beginn > start.date() else start.day
@@ -978,7 +984,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
         return table_array
 
-    def get_time_navigation_data(self, **kwargs):
+    def get_time_navigation_data(self):
         if 'act_date' in self.request.POST:
             self.act_date = self.request.POST['act_date']
 

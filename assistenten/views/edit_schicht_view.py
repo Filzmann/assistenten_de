@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from assistenten.forms.edit_schicht_multiform import EditSchichtMultiForm, CreateSchichtMultiForm
 from assistenten.models import Schicht, Adresse, ASN
 
-#TODO beim Eintragen von Schichten über den Jahreswechsel werden daten falsch übernommen.
+# TODO beim Eintragen von Schichten über den Jahreswechsel werden daten falsch übernommen.
 # Vermutlich im Javascript zur Templateübernahme
 
 
