@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
@@ -33,11 +33,14 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
         return redirect('edit_asn', pk=asn.id)
 
 
-class EditAsnView(LoginRequiredMixin, UpdateView):
+class EditAsnView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = "assistenten/edit_asn.html"
     form_class = EditAsnMultiForm
     model = ASN
     success_url = reverse_lazy('edit_asn')
+
+    def test_func(self):
+        return True
 
     def get_form_kwargs(self):
         kwargs = super(EditAsnView, self).get_form_kwargs()

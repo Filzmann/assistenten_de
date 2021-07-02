@@ -4,6 +4,6 @@ SeleniumLogin~=0.0.4
 mysqlclient
 https://github.com/jpic/django-betterforms/tarball/master
 django_crispy_forms
-
+django-guardian~=2.4.0
 pytz~=2021.1
 googlemaps~=4.4.5
