@@ -14,11 +14,6 @@ class EditAssistentView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView)
     success_url = reverse_lazy('index')
     permission_required = 'change_assistent'
 
-    def test_func(self):
-        print(self.request.GET)
-        return True
-        # return self.request.user.pk == self.request.GET['pk']
-
     def get_form_kwargs(self):
         kwargs = super(EditAssistentView, self).get_form_kwargs()
         kwargs.update(instance={

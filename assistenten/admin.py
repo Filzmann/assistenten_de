@@ -19,8 +19,16 @@ class AssistentAdmin(GuardedModelAdmin):
     # date_hierarchy = 'created_at'
 
 
+class AsnAdmin(GuardedModelAdmin):
+    prepopulated_fields = {"kuerzel": ('name', 'vorname', 'kuerzel')}
+    list_display = ('kuerzel', 'name', 'vorname')
+    search_fields = ('name', 'vorname', 'email', 'kuerzel')
+    ordering = ('-kuerzel',)
+    # date_hierarchy = 'created_at'
+
+
 admin.site.register(Assistent, AssistentAdmin)
-admin.site.register(ASN)
+admin.site.register(ASN, AsnAdmin)
 admin.site.register(EB)
 admin.site.register(PFK)
 admin.site.register(Lohn)

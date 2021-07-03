@@ -20,11 +20,6 @@ class Assistent(models.Model):
     einstellungsdatum = models.DateTimeField(default=timezone.now)
     asns = models.ManyToManyField(ASN, through='AssociationAsAsn', related_name='assistents')
 
-    class Meta:
-        permissions = (
-            ('edit_this_assistent', 'Assistent bearbeiten'),
-        )
-
     def get_absolute_url(self):
         return reverse('edit_as', kwargs={'pk': self.pk})
 
@@ -46,7 +41,7 @@ def create_assistent(sender, instance, created, **kwargs):
             name=user.last_name
         )
         assign_perm("change_user", user, user)
-        assign_perm("edit_this_assistent", user, assistent)
+        assign_perm("change_assistent", user, assistent)
 
 
 @receiver(post_save, sender=User)

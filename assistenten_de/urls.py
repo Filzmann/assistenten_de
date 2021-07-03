@@ -19,7 +19,7 @@ from django.urls import path, include, reverse_lazy
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('', include('assistenten.urls')),
+    path('', include('assistenten.urls'), name="index"),
     path('admin/', admin.site.urls, name="admin"),
     path('assistenten_login/', auth_views.LoginView.as_view(template_name='login.html'), name='assistenten_login'),
     path('assistenten_logout/', auth_views.LogoutView.as_view(), name='assistenten_logout'),

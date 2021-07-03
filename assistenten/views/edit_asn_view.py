@@ -2,6 +2,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
+from guardian.mixins import PermissionRequiredMixin
+from guardian.shortcuts import assign_perm
+
 from assistenten.forms.edit_asn_multiform import EditAsnMultiForm, CreateAsnMultiForm
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
@@ -30,17 +33,18 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
         adresse.asn = asn
         adresse.is_home = True
         adresse.save()
+        # der eingeloggte user erhält das Bearbeitungsrecht
+        assign_perm('change_asn', assistent.user, asn)
+
         return redirect('edit_asn', pk=asn.id)
 
 
-class EditAsnView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class EditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     template_name = "assistenten/edit_asn.html"
     form_class = EditAsnMultiForm
     model = ASN
     success_url = reverse_lazy('edit_asn')
-
-    def test_func(self):
-        return True
+    permission_required = 'change_asn'
 
     def get_form_kwargs(self):
         kwargs = super(EditAsnView, self).get_form_kwargs()
