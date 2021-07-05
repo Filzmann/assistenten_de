@@ -31,21 +31,21 @@ class Assistent(models.Model):
 
 @receiver(m2m_changed)
 def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk_set, model, **kwargs):
-    if model == Group:
+    user, groups = instance, pk_set
+    if model == Group and user.username != settings.ANONYMOUS_USER_NAME:
         if action == 'post_add':
-            # TODO: add logic
-            user, groups = instance, pk_set
             if 1 in groups:
                 if not hasattr(user, 'assistent'):
-                    if user.username != settings.ANONYMOUS_USER_NAME:
-                        assistent = Assistent.objects.create(
-                            user=user,
-                            email=user.email,
-                            vorname=user.first_name,
-                            name=user.last_name
-                        )
-                        assign_perm("change_user", user, user)
-                        assign_perm("change_assistent", user, assistent)
+                    assistent = Assistent.objects.create(
+                        user=user,
+                        email=user.email,
+                        vorname=user.first_name,
+                        name=user.last_name
+                    )
+                if not user.has_perm("change_user", user):
+                    assign_perm("change_user", user, user)
+                if not user.has_perm("change_assistent", assistent):
+                    assign_perm("change_assistent", user, assistent)
             if 2 in groups:
                 if not hasattr(user, 'assistenznehmer'):
                     asn = ASN.objects.create(
@@ -55,7 +55,9 @@ def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk
                         name=user.last_name,
                         kuerzel=user.username
                     )
+                if not user.has_perm("change_user", user):
                     assign_perm("change_user", user, user)
+                if not user.has_perm("change_asn", assistent):
                     assign_perm("change_asn", user, asn)
 
             # TODO Bei weiteren Nutzergruppen erweitern
