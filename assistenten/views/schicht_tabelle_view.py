@@ -985,6 +985,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         return table_array
 
     def get_time_navigation_data(self):
+        # test
         if 'act_date' in self.request.POST:
             self.act_date = self.request.POST['act_date']
 
