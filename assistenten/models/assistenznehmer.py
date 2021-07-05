@@ -1,10 +1,11 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 from assistenten.models import EB, PFK
 
 
 class ASN(models.Model):
-
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='assistenznehmer')
     kuerzel = models.CharField(max_length=30)
     name = models.CharField(max_length=30)
     vorname = models.CharField(max_length=30)
