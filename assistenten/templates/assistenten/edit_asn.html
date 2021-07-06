@@ -1,5 +1,6 @@
 {% extends "app_base.html" %}
 
+
 {% block title %}ASN bearbeiten{% endblock %}
 
 {% block heading %}
@@ -9,9 +10,12 @@
 
 
 {% block content %}
+
     <div class="asn-menu-outer">
         <ul class="asn-menu" role="menu">
-            <li><a href="{% url 'create_asn' %}">Neuer ASN</a></li>
+            {% if perms.assistenten.add_asn %}
+                <li><a href="{% url 'create_asn' %}">Neuer ASN</a></li>
+            {% endif %}
             {% for asn_id in asn_liste %}
                 <li><a href="{% url 'edit_asn' asn_id.0 %}">{{ asn_id.1 }}</a></li>
             {% endfor %}

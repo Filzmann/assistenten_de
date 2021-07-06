@@ -42,6 +42,8 @@ def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk
                         vorname=user.first_name,
                         name=user.last_name
                     )
+                else:
+                    assistent = user.assistent
                 if not user.has_perm("change_user", user):
                     assign_perm("change_user", user, user)
                 if not user.has_perm("change_assistent", assistent):
@@ -55,16 +57,13 @@ def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk
                         name=user.last_name,
                         kuerzel=user.username
                     )
+                else:
+                    asn = user.asn
                 if not user.has_perm("change_user", user):
                     assign_perm("change_user", user, user)
-                if not user.has_perm("change_asn", assistent):
+                if not user.has_perm("change_asn", asn):
                     assign_perm("change_asn", user, asn)
 
             # TODO Bei weiteren Nutzergruppen erweitern
-        # handle as many actions as one needs
-    # The following for loop prints every group that were
-    # added/removed.
-    # for pk in pk_set:
-    #    group = Group.objects.get(id=pk)
-    #    print(group)
+
 

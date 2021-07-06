@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from guardian.mixins import PermissionRequiredMixin
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from assistenten.forms.edit_asn_multiform import EditAsnMultiForm, CreateAsnMultiForm
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
@@ -17,7 +17,8 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         asn_liste = []
-        asns = self.request.user.assistent.asns.all()
+        asns = get_objects_for_user(self.request.user, 'view_asn', klass=ASN, with_superuser=False)
+
         for asn in asns:
             asn_liste.append((asn.id, asn.kuerzel))
         kwargs['asn_liste'] = asn_liste
@@ -26,7 +27,8 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         asn = form['asn_stammdaten'].save()
-        assistent = self.request.user.assistent
+        user = self.request.user
+        assistent = user.assistent
         asn.assistents.add(assistent)
         asn.save()
         adresse = form['asn_adresse'].save(commit=False)
@@ -34,7 +36,8 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
         adresse.is_home = True
         adresse.save()
         # der eingeloggte user erhält das Bearbeitungsrecht
-        assign_perm('change_asn', assistent.user, asn)
+        assign_perm('change_asn', user, asn)
+        assign_perm("view_asn", user, asn)
 
         return redirect('edit_asn', pk=asn.id)
 
@@ -59,7 +62,7 @@ class EditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
 
         # alle asn zur auswahl auflisten
         asn_liste = []
-        asns = self.request.user.assistent.asns.all()
+        asns = get_objects_for_user(self.request.user, 'change_asn', klass=ASN, with_superuser=False)
         for asn in asns:
             asn_liste.append((asn.id, asn.kuerzel))
         kwargs['asn_liste'] = asn_liste
