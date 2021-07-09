@@ -128,7 +128,7 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
 
         user_home = Adresse.objects.get(assistent=self.request.user.assistent, is_home=True)
         if user_home.strasse == '' or user_home.plz == '':
-            redirect('schicht_tabelle')
+            redirect('as_schicht_tabelle')
 
         # TODO Stufen für Verpflegungsmehraufwand aus DB
         stufen = {0: 0, 8: 0, 24: 0}
@@ -137,9 +137,9 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
             dauer = get_duration(schicht.beginn, schicht.ende, 'minutes')
             # TODO bessere Lösung als einfach nur weiterleiten bei fehlender Adresse
             if schicht.beginn_adresse.strasse == '' or schicht.beginn_adresse.plz == '':
-                redirect('edit_asn', schicht.asn.pk)
+                redirect('as_edit_asn', schicht.asn.pk)
             if schicht.ende_adresse.strasse == '' or schicht.ende_adresse.plz == '':
-                redirect('edit_asn', schicht.asn.pk)
+                redirect('as_edit_asn', schicht.asn.pk)
 
             # hinweg
             weg_id = get_weg_id(adresse1=user_home, adresse2=schicht.beginn_adresse)

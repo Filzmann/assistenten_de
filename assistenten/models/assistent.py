@@ -20,7 +20,7 @@ class Assistent(models.Model):
     asns = models.ManyToManyField(ASN, through='AssociationAsAsn', related_name='assistents')
 
     def get_absolute_url(self):
-        return reverse('edit_as', kwargs={'pk': self.pk})
+        return reverse('as_edit_as', kwargs={'pk': self.pk})
 
     def __repr__(self):
         return f"Assistent({self.name!r}, {self.vorname!r})"

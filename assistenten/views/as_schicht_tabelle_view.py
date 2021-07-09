@@ -187,15 +187,15 @@ def check_mehrtaegig(schicht):
         return 1
 
 
-def check_au(datum):
-    if AU.objects.filter(beginn__lte=datum).filter(ende__gte=datum).count():
+def check_au(datum, assistent):
+    if AU.objects.filter(beginn__lte=datum).filter(ende__gte=datum).filter(assistent=assistent).count():
         return True
     else:
         return False
 
 
-def check_urlaub(datum):
-    if Urlaub.objects.filter(beginn__lte=datum).filter(ende__gte=datum).count():
+def check_urlaub(datum, assistent):
+    if Urlaub.objects.filter(beginn__lte=datum).filter(ende__gte=datum).filter(assistent=assistent).count():
         return True
     else:
         return False
@@ -625,10 +625,10 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                                            day=tag,
                                                            hour=feste_schicht.ende.hour,
                                                            minute=feste_schicht.ende.minute) + timedelta(days=1))
-                    if not check_au(datum=start) and \
-                            not check_urlaub(datum=start) and \
-                            not check_au(datum=end - timedelta(minutes=1)) \
-                            and not check_urlaub(datum=end - timedelta(minutes=1)):
+                    if not check_au(datum=start, assistent=self.request.user.assistent) and \
+                            not check_urlaub(datum=start, assistent=self.request.user.assistent) and \
+                            not check_au(datum=end - timedelta(minutes=1), assistent=self.request.user.assistent) \
+                            and not check_urlaub(datum=end - timedelta(minutes=1), assistent=self.request.user.assistent):
                         home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
                         schicht_neu = Schicht(beginn=start,
                                               ende=end,

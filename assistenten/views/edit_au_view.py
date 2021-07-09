@@ -11,7 +11,7 @@ class CreateAUView(LoginRequiredMixin, CreateView):
     template_name = "assistenten/edit_au.html"
     form_class = EditAUForm
     model = AU
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')
 
     def form_valid(self, form):
 
@@ -20,16 +20,16 @@ class CreateAUView(LoginRequiredMixin, CreateView):
         au.assistent = assistent
         au.save()
 
-        return redirect('schicht_tabelle', year=au.beginn.year, month=str(au.beginn.month).zfill(2))
+        return redirect('as_schicht_tabelle', year=au.beginn.year, month=str(au.beginn.month).zfill(2))
 
 
 class EditAUView(LoginRequiredMixin, UpdateView):
     template_name = "assistenten/edit_au.html"
     form_class = EditAUForm
     model = AU
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')
 
 
 class DeleteAUView(LoginRequiredMixin, DeleteView):
     model = AU
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')

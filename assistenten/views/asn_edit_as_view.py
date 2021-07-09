@@ -5,15 +5,15 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
-from assistenten.forms.edit_asn_multiform import EditAsnMultiForm, CreateAsnMultiForm
+from assistenten.forms.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate, Assistent
 
 
-class AsCreateAsnView(LoginRequiredMixin, CreateView):
+class AsnCreateAsView(LoginRequiredMixin, CreateView):
     template_name = "assistenten/as_edit_asn.html"
-    form_class = CreateAsnMultiForm
+    form_class = AsCreateAsnMultiForm
     model = Assistent
-    success_url = reverse_lazy('edit_asn')
+    success_url = reverse_lazy('as_edit_asn')
 
     def get_context_data(self, **kwargs):
         as_liste = []
@@ -22,7 +22,7 @@ class AsCreateAsnView(LoginRequiredMixin, CreateView):
         for assi in assis:
             as_liste.append((assi.id, assi.name + ', ' + assi.vorname))
         kwargs['as_liste'] = as_liste
-        context = super(AsCreateAsnView, self).get_context_data(**kwargs)
+        context = super(AsnCreateAsView, self).get_context_data(**kwargs)
         return context
 
     def form_valid(self, form):
@@ -39,18 +39,18 @@ class AsCreateAsnView(LoginRequiredMixin, CreateView):
         assign_perm('change_asn', user, asn)
         assign_perm("view_asn", user, asn)
 
-        return redirect('edit_asn', pk=asn.id)
+        return redirect('as_edit_asn', pk=asn.id)
 
 
-class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AsnEditAsView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     template_name = "assistenten/as_edit_asn.html"
-    form_class = EditAsnMultiForm
+    form_class = AsEditAsnMultiForm
     model = ASN
-    success_url = reverse_lazy('edit_asn')
+    success_url = reverse_lazy('asn_edit_as')
     permission_required = 'change_asn'
 
     def get_form_kwargs(self):
-        kwargs = super(AsEditAsnView, self).get_form_kwargs()
+        kwargs = super(AsnEditAsView, self).get_form_kwargs()
         kwargs.update(instance={
             'asn_stammdaten': self.object,
             'asn_adresse': self.object.adressen.all().filter(is_home=True)[0]
@@ -99,7 +99,7 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             })
         kwargs['schicht_template_liste'] = schicht_template_liste
 
-        context = super(AsEditAsnView, self).get_context_data(**kwargs)
+        context = super(AsnEditAsView, self).get_context_data(**kwargs)
 
         return context
 
@@ -124,14 +124,14 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             schicht_template.asn = asn
             schicht_template.save()
 
-        return redirect('edit_asn', pk=asn.id)
+        return redirect('asn_edit_as', pk=asn.id)
 
 
 class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):
     model = FesteSchicht
-    success_url = reverse_lazy('create_asn')
+    success_url = reverse_lazy('create_as')
 
 
 class DeleteSchichtTemplateView(LoginRequiredMixin, DeleteView):
     model = SchichtTemplate
-    success_url = reverse_lazy('create_asn')
+    success_url = reverse_lazy('create_as')

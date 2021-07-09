@@ -12,8 +12,8 @@ class GroupBasedRedirector(View):
                 return HttpResponseRedirect("/admin/")
             return HttpResponseRedirect("hilfe")
         elif usergroup == "Assistenten":
-            return HttpResponseRedirect("schicht_tabelle")
+            return HttpResponseRedirect("as_schicht_tabelle")
         elif usergroup == "Assistenznehmer":
-            return HttpResponseRedirect("hilfe")
+            return HttpResponseRedirect("asn_dienstplan")
         else:
             return HttpResponseRedirect("hilfe")

@@ -1,0 +1,112 @@
+{% extends "app_base.html" %}
+
+{% load static %}
+{% load tz %}
+
+{% block content %}
+    <div>
+        <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
+
+        <div class ="inline">
+            <form method="get" action="">
+                <select name="month" onchange="form.submit()">
+                    {% for key, value in nav_timedelta.monatsliste.items %}
+                        <option value="{{ key }}"
+                        {% if key == nav_timedelta.act_date|date:"m" %}
+                            selected="selected"
+                        {% endif %}
+
+                        > {{ value }} </option>
+                    {% endfor %}
+                </select>
+                <select name="year" onchange="form.submit()">
+                    {% for year in nav_timedelta.jahresliste %}
+
+                        <option value="{{ year }}"
+                        {% if year == nav_timedelta.act_date|date:"Y" %}
+                            selected="selected"
+                        {% endif %}
+                        > {{ year }} </option>
+                    {% endfor %}
+                </select>
+
+            </form>
+        </div>
+        <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
+
+    </div>
+    <div class="inline">
+        <table border="1">
+        <tr>
+            <td></td>
+            <td>Tag</td>
+            <td>von</td>
+            <td>bis</td>
+            <td>AS</td>
+
+        </tr>
+        {% for tag, schichten in schichttabelle.items %}
+            {% if schichten %}
+                {% for schicht in schichten %}
+                    <tr class="
+                        {% if tag|localtime|date:"w" == "0" %}
+                            sonntag
+                        {% elif tag|localtime|date:"w" == "6" %}
+                            samstag
+                        {% endif %}
+                    ">
+                        <td>
+
+
+                                <form method="post">
+                                     {% csrf_token %}
+                                    <input type="image"
+                                           src="{% static 'images/del.png'%}"
+                                           formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                           value=""
+                                           onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                    >
+                                    <a href="{% url 'edit_schicht' schicht.schicht_id %}">
+                                        <img src="{% static 'images/edit.png'%}">
+                                    </a>
+                                    <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                                        <img src="{% static 'images/add.png'%}">
+                                    </a>
+
+                                </form>
+
+                            </td>
+
+                            <td class="center">
+                                {{ tag|localtime|date:"D d" }}
+                            </td>
+                            <td>{{ schicht.von|localtime|date:"H:i" }}</td>
+                            <td>{{ schicht.bis|localtime|date:"H:i" }}</td>
+                            <td>{{ schicht.assistent }}</td>
+
+                        </tr>
+
+                {% endfor %}
+            {% else %}
+                <tr class="
+                    {% if tag|localtime|date:"w" == "0" %}
+                        sonntag
+                    {% elif tag|localtime|date:"w" == "6" %}
+                        samstag
+                    {% endif %}
+                ">
+                    <td>
+                        <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                            <img src="{% static 'images/add.png'%}">
+                        </a>
+                    </td>
+                    <td class="center">
+                        {{ tag|localtime|date:"D d" }}
+                    </td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+    </div>
+{% endblock %}
+<pre>{% filter force_escape %} {% debug %} {% endfilter %} </pre>

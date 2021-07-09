@@ -10,7 +10,7 @@ class CreateUrlaubView(LoginRequiredMixin, CreateView):
     template_name = "assistenten/edit_urlaub.html"
     form_class = EditUrlaubForm
     model = Urlaub
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')
 
     def form_valid(self, form):
 
@@ -19,16 +19,16 @@ class CreateUrlaubView(LoginRequiredMixin, CreateView):
         urlaub.assistent = assistent
         urlaub.save()
 
-        return redirect('schicht_tabelle', year=urlaub.beginn.year, month=str(urlaub.beginn.month).zfill(2))
+        return redirect('as_schicht_tabelle', year=urlaub.beginn.year, month=str(urlaub.beginn.month).zfill(2))
 
 
 class EditUrlaubView(LoginRequiredMixin, UpdateView):
     template_name = "assistenten/edit_urlaub.html"
     form_class = EditUrlaubForm
     model = Urlaub
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')
 
 
 class DeleteUrlaubView(LoginRequiredMixin, DeleteView):
     model = Urlaub
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')

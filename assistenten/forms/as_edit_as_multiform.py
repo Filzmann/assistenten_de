@@ -3,7 +3,7 @@ from assistenten.forms import EditAsForm
 from assistenten.forms.adresse import HomeForm
 
 
-class EditAsMultiForm(MultiModelForm):
+class AsEditAsMultiForm(MultiModelForm):
     form_classes = {
         'assistent': EditAsForm,
         'adresse': HomeForm,

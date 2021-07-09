@@ -5,7 +5,7 @@ from assistenten.forms.edit_asn_schicht_templates import SchichtTemplatesForm
 from assistenten.forms.edit_asn_stammdaten import EditAsnStammdatenForm
 
 
-class CreateAsnMultiForm(MultiModelForm):
+class AsCreateAsnMultiForm(MultiModelForm):
     form_classes = {
         'asn_stammdaten': EditAsnStammdatenForm,
         'asn_adresse': HomeForm,
@@ -13,7 +13,7 @@ class CreateAsnMultiForm(MultiModelForm):
     }
 
 
-class EditAsnMultiForm(MultiModelForm):
+class AsEditAsnMultiForm(MultiModelForm):
     form_classes = {
         'asn_stammdaten': EditAsnStammdatenForm,
         'asn_adresse': HomeForm,

@@ -5,7 +5,7 @@
 
 {% block content %}
     <div>
-        <a class="buttonlink inline" href="{% url 'schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
+        <a class="buttonlink inline" href="{% url 'as_schicht_tabelle' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
 
         <div class ="inline">
             <form method="get" action="">
@@ -32,7 +32,7 @@
 
             </form>
         </div>
-        <a class="buttonlink inline" href="{% url 'schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
+        <a class="buttonlink inline" href="{% url 'as_schicht_tabelle' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
 
     </div>
     <div class="inline">

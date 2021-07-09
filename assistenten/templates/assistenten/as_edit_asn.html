@@ -17,7 +17,7 @@
                 <li><a href="{% url 'create_asn' %}">Neuer ASN</a></li>
             {% endif %}
             {% for asn_id in asn_liste %}
-                <li><a href="{% url 'edit_asn' asn_id.0 %}">{{ asn_id.1 }}</a></li>
+                <li><a href="{% url 'as_edit_asn' asn_id.0 %}">{{ asn_id.1 }}</a></li>
             {% endfor %}
         </ul>
     </div>

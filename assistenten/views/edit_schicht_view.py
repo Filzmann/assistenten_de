@@ -138,7 +138,7 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
         schicht.save()
 
         if 'just_save' in self.request.POST:
-            return redirect('schicht_tabelle', year=schicht.beginn.year, month=schicht.beginn.month)
+            return redirect('as_schicht_tabelle', year=schicht.beginn.year, month=schicht.beginn.month)
         elif 'save_and_new' in self.request.POST:
             return redirect('create_schicht', y=schicht.beginn.year, m=schicht.beginn.month, d=schicht.beginn.day)
         else:
@@ -147,4 +147,4 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
 
 class DeleteSchichtView(LoginRequiredMixin, DeleteView):
     model = Schicht
-    success_url = reverse_lazy('schicht_tabelle')
+    success_url = reverse_lazy('as_schicht_tabelle')

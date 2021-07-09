@@ -1,14 +1,14 @@
 {% extends "app_base.html" %}
 
-{% block title %}Assistent bearbeiten{% endblock %}
+{% block title %}Assistenznehmer bearbeiten{% endblock %}
 
 {% block heading %}
-  <h2>Assistent bearbeiten</h2>
+  <h2>Assistenznehmer bearbeiten</h2>
 {% endblock %}
 
 {% block content %}
     <div>
-        <form action="{% url 'as_edit_as' request.user.assistent.id %}" method="post">
+        <form action="{% url 'asn_edit_asn' request.user.assistenznehmer.id %}" method="post">
             {% include 'betterforms/form_as_fieldsets.html' %}
             <div class="buttonleiste">
                 <input type="submit" value="Speichern">

@@ -5,15 +5,15 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
-from assistenten.forms.edit_asn_multiform import EditAsnMultiForm, CreateAsnMultiForm
+from assistenten.forms.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
 
 class AsCreateAsnView(LoginRequiredMixin, CreateView):
     template_name = "assistenten/as_edit_asn.html"
-    form_class = CreateAsnMultiForm
+    form_class = AsCreateAsnMultiForm
     model = ASN
-    success_url = reverse_lazy('edit_asn')
+    success_url = reverse_lazy('as_edit_asn')
 
     def get_context_data(self, **kwargs):
         asn_liste = []
@@ -39,14 +39,14 @@ class AsCreateAsnView(LoginRequiredMixin, CreateView):
         assign_perm('change_asn', user, asn)
         assign_perm("view_asn", user, asn)
 
-        return redirect('edit_asn', pk=asn.id)
+        return redirect('as_edit_asn', pk=asn.id)
 
 
 class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     template_name = "assistenten/as_edit_asn.html"
-    form_class = EditAsnMultiForm
+    form_class = AsEditAsnMultiForm
     model = ASN
-    success_url = reverse_lazy('edit_asn')
+    success_url = reverse_lazy('as_edit_asn')
     permission_required = 'change_asn'
 
     def get_form_kwargs(self):
@@ -124,7 +124,7 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             schicht_template.asn = asn
             schicht_template.save()
 
-        return redirect('edit_asn', pk=asn.id)
+        return redirect('as_edit_asn', pk=asn.id)
 
 
 class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):

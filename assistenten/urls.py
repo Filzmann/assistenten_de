@@ -1,7 +1,10 @@
 from django.urls import path
 from .views.askhole import AskholeView
 from .views.as_edit_asn_view import AsCreateAsnView, AsEditAsnView, DeleteFesteSchichtenView, DeleteSchichtTemplateView
-from .views.edit_assistent_view import EditAssistentView
+from .views.as_edit_assistent_view import AsEditAssistentView
+from .views.asn_dienstplan import AsnDienstplanView
+from .views.asn_edit_as_view import AsnCreateAsView, AsnEditAsView
+from .views.asn_edit_asn_view import AsnEditAsnView
 from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
 from .views.edit_schicht_view import CreateSchichtView, EditSchichtView, DeleteSchichtView
 from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
@@ -13,11 +16,22 @@ from .views.as_schicht_tabelle_view import AsSchichtTabellenView
 urlpatterns = [
     path('hilfe', HilfeView.as_view(), name='hilfe'),
     path('', GroupBasedRedirector.as_view(), name='index'),
-    path('schicht_tabelle', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
-    path('schicht_tabelle/<int:year>/<int:month>', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
-    path('edit_as/<int:pk>', EditAssistentView.as_view(), name='edit_as'),
-    path('create_asn', AsCreateAsnView.as_view(), name='create_asn'),
-    path('edit_asn/<int:pk>', AsEditAsnView.as_view(), name='edit_asn'),
+
+    # Assistenten
+    path('as_schicht_tabelle', AsSchichtTabellenView.as_view(), name='as_schicht_tabelle'),
+    path('as_schicht_tabelle/<int:year>/<int:month>', AsSchichtTabellenView.as_view(), name='as_schicht_tabelle'),
+    path('as_edit_as/<int:pk>', AsEditAssistentView.as_view(), name='as_edit_as'),
+    path('as_create_asn', AsCreateAsnView.as_view(), name='as_create_asn'),
+    path('as_edit_asn/<int:pk>', AsEditAsnView.as_view(), name='as_edit_asn'),
+
+    # ASN
+
+    path('asn_dienstplan', AsnDienstplanView.as_view(), name='asn_dienstplan'),
+    path('asn_dienstplan/<int:year>/<int:month>', AsnDienstplanView.as_view(), name='asn_dienstplan'),
+    path('asn_edit_asn/<int:pk>', AsnEditAsnView.as_view(), name='asn_edit_asn'),
+    path('asn_create_as', AsnCreateAsView.as_view(), name='asn_create_as'),
+    path('asn_edit_as/<int:pk>', AsnEditAsView.as_view(), name='asn_edit_as'),
+
     path('del_feste_schicht/<int:pk>', DeleteFesteSchichtenView.as_view(), name='del_feste_schicht'),
     path('del_schicht_template/<int:pk>', DeleteSchichtTemplateView.as_view(), name='del_schicht_template'),
     path('create_schicht', CreateSchichtView.as_view(), name='create_schicht'),
