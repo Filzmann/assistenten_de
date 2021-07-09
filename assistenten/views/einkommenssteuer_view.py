@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 
 from assistenten.models import Schicht, Adresse, Weg
-from assistenten.views.schicht_tabelle_view import split_by_null_uhr, get_duration
+from assistenten.views.as_schicht_tabelle_view import split_by_null_uhr, get_duration
 from assistenten_de.settings import GOOGLE_API_KEY
 
 

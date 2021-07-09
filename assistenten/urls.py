@@ -6,12 +6,13 @@ from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
 from .views.edit_schicht_view import CreateSchichtView, EditSchichtView, DeleteSchichtView
 from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
 from .views.einkommenssteuer_view import EinkommenssteuerView
+from .views.group_based_redirector import GroupBasedRedirector
 from .views.hilfe_view import HilfeView
-from .views.schicht_tabelle_view import AsSchichtTabellenView
+from .views.as_schicht_tabelle_view import AsSchichtTabellenView
 
 urlpatterns = [
     path('hilfe', HilfeView.as_view(), name='hilfe'),
-    path('', HilfeView.as_view(), name='index'),
+    path('', GroupBasedRedirector.as_view(), name='index'),
     path('schicht_tabelle', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('schicht_tabelle/<int:year>/<int:month>', AsSchichtTabellenView.as_view(), name='schicht_tabelle'),
     path('edit_as/<int:pk>', EditAssistentView.as_view(), name='edit_as'),
