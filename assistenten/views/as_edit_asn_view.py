@@ -9,8 +9,8 @@ from assistenten.forms.edit_asn_multiform import EditAsnMultiForm, CreateAsnMult
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
 
-class CreateAsnView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/edit_asn.html"
+class AsCreateAsnView(LoginRequiredMixin, CreateView):
+    template_name = "assistenten/as_edit_asn.html"
     form_class = CreateAsnMultiForm
     model = ASN
     success_url = reverse_lazy('edit_asn')
@@ -22,7 +22,7 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
         for asn in asns:
             asn_liste.append((asn.id, asn.kuerzel))
         kwargs['asn_liste'] = asn_liste
-        context = super(CreateAsnView, self).get_context_data(**kwargs)
+        context = super(AsCreateAsnView, self).get_context_data(**kwargs)
         return context
 
     def form_valid(self, form):
@@ -42,15 +42,15 @@ class CreateAsnView(LoginRequiredMixin, CreateView):
         return redirect('edit_asn', pk=asn.id)
 
 
-class EditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    template_name = "assistenten/edit_asn.html"
+class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    template_name = "assistenten/as_edit_asn.html"
     form_class = EditAsnMultiForm
     model = ASN
     success_url = reverse_lazy('edit_asn')
     permission_required = 'change_asn'
 
     def get_form_kwargs(self):
-        kwargs = super(EditAsnView, self).get_form_kwargs()
+        kwargs = super(AsEditAsnView, self).get_form_kwargs()
         kwargs.update(instance={
             'asn_stammdaten': self.object,
             'asn_adresse': self.object.adressen.all().filter(is_home=True)[0]
@@ -99,7 +99,7 @@ class EditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             })
         kwargs['schicht_template_liste'] = schicht_template_liste
 
-        context = super(EditAsnView, self).get_context_data(**kwargs)
+        context = super(AsEditAsnView, self).get_context_data(**kwargs)
 
         return context
 

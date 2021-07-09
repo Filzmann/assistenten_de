@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load user_tags %}
 
 {% block app_menu %}
     {% if user.is_authenticated %}
@@ -12,7 +13,9 @@
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                     aria-expanded="false">Personen <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a href="{% url 'edit_as' request.user.assistent.id %}">Nutzerkonto/Assistent bearbeiten</a></li>
+                    {% if request.user|has_group:"Assistent"%}
+                        <li><a href="{% url 'edit_as' request.user.assistent.id %}">Nutzerkonto/Assistent bearbeiten</a></li>
+                    {% endif %}
                     <li><a href="{% url 'create_asn' %}">ASN eintragen/bearbeiten</a></li>
                 </ul>
             </li>
