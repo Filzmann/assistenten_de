@@ -10,14 +10,14 @@ from assistenten.models import Schicht, Adresse, ASN
 # Vermutlich im Javascript zur Templateübernahme
 
 
-class CreateSchichtView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/edit_schicht.html"
+class AsCreateSchichtView(LoginRequiredMixin, CreateView):
+    template_name = "assistenten/as_edit_schicht.html"
     form_class = CreateSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('index')
 
     def get_form_kwargs(self):
-        kwargs = super(CreateSchichtView, self).get_form_kwargs()
+        kwargs = super(AsCreateSchichtView, self).get_form_kwargs()
 
         # übergebe den request in die kwargs, damit er im Form verfügbar ist.
         kwargs.update({'request': self.request})
@@ -82,20 +82,17 @@ class CreateSchichtView(LoginRequiredMixin, CreateView):
         assistent = self.request.user.assistent
         schicht.assistent = assistent
         schicht.save()
-        # print('//////////////////////////////////////////////////////////////7')
-        # print(schicht)
-        # print('//////////////////////////////////////////////////////////////7')
-        return redirect('edit_schicht', pk=schicht.id)
+        return redirect('as_edit_schicht', pk=schicht.id)
 
 
-class EditSchichtView(LoginRequiredMixin, UpdateView):
-    template_name = "assistenten/edit_schicht.html"
+class AsEditSchichtView(LoginRequiredMixin, UpdateView):
+    template_name = "assistenten/as_edit_schicht.html"
     form_class = EditSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('edit_schicht')
 
     def get_form_kwargs(self):
-        kwargs = super(EditSchichtView, self).get_form_kwargs()
+        kwargs = super(AsEditSchichtView, self).get_form_kwargs()
 
         # übergebe den request in die kwargs, damit er im Form verfügbar ist.
         kwargs.update({'request': self.request})
@@ -140,9 +137,9 @@ class EditSchichtView(LoginRequiredMixin, UpdateView):
         if 'just_save' in self.request.POST:
             return redirect('as_schicht_tabelle', year=schicht.beginn.year, month=schicht.beginn.month)
         elif 'save_and_new' in self.request.POST:
-            return redirect('create_schicht', y=schicht.beginn.year, m=schicht.beginn.month, d=schicht.beginn.day)
+            return redirect('as_create_schicht', y=schicht.beginn.year, m=schicht.beginn.month, d=schicht.beginn.day)
         else:
-            return redirect('edit_schicht', pk=schicht.id)
+            return redirect('as_edit_schicht', pk=schicht.id)
 
 
 class DeleteSchichtView(LoginRequiredMixin, DeleteView):

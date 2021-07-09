@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
@@ -6,6 +7,7 @@ from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from assistenten.forms.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
+from assistenten.functions.schicht_functions import get_feste_schichten, get_schicht_templates
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
 
@@ -66,41 +68,12 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         for asn in asns:
             asn_liste.append((asn.id, asn.kuerzel))
         kwargs['asn_liste'] = asn_liste
-
         # feste schichten und templates gibt es nur in der update-view
-        # alle festen Schichten des asn
-        feste_schichten_liste = []
-        feste_schichten = FesteSchicht.objects.filter(
-            assistent=self.request.user.assistent.id).filter(
-            asn=self.object.id)
-
-        wtage = {'0': 'Mo', '1': 'Di', '2': 'Mi', '3': 'Do', '4': 'Fr', '5': 'Sa', '6': 'So'}
-
-        for feste_schicht in feste_schichten:
-            feste_schichten_liste.append({
-                'id': feste_schicht.id,
-                'wochentag': wtage[feste_schicht.wochentag],
-                'beginn': feste_schicht.beginn.strftime("%H:%M"),
-                'ende': feste_schicht.ende.strftime("%H:%M"),
-            })
-        kwargs['feste_schichten_liste'] = feste_schichten_liste
-        # kwargs['feste_schichten_liste'] = ['bla', 'blubb', 'blu']
-
+        kwargs['feste_schichten_liste'] = get_feste_schichten(asn=self.object, assistent=self.request.user.assistent)
         # alle schicht_templates des asn
-        schicht_template_liste = []
-        schicht_templates = SchichtTemplate.objects.filter(
-            asn=self.object.id)
-        for schicht_template in schicht_templates:
-            schicht_template_liste.append({
-                'id': schicht_template.id,
-                'bezeichner': schicht_template.bezeichner,
-                'beginn': schicht_template.beginn.strftime("%H:%M"),
-                'ende': schicht_template.ende.strftime("%H:%M"),
-            })
-        kwargs['schicht_template_liste'] = schicht_template_liste
+        kwargs['schicht_template_liste'] = get_schicht_templates(self.object)
 
         context = super(AsEditAsnView, self).get_context_data(**kwargs)
-
         return context
 
     def form_valid(self, form):
@@ -129,9 +102,17 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
 
 class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):
     model = FesteSchicht
-    success_url = reverse_lazy('create_asn')
+    success_url = reverse_lazy('as_create_asn')
 
 
 class DeleteSchichtTemplateView(LoginRequiredMixin, DeleteView):
     model = SchichtTemplate
-    success_url = reverse_lazy('create_asn')
+    success_url = reverse_lazy('as_create_asn')
+
+    def get_success_url(self):
+        success_url = super(DeleteSchichtTemplateView, self).get_success_url()
+        usergroup = self.request.user.groups.values_list('name', flat=True).first()
+        if usergroup == "Assistenten":
+            return reverse_lazy('as_create_asn')
+        elif usergroup == "Assistenznehmer":
+            return reverse_lazy('asn_edit_asn', kwargs={'pk': self.request.user.assistenznehmer.id})

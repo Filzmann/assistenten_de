@@ -6,7 +6,7 @@ from .views.asn_dienstplan import AsnDienstplanView
 from .views.asn_edit_as_view import AsnCreateAsView, AsnEditAsView
 from .views.asn_edit_asn_view import AsnEditAsnView
 from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
-from .views.edit_schicht_view import CreateSchichtView, EditSchichtView, DeleteSchichtView
+from .views.as_edit_schicht_view import AsCreateSchichtView, AsEditSchichtView, DeleteSchichtView
 from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
 from .views.einkommenssteuer_view import EinkommenssteuerView
 from .views.group_based_redirector import GroupBasedRedirector
@@ -34,9 +34,9 @@ urlpatterns = [
 
     path('del_feste_schicht/<int:pk>', DeleteFesteSchichtenView.as_view(), name='del_feste_schicht'),
     path('del_schicht_template/<int:pk>', DeleteSchichtTemplateView.as_view(), name='del_schicht_template'),
-    path('create_schicht', CreateSchichtView.as_view(), name='create_schicht'),
-    path('create_schicht/<str:y>/<str:m>/<str:d>', CreateSchichtView.as_view(), name='create_schicht'),
-    path('edit_schicht/<int:pk>', EditSchichtView.as_view(), name='edit_schicht'),
+    path('create_schicht', AsCreateSchichtView.as_view(), name='create_schicht'),
+    path('create_schicht/<str:y>/<str:m>/<str:d>', AsCreateSchichtView.as_view(), name='create_schicht'),
+    path('edit_schicht/<int:pk>', AsEditSchichtView.as_view(), name='edit_schicht'),
     path('del_schicht/<int:pk>', DeleteSchichtView.as_view(), name='del_schicht'),
     path('create_urlaub', CreateUrlaubView.as_view(), name='create_urlaub'),
     path('edit_urlaub/<int:pk>', EditUrlaubView.as_view(), name='edit_urlaub'),
