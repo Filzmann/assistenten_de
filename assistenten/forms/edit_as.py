@@ -4,7 +4,28 @@ from assistenten.models import Assistent
 from assistenten.widgets import XDSoftDatePickerInput
 
 
-class EditAsForm(BetterModelForm):
+class AsnEditAsForm(BetterModelForm):
+    class Meta:
+        fields = ['name', 'vorname', 'email']
+        model = Assistent
+        fieldsets = (
+            Fieldset('info', fields=('name',
+                                     'vorname',
+                                     'email'), legend='Stammdaten'),
+        )
+
+    name = forms.CharField(label='Name', max_length=100)
+    vorname = forms.CharField(label='Vorname', max_length=100)
+    email = forms.EmailField(label="Email", max_length=100, required=False)
+
+    def __init__(self, *args, **kwargs):
+        """ schleust den request in die Form ein"""
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+        super(AsnEditAsForm, self).__init__(*args, **kwargs)
+
+
+class EditAsForm(AsnEditAsForm):
     class Meta:
         fields = ['name', 'vorname', 'email', 'einstellungsdatum']
         model = Assistent
@@ -15,9 +36,6 @@ class EditAsForm(BetterModelForm):
                                      'einstellungsdatum'), legend='Stammdaten'),
         )
 
-    name = forms.CharField(label='Name', max_length=100)
-    vorname = forms.CharField(label='Vorname', max_length=100)
-    email = forms.EmailField(label="Deine Email", max_length=100)
     einstellungsdatum = forms.DateTimeField(
         input_formats=['%d.%m.%Y'],
         widget=XDSoftDatePickerInput()

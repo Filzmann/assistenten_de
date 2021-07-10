@@ -12,8 +12,8 @@ from .models import Adresse
 
 
 class AssistentAdmin(GuardedModelAdmin):
-    prepopulated_fields = {"email": ('name', 'vorname', 'email')}
-    list_display = ('email', 'name', 'vorname')
+    prepopulated_fields = {"name": ('name', 'vorname', 'email')}
+    list_display = ('name', 'vorname', 'email')
     search_fields = ('name', 'vorname', 'email')
     ordering = ('-name',)
     # date_hierarchy = 'created_at'

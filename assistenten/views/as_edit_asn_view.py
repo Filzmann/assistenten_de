@@ -104,10 +104,22 @@ class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):
     model = FesteSchicht
     success_url = reverse_lazy('as_create_asn')
 
+    def get_success_url(self):
+
+        assistent = self.object.assistent
+
+        success_url = super(DeleteFesteSchichtenView, self).get_success_url()
+        usergroup = self.request.user.groups.values_list('name', flat=True).first()
+        if usergroup == "Assistenten":
+            return reverse_lazy('as_create_asn')
+        elif usergroup == "Assistenznehmer":
+            return reverse_lazy('asn_edit_as', kwargs={'pk': assistent.id})
+
 
 class DeleteSchichtTemplateView(LoginRequiredMixin, DeleteView):
     model = SchichtTemplate
     success_url = reverse_lazy('as_create_asn')
+
 
     def get_success_url(self):
         success_url = super(DeleteSchichtTemplateView, self).get_success_url()

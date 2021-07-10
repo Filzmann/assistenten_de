@@ -24,7 +24,7 @@
                     {% endif %}
                     {% if request.user|has_group:"Assistenznehmer"%}
                         <li><a href="{% url 'asn_edit_asn' request.user.assistenznehmer.id %}">Nutzerkonto/ASN bearbeiten</a></li>
-                        <li><a href="{% url 'asn_create_as' %}">ASN eintragen/bearbeiten</a></li>
+                        <li><a href="{% url 'asn_create_as' %}">Assistenten eintragen/bearbeiten</a></li>
                     {% endif %}
                 </ul>
             </li>
@@ -34,15 +34,22 @@
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                     aria-expanded="false">Eintragen <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a href="{% url 'create_schicht' %}">Schicht</a></li>
-                    <li><a href="{% url 'create_urlaub' %}">Urlaub</a></li>
-                    <li><a href="{% url 'create_au' %}">AU/Krank</a></li>
+                    {% if request.user|has_group:"Assistenten"%}
+                        <li><a href="{% url 'as_create_schicht' %}">Schicht</a></li>
+                        <li><a href="{% url 'create_urlaub' %}">Urlaub</a></li>
+                        <li><a href="{% url 'create_au' %}">AU/Krank</a></li>
+                    {% endif %}
+                    {% if request.user|has_group:"Assistenznehmer"%}
+                        <li><a href="{% url 'asn_create_schicht' %}">Schicht</a></li>
+                    {% endif %}
                 </ul>
             </li>
         </ul>
-        <ul class="nav navbar-nav navbar-left">
-            <li><a href="{% url 'einkommenssteuer' %}">Einkommenssteuer</a></li>
-        </ul>
+        {% if request.user|has_group:"Assistenten"%}
+            <ul class="nav navbar-nav navbar-left">
+                <li><a href="{% url 'einkommenssteuer' %}">Einkommenssteuer</a></li>
+            </ul>
+        {% endif %}
         <ul class="nav navbar-nav navbar-left">
             <li><a href="{% url 'hilfe' %}">Hilfe</a></li>
         </ul>

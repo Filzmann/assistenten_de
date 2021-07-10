@@ -21,7 +21,7 @@ class AsnEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             'asn': self.object,
             'adresse': self.object.adressen.all().filter(is_home=True)[0],
         })
-        print(kwargs)
+
         return kwargs
 
     def get_context_data(self, **kwargs):

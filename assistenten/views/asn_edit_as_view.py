@@ -6,13 +6,14 @@ from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from assistenten.forms.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
+from assistenten.forms.asn_edit_as_multiform import AsnCreateAsMultiForm, AsnEditAsMultiForm
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate, Assistent
 from assistenten.functions.schicht_functions import get_schicht_templates, get_feste_schichten
 
 
 class AsnCreateAsView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/as_edit_asn.html"
-    form_class = AsCreateAsnMultiForm
+    template_name = "assistenten/asn_edit_as.html"
+    form_class = AsnCreateAsMultiForm
     model = Assistent
     success_url = reverse_lazy('asn_edit_as')
 
@@ -27,9 +28,9 @@ class AsnCreateAsView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        asn = form['as_stammdaten'].save()
         user = self.request.user
-        assistent = user.assistent
+        asn = user.assistenznehmer
+        assistent = form['as_stammdaten'].save()
         asn.assistents.add(assistent)
         asn.save()
         adresse = form['asn_adresse'].save(commit=False)
@@ -37,24 +38,24 @@ class AsnCreateAsView(LoginRequiredMixin, CreateView):
         adresse.is_home = True
         adresse.save()
         # der eingeloggte user erhält das Bearbeitungsrecht
-        assign_perm('change_asn', user, asn)
-        assign_perm("view_asn", user, asn)
+        assign_perm('change_assistent', user, assistent)
+        assign_perm("view_assistent", user, assistent)
 
-        return redirect('as_edit_asn', pk=asn.id)
+        return redirect('asn_edit_as', pk=assistent.id)
 
 
 class AsnEditAsView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    template_name = "assistenten/as_edit_asn.html"
-    form_class = AsEditAsnMultiForm
-    model = ASN
+    template_name = "assistenten/asn_edit_as.html"
+    form_class = AsnEditAsMultiForm
+    model = Assistent
     success_url = reverse_lazy('asn_edit_as')
-    permission_required = 'change_asn'
+    permission_required = 'change_assistent'
 
     def get_form_kwargs(self):
         kwargs = super(AsnEditAsView, self).get_form_kwargs()
         kwargs.update(instance={
-            'asn_stammdaten': self.object,
-            'asn_adresse': self.object.adressen.all().filter(is_home=True)[0]
+            'as_stammdaten': self.object,
+            'as_adresse': self.object.adressen.all().filter(is_home=True)[0]
         })
         return kwargs
 
@@ -70,44 +71,28 @@ class AsnEditAsView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         kwargs['as_liste'] = as_liste
         # feste schichten und templates gibt es nur in der update-view
 
-        kwargs['feste_schichten_liste'] = get_feste_schichten(asn=self.request.user.asn, assistent=self.request.user)
-
-        # alle schicht_templates des asn
-        kwargs['schicht_template_liste'] = get_schicht_templates(self.request.user.asn)
+        kwargs['feste_schichten_liste'] = get_feste_schichten(
+            asn=self.request.user.assistenznehmer, assistent=self.object)
 
         context = super(AsnEditAsView, self).get_context_data(**kwargs)
 
         return context
 
     def form_valid(self, form):
-        asn = form['asn_stammdaten'].save()
-        assistent = self.request.user.assistent
+        assistent = form['as_stammdaten'].save()
+        asn = self.request.user.assistenznehmer
         asn.assistents.add(assistent)
         asn.save()
-        adresse = form['asn_adresse'].save(commit=False)
+        adresse = form['as_adresse'].save(commit=False)
         adresse.asn = asn
         adresse.is_home = True
         adresse.save()
 
-        feste_schicht = form['asn_feste_schicht'].save(commit=False)
+        feste_schicht = form['as_feste_schicht'].save(commit=False)
+
         if int(feste_schicht.wochentag) > 0:
             feste_schicht.asn = asn
             feste_schicht.assistent = assistent
             feste_schicht.save()
 
-        schicht_template = form['asn_schicht_templates'].save(commit=False)
-        if schicht_template.bezeichner != '':
-            schicht_template.asn = asn
-            schicht_template.save()
-
-        return redirect('asn_edit_as', pk=asn.id)
-
-
-class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):
-    model = FesteSchicht
-    success_url = reverse_lazy('create_as')
-
-
-class DeleteSchichtTemplateView(LoginRequiredMixin, DeleteView):
-    model = SchichtTemplate
-    success_url = reverse_lazy('create_as')
+        return redirect('asn_edit_as', pk=assistent.id)

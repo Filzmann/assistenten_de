@@ -1,0 +1,35 @@
+{% extends "app_base.html" %}
+
+
+{% block title %}ASN bearbeiten{% endblock %}
+
+{% block heading %}
+  <h2>Assistenznehmer (ASN) bearbeiten</h2>
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="asn-menu-outer">
+        <ul class="asn-menu" role="menu">
+            {% if perms.assistenten.add_assistent %}
+                <li><a href="{% url 'asn_create_as' %}">Neuer Assistent</a></li>
+            {% endif %}
+            {% for as_id in as_liste %}
+                <li><a href="{% url 'asn_edit_as' as_id.0 %}">{{ as_id.1 }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <form action="" method="post">
+
+            {% include 'betterforms/form_as_fieldsets.html' %}
+
+            <div class="buttonleiste">
+                <input type="submit" value="Speichern">
+            </div>
+
+        </form>
+    </div>
+{% endblock %}

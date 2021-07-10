@@ -66,10 +66,10 @@
                                            value=""
                                            onClick="return confirm('Wollen Sie wirklich löschen?')"
                                     >
-                                    <a href="{% url 'edit_schicht' schicht.schicht_id %}">
+                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
                                         <img src="{% static 'images/edit.png'%}">
                                     </a>
-                                    <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                                    <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                                         <img src="{% static 'images/add.png'%}">
                                     </a>
 
@@ -96,7 +96,7 @@
                     {% endif %}
                 ">
                     <td>
-                        <a href="{% url 'create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                             <img src="{% static 'images/add.png'%}">
                         </a>
                     </td>

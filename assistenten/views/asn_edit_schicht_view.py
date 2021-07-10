@@ -3,21 +3,25 @@ from django.urls import reverse_lazy
 from django.utils.datetime_safe import datetime
 from django.views.generic import UpdateView, CreateView, DeleteView
 from django.shortcuts import redirect
-from assistenten.forms.edit_schicht_multiform import EditSchichtMultiForm, CreateSchichtMultiForm
+from assistenten.forms.edit_schicht_multiform import AsnCreateSchichtMultiForm, AsnEditSchichtMultiForm
+from assistenten.functions.person_functions import get_address
 from assistenten.models import Schicht, Adresse, ASN
+
 
 # TODO beim Eintragen von Schichten über den Jahreswechsel werden daten falsch übernommen.
 # Vermutlich im Javascript zur Templateübernahme
 
 
-class AsCreateSchichtView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/as_edit_schicht.html"
-    form_class = CreateSchichtMultiForm
+class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
+    template_name = "assistenten/asn_edit_schicht.html"
+    form_class = AsnCreateSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('index')
 
     def get_form_kwargs(self):
-        kwargs = super(AsCreateSchichtView, self).get_form_kwargs()
+        print('a')
+
+        kwargs = super(AsnCreateSchichtView, self).get_form_kwargs()
 
         # übergebe den request in die kwargs, damit er im Form verfügbar ist.
         kwargs.update({'request': self.request})
@@ -40,18 +44,13 @@ class AsCreateSchichtView(LoginRequiredMixin, CreateView):
             local_kwargs_data['schicht-ende'] = beginnende
 
         # wenn asn in POST select home-adresse für beginn und ende der schicht
-        # print(kwargs)
+        print(kwargs)
         if self.request.method in ('POST', 'PUT'):
-            if 'schicht-asn' in kwargs['data']:
+            if 'schicht-assistent' in kwargs['data']:
                 local_post = self.request.POST.copy()
-                if not kwargs['data']['schicht-asn'] == '':
-
-                    home_address_id = Adresse.objects.filter(
-                        is_home=True).filter(
-                        asn=ASN.objects.get(
-                            id=kwargs['data']['schicht-asn']
-                        )
-                    )[0].id
+                if not kwargs['data']['schicht-assistent'] == '':
+                    home_address_id = get_address(asn=self.request.user.assistenznehmer, is_home=True)
+                    print('--------------------------------')
                     local_post['schicht-beginn_adresse'] = home_address_id
                     local_post['schicht-ende_adresse'] = home_address_id
 
@@ -67,32 +66,31 @@ class AsCreateSchichtView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         schicht = form['schicht'].save(commit=False)
-        if not hasattr(schicht, 'asn'):
-            schicht.asn = form['asn_stammdaten'].save()
-            schicht.asn.assistents.add(self.request.user.assistent)
-            asn_home = form['asn_home'].save(commit=False)
-
-            asn_home.asn = schicht.asn
-            asn_home.is_home = True
-            asn_home.save()
+        if not hasattr(schicht, 'assistent'):
+            schicht.assistent = form['as_stammdaten'].save()
+            schicht.assistent.asn.add(self.request.user.asn)
             # print(asn_home)
-            schicht.beginn_adresse = asn_home
-            schicht.ende_adresse = asn_home
+            # schicht.beginn_adresse = as_home
+            # schicht.ende_adresse = asn_home
 
-        assistent = self.request.user.assistent
-        schicht.assistent = assistent
+        asn = self.request.user.assistenznehmer
+
+        schicht.asn = asn
+        schicht.beginn_adresse = get_address(asn=asn, is_home=True)
+        schicht.ende_adresse = get_address(asn=asn, is_home=True)
+
         schicht.save()
         return redirect('as_edit_schicht', pk=schicht.id)
 
 
-class AsEditSchichtView(LoginRequiredMixin, UpdateView):
+class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
     template_name = "assistenten/as_edit_schicht.html"
-    form_class = EditSchichtMultiForm
+    form_class = AsnEditSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('edit_schicht')
 
     def get_form_kwargs(self):
-        kwargs = super(AsEditSchichtView, self).get_form_kwargs()
+        kwargs = super(AsnEditSchichtView, self).get_form_kwargs()
 
         # übergebe den request in die kwargs, damit er im Form verfügbar ist.
         kwargs.update({'request': self.request})

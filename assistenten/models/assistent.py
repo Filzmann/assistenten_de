@@ -58,7 +58,7 @@ def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk
                         kuerzel=user.username
                     )
                 else:
-                    asn = user.asn
+                    asn = user.assistenznehmer
                 if not user.has_perm("change_user", user):
                     assign_perm("change_user", user, user)
                 if not user.has_perm("change_asn", asn):

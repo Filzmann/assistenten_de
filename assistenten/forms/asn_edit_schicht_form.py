@@ -6,12 +6,12 @@ from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate, Assistent
 from assistenten.widgets import XDSoftDateTimePickerInput
 
 
-class EditSchichtForm(BetterModelForm):
+class AsnEditSchichtForm(BetterModelForm):
     class Meta:
         fields = [
             'beginn',
             'ende',
-            'asn',
+            'assistent',
             'beginn_adresse',
             'ende_adresse',
             'ist_kurzfristig',
@@ -21,10 +21,10 @@ class EditSchichtForm(BetterModelForm):
             'ist_schulung']
         model = Schicht
 
-    asn = forms.ModelChoiceField(queryset=None,
-                                 empty_label='Neuer ASN',
-                                 widget=forms.Select(attrs={"onChange": 'submit()'}),
-                                 required=False)
+    assistent = forms.ModelChoiceField(queryset=None,
+                                       empty_label='Neuer Assistent',
+                                       widget=forms.Select(attrs={"onChange": 'submit()'}),
+                                       required=False)
 
     beginn = forms.DateTimeField(
         input_formats=('%d.%m.%Y %H:%M', '%d.%m.%Y %H:%M:%S',),
@@ -63,12 +63,12 @@ class EditSchichtForm(BetterModelForm):
         # TODO irgendwo eher den request schon aus der instance auspacken
         if 'request' in kwargs:
             self.request = kwargs.pop('request')
+
         self.label_suffix = ""  # Removes : as label suffix
 
-        super(EditSchichtForm, self).__init__(*args, **kwargs)
-
-        self.fields['asn'].queryset = get_objects_for_user(
-            self.request.user, 'view_asn', klass=ASN, with_superuser=False)
+        super(AsnEditSchichtForm, self).__init__(*args, **kwargs)
+        self.fields['assistent'].queryset = get_objects_for_user(
+            self.request.user, 'view_assistent', klass=Assistent, with_superuser=False)
 
         # wenn irgendwelche Daten schon in der instance sind, nehme ich die von da
         if 'instance' in kwargs:
@@ -103,3 +103,4 @@ class EditSchichtForm(BetterModelForm):
                         self.fields['ende_adresse'].queryset = \
                             Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
                         self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
+
