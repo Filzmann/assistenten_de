@@ -49,7 +49,7 @@ class AsnEditAsView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     form_class = AsnEditAsMultiForm
     model = Assistent
     success_url = reverse_lazy('asn_edit_as')
-    permission_required = 'change_assistent'
+    permission_required = 'view_assistent'
 
     def get_form_kwargs(self):
         kwargs = super(AsnEditAsView, self).get_form_kwargs()

@@ -23,10 +23,10 @@ class Assistent(models.Model):
         return reverse('as_edit_as', kwargs={'pk': self.pk})
 
     def __repr__(self):
-        return f"Assistent({self.name!r}, {self.vorname!r})"
+        return f"{self.name}, {self.vorname} (AS)"
 
     def __str__(self):
-        return f"Assistent({self.name!r}, {self.vorname!r})"
+        return f"{self.name}, {self.vorname} (AS)"
 
 
 @receiver(m2m_changed)

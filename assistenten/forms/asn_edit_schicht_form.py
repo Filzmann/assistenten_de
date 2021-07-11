@@ -2,7 +2,8 @@ from betterforms.forms import BetterModelForm
 from django import forms
 from guardian.shortcuts import get_objects_for_user
 
-from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate, Assistent
+from assistenten.functions.person_functions import get_address
+from assistenten.models import Adresse, Schicht, SchichtTemplate, Assistent
 from assistenten.widgets import XDSoftDateTimePickerInput
 
 
@@ -37,11 +38,11 @@ class AsnEditSchichtForm(BetterModelForm):
         # initial=datetime.now().strftime('%d.%m.%Y %H:%M')
     )
 
-    beginn_adresse = forms.ModelChoiceField(queryset=Adresse.objects.filter(asn=None),
+    beginn_adresse = forms.ModelChoiceField(queryset=None,
                                             empty_label='Neue Adresse eingeben',
                                             required=False
                                             )
-    ende_adresse = forms.ModelChoiceField(queryset=Adresse.objects.filter(asn=None),
+    ende_adresse = forms.ModelChoiceField(queryset=None,
                                           empty_label='Neue Adresse eingeben',
                                           required=False
                                           )
@@ -71,17 +72,16 @@ class AsnEditSchichtForm(BetterModelForm):
             self.request.user, 'view_assistent', klass=Assistent, with_superuser=False)
 
         # wenn irgendwelche Daten schon in der instance sind, nehme ich die von da
-        if 'instance' in kwargs:
-            # werden seine Templates geladen
-            self.fields['templates'].queryset = SchichtTemplate.objects.filter(
-                asn__id=kwargs['instance'].asn.id)
+        asn = self.request.user.assistenznehmer
+        self.fields['templates'].queryset = SchichtTemplate.objects.filter(
+            asn__id=asn.id)
 
-            # und seine Adresslisten
-            self.fields['beginn_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['instance'].asn.id)
-            # damit fliegt das empty_label raus und muss neu rangehangen werden...
-            self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-            self.fields['ende_adresse'].queryset = Adresse.objects.filter(asn__id=kwargs['instance'].asn.id)
-            self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
+        # und seine Adresslisten
+        self.fields['beginn_adresse'].queryset = get_address(asn=asn)
+        # damit fliegt das empty_label raus und muss neu rangehangen werden...
+        self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
+        self.fields['ende_adresse'].queryset = get_address(asn=asn)
+        self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
 
         # in der createView sind die Daten noch im Post-Array
         # sollte was im PostArray sein, wird überschrieben.
@@ -89,18 +89,15 @@ class AsnEditSchichtForm(BetterModelForm):
         if 'data' in kwargs:
             # und da zufällig ein asn für die Schicht ausgewählt ist
             if kwargs['data']:
-                if 'schicht-asn' in kwargs['data']:
-                    if kwargs['data']['schicht-asn'] != '':
+                if 'schicht-assistent' in kwargs['data']:
+                    if kwargs['data']['schicht-assistent'] != '':
                         # werden seine Templates geladen
-                        self.fields['templates'].queryset = SchichtTemplate.objects.filter(
-                            asn__id=kwargs['data']['schicht-asn'])
+                        self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=asn.id)
 
                         # und seine Adresslisten
-                        self.fields['beginn_adresse'].queryset = Adresse.objects.filter(
-                            asn__id=kwargs['data']['schicht-asn'])
+                        self.fields['beginn_adresse'].queryset = get_address(asn=asn)
                         # damit fliegt das empty_label raus und muss neu rangehangen werden...
                         self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-                        self.fields['ende_adresse'].queryset = \
-                            Adresse.objects.filter(asn__id=kwargs['data']['schicht-asn'])
+                        self.fields['ende_adresse'].queryset = get_address(asn=asn)
                         self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
 

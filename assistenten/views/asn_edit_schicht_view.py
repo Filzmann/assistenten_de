@@ -3,6 +3,8 @@ from django.urls import reverse_lazy
 from django.utils.datetime_safe import datetime
 from django.views.generic import UpdateView, CreateView, DeleteView
 from django.shortcuts import redirect
+from guardian.shortcuts import assign_perm
+
 from assistenten.forms.edit_schicht_multiform import AsnCreateSchichtMultiForm, AsnEditSchichtMultiForm
 from assistenten.functions.person_functions import get_address
 from assistenten.models import Schicht, Adresse, ASN
@@ -19,7 +21,7 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('index')
 
     def get_form_kwargs(self):
-        print('a')
+
 
         kwargs = super(AsnCreateSchichtView, self).get_form_kwargs()
 
@@ -44,20 +46,16 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
             local_kwargs_data['schicht-ende'] = beginnende
 
         # wenn asn in POST select home-adresse für beginn und ende der schicht
-        print(kwargs)
-        if self.request.method in ('POST', 'PUT'):
-            if 'schicht-assistent' in kwargs['data']:
-                local_post = self.request.POST.copy()
-                if not kwargs['data']['schicht-assistent'] == '':
-                    home_address_id = get_address(asn=self.request.user.assistenznehmer, is_home=True)
-                    print('--------------------------------')
-                    local_post['schicht-beginn_adresse'] = home_address_id
-                    local_post['schicht-ende_adresse'] = home_address_id
 
-                # local kwargs wird ergänzt und für einige keys überschrieben,
-                # damit alle vorhandenen Daten gespeichert werden können
-                for key in local_post:
-                    local_kwargs_data[key] = local_post[key]
+        if self.request.method in ('POST', 'PUT'):
+            local_post = self.request.POST.copy()
+            home_address_id = get_address(asn=self.request.user.assistenznehmer, is_home=True).first()
+            local_post['schicht-beginn_adresse'] = home_address_id
+            local_post['schicht-ende_adresse'] = home_address_id
+            # local kwargs wird ergänzt und für einige keys überschrieben,
+            # damit alle vorhandenen Daten gespeichert werden können
+            for key in local_post:
+                local_kwargs_data[key] = local_post[key]
 
         kwargs.update(data=local_kwargs_data)
 
@@ -65,22 +63,20 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
+
         schicht = form['schicht'].save(commit=False)
         if not hasattr(schicht, 'assistent'):
             schicht.assistent = form['as_stammdaten'].save()
-            schicht.assistent.asn.add(self.request.user.asn)
-            # print(asn_home)
-            # schicht.beginn_adresse = as_home
-            # schicht.ende_adresse = asn_home
+            assign_perm("change_assistent", self.request.user, schicht.assistent)
+            assign_perm("view_assistent", self.request.user, schicht.assistent)
 
         asn = self.request.user.assistenznehmer
-
         schicht.asn = asn
         schicht.beginn_adresse = get_address(asn=asn, is_home=True)
         schicht.ende_adresse = get_address(asn=asn, is_home=True)
 
         schicht.save()
-        return redirect('as_edit_schicht', pk=schicht.id)
+        return redirect('asn_edit_schicht', pk=schicht.id)
 
 
 class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
@@ -107,15 +103,11 @@ class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
         # wenn asn in POST select home-adresse für beginn und ende der schicht
         if self.request.method in ('POST', 'PUT'):
             local_post = self.request.POST.copy()
-            if 'schicht-asn' in kwargs['data']:
-                home_address_id = Adresse.objects.filter(
-                    is_home=True).filter(
-                    asn=ASN.objects.get(
-                        id=kwargs['data']['schicht-asn']
-                    )
-                )[0].id
-                local_post['schicht-beginn_adresse'] = home_address_id
-                local_post['schicht-ende_adresse'] = home_address_id
+            if 'schicht-assistent' in kwargs['data']:
+                home_address = get_address(asn=self.request.user.assistenznehmer, is_home=True).first()
+                print(home_address + '-----------------')
+                local_post['schicht-beginn_adresse'] = home_address
+                local_post['schicht-ende_adresse'] = home_address
 
                 # local kwargs wird ergänzt und für einige keys überschrieben,
                 # damit alle vorhandenen Daten gespeichert werden können
@@ -133,11 +125,11 @@ class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
         schicht.save()
 
         if 'just_save' in self.request.POST:
-            return redirect('as_schicht_tabelle', year=schicht.beginn.year, month=schicht.beginn.month)
+            return redirect('asn_dienstplan', year=schicht.beginn.year, month=schicht.beginn.month)
         elif 'save_and_new' in self.request.POST:
-            return redirect('as_create_schicht', y=schicht.beginn.year, m=schicht.beginn.month, d=schicht.beginn.day)
+            return redirect('asn_create_schicht', y=schicht.beginn.year, m=schicht.beginn.month, d=schicht.beginn.day)
         else:
-            return redirect('as_edit_schicht', pk=schicht.id)
+            return redirect('asn_edit_schicht', pk=schicht.id)
 
 
 class DeleteSchichtView(LoginRequiredMixin, DeleteView):

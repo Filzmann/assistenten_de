@@ -21,16 +21,16 @@
                                 {{ form.schicht.assistent.label_tag }} {{ form.schicht.assistent }}
                             </div>
                             {% if not form.schicht.assistent.value %}
-                                <fieldset id="fieldset-neuer-assistenznehmer" >
+                                <fieldset id="fieldset-neuer-assistent" >
                                     <legend>Neuer Assistent</legend>
                                     <div>
-                                        {{ form.assistent_stammdaten.name.label_tag }} {{ form.assistent_stammdaten.name }}
+                                        {{ form.as_stammdaten.name.label_tag }} {{ form.as_stammdaten.name }}
                                     </div>
                                     <div>
-                                        {{ form.assistent_stammdaten.vorname.label_tag }} {{ form.assistent_stammdaten.vorname }}
+                                        {{ form.as_stammdaten.vorname.label_tag }} {{ form.as_stammdaten.vorname }}
                                     </div>
                                     <div>
-                                        {{ form.assistent_stammdaten.email.label_tag }} {{ form.assistent_stammdaten.email }}
+                                        {{ form.as_stammdaten.email.label_tag }} {{ form.as_stammdaten.email }}
                                     </div>
 
                                 </fieldset>
@@ -166,6 +166,7 @@
             </div>
         </form>
     </div>
+<pre> {% filter force_escape %} {% debug %} {% endfilter %} </pre>
 
 {% endblock %}
 

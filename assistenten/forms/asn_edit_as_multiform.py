@@ -15,7 +15,7 @@ class AsnCreateAsMultiForm(MultiModelForm):
 
 class AsnEditAsMultiForm(MultiModelForm):
     form_classes = {
-        'as_stammdaten': EditAsForm,
+        'as_stammdaten': AsnEditAsForm,
         'as_adresse': HomeForm,
         'as_feste_schicht': FesteSchichtenForm,
     }
