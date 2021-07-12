@@ -27,7 +27,7 @@ class Schicht(models.Model):
     ende_adresse = models.ForeignKey(Adresse, on_delete=models.CASCADE, related_name='+')
 
     def __repr__(self):
-        return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, ASN: {self.asn!r})"
+        return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, ASN: {self.asn!r}  - AS: {self.assistent})"
 
     def __str__(self):
         return f"Schicht({self.beginn} - {self.ende} - ASN: {self.asn} - AS: {self.assistent}"

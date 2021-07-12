@@ -3,7 +3,7 @@ from django import forms
 from guardian.shortcuts import get_objects_for_user
 
 from assistenten.functions.person_functions import get_address
-from assistenten.models import Adresse, Schicht, SchichtTemplate, Assistent
+from assistenten.models import Schicht, SchichtTemplate, Assistent
 from assistenten.widgets import XDSoftDateTimePickerInput
 
 
@@ -70,34 +70,15 @@ class AsnEditSchichtForm(BetterModelForm):
         super(AsnEditSchichtForm, self).__init__(*args, **kwargs)
         self.fields['assistent'].queryset = get_objects_for_user(
             self.request.user, 'view_assistent', klass=Assistent, with_superuser=False)
-
         # wenn irgendwelche Daten schon in der instance sind, nehme ich die von da
         asn = self.request.user.assistenznehmer
-        self.fields['templates'].queryset = SchichtTemplate.objects.filter(
-            asn__id=asn.id)
 
+        # get ASN Templates & addresses
+        self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=asn.id)
         # und seine Adresslisten
-        self.fields['beginn_adresse'].queryset = get_address(asn=asn)
+        asn_addresses = get_address(asn=asn)
+        self.fields['beginn_adresse'].queryset = asn_addresses
         # damit fliegt das empty_label raus und muss neu rangehangen werden...
         self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-        self.fields['ende_adresse'].queryset = get_address(asn=asn)
+        self.fields['ende_adresse'].queryset = asn_addresses
         self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
-
-        # in der createView sind die Daten noch im Post-Array
-        # sollte was im PostArray sein, wird überschrieben.
-        # Daher muss zwingend erst instance und dann kwargs[data] abgefragt werden.
-        if 'data' in kwargs:
-            # und da zufällig ein asn für die Schicht ausgewählt ist
-            if kwargs['data']:
-                if 'schicht-assistent' in kwargs['data']:
-                    if kwargs['data']['schicht-assistent'] != '':
-                        # werden seine Templates geladen
-                        self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=asn.id)
-
-                        # und seine Adresslisten
-                        self.fields['beginn_adresse'].queryset = get_address(asn=asn)
-                        # damit fliegt das empty_label raus und muss neu rangehangen werden...
-                        self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-                        self.fields['ende_adresse'].queryset = get_address(asn=asn)
-                        self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
-

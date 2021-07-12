@@ -14,8 +14,8 @@ class AsnEditAsForm(BetterModelForm):
                                      'email'), legend='Stammdaten'),
         )
 
-    name = forms.CharField(label='Name', max_length=100)
-    vorname = forms.CharField(label='Vorname', max_length=100)
+    name = forms.CharField(label='Name', max_length=100, required=False)
+    vorname = forms.CharField(label='Vorname', max_length=100, required=False)
     email = forms.EmailField(label="Email", max_length=100, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -38,5 +38,6 @@ class EditAsForm(AsnEditAsForm):
 
     einstellungsdatum = forms.DateTimeField(
         input_formats=['%d.%m.%Y'],
-        widget=XDSoftDatePickerInput()
+        widget=XDSoftDatePickerInput(),
+        required=False
     )
