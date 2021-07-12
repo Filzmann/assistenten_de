@@ -1,11 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic.edit import UpdateView, DeleteView
+from django.views.generic.edit import UpdateView
 from guardian.mixins import PermissionRequiredMixin
-from assistenten.forms.asn_edit_asn_multiform import AsnEditAsnMultiForm
+from assistenten.forms.asn.asn_edit_asn_multiform import AsnEditAsnMultiForm
 from assistenten.functions.schicht_functions import get_schicht_templates
-from assistenten.models import ASN, SchichtTemplate
+from assistenten.models import ASN
 
 
 class AsnEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):

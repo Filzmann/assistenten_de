@@ -1,14 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic.edit import UpdateView, CreateView, DeleteView
+from django.views.generic.edit import UpdateView, CreateView
 from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
-from assistenten.forms.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
-from assistenten.forms.asn_edit_as_multiform import AsnCreateAsMultiForm, AsnEditAsMultiForm
-from assistenten.models import ASN, FesteSchicht, SchichtTemplate, Assistent
-from assistenten.functions.schicht_functions import get_schicht_templates, get_feste_schichten
+from assistenten.forms.asn.asn_edit_as_multiform import AsnCreateAsMultiForm, AsnEditAsMultiForm
+from assistenten.models import Assistent
+from assistenten.functions.schicht_functions import get_feste_schichten
 
 
 class AsnCreateAsView(LoginRequiredMixin, CreateView):

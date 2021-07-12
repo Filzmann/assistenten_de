@@ -3,11 +3,8 @@ from datetime import timedelta
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.http import request
-from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.utils.timezone import localtime
-
 from assistenten.models import Adresse, Urlaub, AU
 from assistenten.models.assistent import Assistent
 from assistenten.models.assistenznehmer import ASN

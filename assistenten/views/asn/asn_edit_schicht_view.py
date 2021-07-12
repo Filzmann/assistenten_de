@@ -96,16 +96,11 @@ class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
             # damit alle vorhandenen Daten gespeichert werden können
             for key in local_post:
                 local_kwargs_data[key] = local_post[key]
-        kwargs.update(data=local_kwargs_data)
+            kwargs.update(data=local_kwargs_data)
         return kwargs
 
     def form_valid(self, form):
-
-
         schicht = form['schicht'].save()
-        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-        print(schicht)
-
         if 'just_save' in self.request.POST:
             return redirect('asn_dienstplan', year=schicht.beginn.year, month=schicht.beginn.month)
         elif 'save_and_new' in self.request.POST:

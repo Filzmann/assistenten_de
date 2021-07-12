@@ -1,12 +1,11 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpResponseRedirect
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
-from assistenten.forms.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
+from assistenten.forms.assistent.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
 from assistenten.functions.schicht_functions import get_feste_schichten, get_schicht_templates
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 

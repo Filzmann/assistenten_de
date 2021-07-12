@@ -1,7 +1,7 @@
 from betterforms.multiform import MultiModelForm
 
 from assistenten.forms.adresse import HomeForm
-from assistenten.forms.asn_edit_schicht_form import AsnEditSchichtForm
+from assistenten.forms.asn.asn_edit_schicht_form import AsnEditSchichtForm
 from assistenten.forms.edit_as import AsnEditAsForm
 from assistenten.forms.edit_asn_stammdaten import EditAsnStammdatenForm
 from assistenten.forms.edit_schicht_form import EditSchichtForm

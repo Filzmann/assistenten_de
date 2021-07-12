@@ -1,18 +1,18 @@
 from django.urls import path
 from .views.askhole import AskholeView
-from .views.as_edit_asn_view import AsCreateAsnView, AsEditAsnView, DeleteFesteSchichtenView, DeleteSchichtTemplateView
-from .views.as_edit_assistent_view import AsEditAssistentView
-from .views.asn_dienstplan import AsnDienstplanView
-from .views.asn_edit_as_view import AsnCreateAsView, AsnEditAsView
-from .views.asn_edit_asn_view import AsnEditAsnView
-from .views.asn_edit_schicht_view import AsnCreateSchichtView, AsnEditSchichtView
+from assistenten.views.assistenten.as_edit_asn_view import AsCreateAsnView, AsEditAsnView, DeleteFesteSchichtenView, DeleteSchichtTemplateView
+from assistenten.views.assistenten.as_edit_assistent_view import AsEditAssistentView
+from assistenten.views.asn.asn_dienstplan import AsnDienstplanView
+from assistenten.views.asn.asn_edit_as_view import AsnCreateAsView, AsnEditAsView
+from assistenten.views.asn.asn_edit_asn_view import AsnEditAsnView
+from assistenten.views.asn.asn_edit_schicht_view import AsnCreateSchichtView, AsnEditSchichtView
 from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
-from .views.as_edit_schicht_view import AsCreateSchichtView, AsEditSchichtView, DeleteSchichtView
+from assistenten.views.assistenten.as_edit_schicht_view import AsCreateSchichtView, AsEditSchichtView, DeleteSchichtView
 from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
-from .views.einkommenssteuer_view import EinkommenssteuerView
+from assistenten.views.assistenten.einkommenssteuer_view import EinkommenssteuerView
 from .views.group_based_redirector import GroupBasedRedirector
 from .views.hilfe_view import HilfeView
-from .views.as_schicht_tabelle_view import AsSchichtTabellenView
+from assistenten.views.assistenten.as_schicht_tabelle_view import AsSchichtTabellenView
 
 urlpatterns = [
     path('hilfe', HilfeView.as_view(), name='hilfe'),

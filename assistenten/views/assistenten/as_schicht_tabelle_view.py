@@ -1,6 +1,5 @@
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
@@ -550,6 +549,56 @@ def shift_month(date: datetime, step: int = 1):
     return act_date
 
 
+def add_feste_schichten(erster_tag, letzter_tag, assistent):
+    feste_schichten = FesteSchicht.objects.filter(assistent=assistent)
+
+    for feste_schicht in feste_schichten:
+        wtag_int = int(feste_schicht.wochentag)
+        erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
+        monat = erster_tag.month
+        year = erster_tag.year
+        maxday = (letzter_tag - timedelta(days=1)).day
+        asn = feste_schicht.asn
+        for woche in range(0, 5):
+            tag = woche * 7 + erster_xxtag_des_monats
+            if tag <= maxday:
+                if feste_schicht.beginn < feste_schicht.ende:
+                    start = timezone.make_aware(datetime(year=year,
+                                                         month=monat,
+                                                         day=tag,
+                                                         hour=feste_schicht.beginn.hour,
+                                                         minute=feste_schicht.beginn.minute))
+                    end = timezone.make_aware(datetime(year=year,
+                                                       month=monat,
+                                                       day=tag,
+                                                       hour=feste_schicht.ende.hour,
+                                                       minute=feste_schicht.ende.minute))
+                # nachtschicht. es gibt keine regelmäßigen dienstreisen!
+                else:
+                    start = timezone.make_aware(datetime(year=year,
+                                                         month=monat,
+                                                         day=tag,
+                                                         hour=feste_schicht.beginn.hour,
+                                                         minute=feste_schicht.beginn.minute))
+                    end = timezone.make_aware(datetime(year=year,
+                                                       month=monat,
+                                                       day=tag,
+                                                       hour=feste_schicht.ende.hour,
+                                                       minute=feste_schicht.ende.minute) + timedelta(days=1))
+                if not check_au(datum=start, assistent=assistent) and \
+                        not check_urlaub(datum=start, assistent=assistent) and \
+                        not check_au(datum=end - timedelta(minutes=1), assistent=assistent) \
+                        and not check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent):
+                    home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
+                    schicht_neu = Schicht(beginn=start,
+                                          ende=end,
+                                          asn=asn,
+                                          assistent=assistent,
+                                          beginn_adresse=home,
+                                          ende_adresse=home)
+                    schicht_neu.save()
+
+
 class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     model = Schicht
     context_object_name = 'as_schicht_tabellen_monat'
@@ -588,55 +637,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         'zuschlaege': {}
 
     }
-
-    def add_feste_schichten(self, erster_tag, letzter_tag):
-        feste_schichten = FesteSchicht.objects.filter(assistent=self.request.user.assistent)
-
-        for feste_schicht in feste_schichten:
-            wtag_int = int(feste_schicht.wochentag)
-            erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
-            monat = erster_tag.month
-            year = erster_tag.year
-            maxday = (letzter_tag - timedelta(days=1)).day
-            asn = feste_schicht.asn
-            for woche in range(0, 5):
-                tag = woche * 7 + erster_xxtag_des_monats
-                if tag <= maxday:
-                    if feste_schicht.beginn < feste_schicht.ende:
-                        start = timezone.make_aware(datetime(year=year,
-                                                             month=monat,
-                                                             day=tag,
-                                                             hour=feste_schicht.beginn.hour,
-                                                             minute=feste_schicht.beginn.minute))
-                        end = timezone.make_aware(datetime(year=year,
-                                                           month=monat,
-                                                           day=tag,
-                                                           hour=feste_schicht.ende.hour,
-                                                           minute=feste_schicht.ende.minute))
-                    # nachtschicht. es gibt keine regelmäßigen dienstreisen!
-                    else:
-                        start = timezone.make_aware(datetime(year=year,
-                                                             month=monat,
-                                                             day=tag,
-                                                             hour=feste_schicht.beginn.hour,
-                                                             minute=feste_schicht.beginn.minute))
-                        end = timezone.make_aware(datetime(year=year,
-                                                           month=monat,
-                                                           day=tag,
-                                                           hour=feste_schicht.ende.hour,
-                                                           minute=feste_schicht.ende.minute) + timedelta(days=1))
-                    if not check_au(datum=start, assistent=self.request.user.assistent) and \
-                            not check_urlaub(datum=start, assistent=self.request.user.assistent) and \
-                            not check_au(datum=end - timedelta(minutes=1), assistent=self.request.user.assistent) \
-                            and not check_urlaub(datum=end - timedelta(minutes=1), assistent=self.request.user.assistent):
-                        home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
-                        schicht_neu = Schicht(beginn=start,
-                                              ende=end,
-                                              asn=asn,
-                                              assistent=self.request.user.assistent,
-                                              beginn_adresse=home,
-                                              ende_adresse=home)
-                        schicht_neu.save()
 
     def get_context_data(self, **kwargs):
         self.reset()
@@ -750,7 +750,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
         # feste Schichten
         if not schichten:
-            self.add_feste_schichten(erster_tag=start, letzter_tag=ende)
+            add_feste_schichten(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
             schichten = get_sliced_schichten(
                 start=self.act_date,
                 end=ende,
