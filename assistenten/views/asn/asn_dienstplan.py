@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import get_sliced_schichten, add_feste_schichten
+from assistenten.functions.schicht_functions import get_sliced_schichten, add_feste_schichten, get_schicht_templates
 from assistenten.models import Schicht
 from assistenten.views.assistenten.as_schicht_tabelle_view import get_monatserster, \
     sort_schicht_data_by_beginn, get_first_of_next_month, shift_month
@@ -34,6 +34,9 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['nav_timedelta'] = self.get_time_navigation_data()
         context['schichttabelle'] = self.get_table_data()
+        context['schicht_templates'] = get_schicht_templates(asn=self.request.user.assistenznehmer, order_by='beginn')
+        context['first_of_month'] = self.act_date
+        context['days_before_first'] = (int(self.act_date.strftime("%w")) +6) % 7
 
         self.reset()
         return context

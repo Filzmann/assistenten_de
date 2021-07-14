@@ -8,11 +8,13 @@ from assistenten.views.assistenten.as_schicht_tabelle_view import check_mehrtaeg
     check_urlaub
 
 
-def get_schicht_templates(asn):
+def get_schicht_templates(asn, order_by=False):
     # alle schicht_templates des asn
     schicht_template_liste = []
     schicht_templates = SchichtTemplate.objects.filter(
         asn=asn.id)
+    if order_by:
+        schicht_templates = schicht_templates.order_by(order_by)
     for schicht_template in schicht_templates:
         schicht_template_liste.append({
             'id': schicht_template.id,

@@ -14,6 +14,13 @@ from django import template
 
 register = template.Library()
 
+@register.filter(name='times')
+def times(number):
+    return range(number)
+
+@register.filter
+def modulo(num, val):
+    return num % val
 
 @register.filter('has_group')
 def has_group(user, group_name):

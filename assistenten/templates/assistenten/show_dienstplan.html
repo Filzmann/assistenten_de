@@ -1,9 +1,80 @@
 {% extends "app_base.html" %}
 
+{% load user_tags %}
 {% load static %}
 {% load tz %}
 
 {% block content %}
+
+    <div>
+        {% for template in schicht_templates %}
+            <div> {{ template.beginn }} - {{ template.ende }} {{template.bezeichner}}</div>
+        {% endfor %}
+        {{ days_before_first }}
+    </div>
+
+    <div>
+        <table border="1">
+            <tr>
+                <td>Mo</td>
+                <td>Di</td>
+                <td>Mi</td>
+                <td>Do</td>
+                <td>Fr</td>
+                <td>Sa</td>
+                <td>So</td>
+            </tr>
+            <tr>
+            {% for i in days_before_first|times %}
+                <td><!-- empty filler cells --></td>
+            {% endfor %}
+
+            {% for tag, schichten in schichttabelle.items %}
+                <td>
+                    <div class="center">
+                                {{ tag|localtime|date:"d" }}
+                    </div>
+                    {% if schichten %}
+                        {% for schicht in schichten %}
+
+
+                            <div>{{ schicht.von|localtime|date:"H:i" }} - {{ schicht.bis|localtime|date:"H:i" }}</div>
+                            <div>{{ schicht.assistent }}</div>
+                            <div>
+                                <form method="post">
+                                     {% csrf_token %}
+                                    <input type="image"
+                                           src="{% static 'images/del.png'%}"
+                                           formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                           value=""
+                                           onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                    >
+                                </form>
+                                <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
+                                    <img src="{% static 'images/edit.png'%}">
+                                </a>
+
+
+
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                            <img src="{% static 'images/add.png'%}">
+                        </a>
+                    </div>
+                </td>
+                {% if forloop.counter|add:days_before_first|modulo:7 == 0 %}
+                    </tr>
+                    <tr>
+                {% endif %}
+            {% endfor %}
+            </tr>
+        </table>
+
+    </div>
+
     <div>
         <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
 
