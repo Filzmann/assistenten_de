@@ -11,7 +11,7 @@ from assistenten.functions.schicht_functions import get_feste_schichten
 
 
 class AsnCreateAsView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/asn_edit_as.html"
+    template_name = "assistenten/asn/asn_edit_as.html"
     form_class = AsnCreateAsMultiForm
     model = Assistent
     success_url = reverse_lazy('asn_edit_as')
@@ -44,7 +44,7 @@ class AsnCreateAsView(LoginRequiredMixin, CreateView):
 
 
 class AsnEditAsView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    template_name = "assistenten/asn_edit_as.html"
+    template_name = "assistenten/asn/asn_edit_as.html"
     form_class = AsnEditAsMultiForm
     model = Assistent
     success_url = reverse_lazy('asn_edit_as')

@@ -8,7 +8,7 @@ from assistenten.forms import AsEditAsMultiForm
 
 
 class AsEditAssistentView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    template_name = "assistenten/edit_assistent.html"
+    template_name = "assistenten/assistenten/edit_assistent.html"
     form_class = AsEditAsMultiForm
     model = Assistent
     success_url = reverse_lazy('index')

@@ -11,7 +11,7 @@ from assistenten.models import Schicht, Adresse, ASN
 
 
 class AsCreateSchichtView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/as_edit_schicht.html"
+    template_name = "assistenten/assistenten/as_edit_schicht.html"
     form_class = CreateSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('index')
@@ -86,7 +86,7 @@ class AsCreateSchichtView(LoginRequiredMixin, CreateView):
 
 
 class AsEditSchichtView(LoginRequiredMixin, UpdateView):
-    template_name = "assistenten/as_edit_schicht.html"
+    template_name = "assistenten/assistenten/as_edit_schicht.html"
     form_class = EditSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('edit_schicht')

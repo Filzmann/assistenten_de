@@ -1,79 +1,17 @@
-import googlemaps
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
 
+from assistenten.functions.schicht_functions import get_schicht_hauptanteil, get_weg_id
 from assistenten.models import Schicht, Adresse, Weg
-from assistenten.views.assistenten.as_schicht_tabelle_view import split_by_null_uhr, get_duration
-from assistenten_de.settings import GOOGLE_API_KEY
-
-
-def get_schicht_hauptanteil(schicht):
-    # TODO: Reisebegleitungen/mehrtägig
-    teilschichten = split_by_null_uhr(schicht)
-    maxschicht = None
-    max_duration = 0
-    for teilschicht in teilschichten:
-        dauer = get_duration(teilschicht['beginn'], teilschicht['ende'], 'hours')
-        if dauer > max_duration:
-            max_duration = dauer
-            maxschicht = teilschicht
-    return maxschicht['beginn']
-
-
-def make_weg(adresse1, adresse2):
-    gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
-
-    adresse1_string = \
-        adresse1.strasse + ' ' \
-        + adresse1.hausnummer + ', ' \
-        + adresse1.plz + ' ' \
-        + adresse1.stadt
-
-    adresse2_string = \
-        adresse2.strasse + ' ' \
-        + adresse2.hausnummer + ', ' \
-        + adresse2.plz + ' ' \
-        + adresse2.stadt
-
-    directions_result = gmaps.directions(adresse1_string,
-                                         adresse2_string,
-                                         mode="transit",
-                                         departure_time=timezone.now())
-
-    if directions_result:
-        distance = directions_result[0]['legs'][0]['distance']['value'] / 1000
-        duration = round(directions_result[0]['legs'][0]['duration']['value'] / 60 + 0.5)
-
-        weg = Weg(adresse1=adresse1, adresse2=adresse2, entfernung=distance, dauer_in_minuten=duration)
-        weg.save()
-
-        return weg.pk
-    else:
-        return False
-
-
-def get_weg_id(adresse1, adresse2):
-    # prüfen ob weg in Modell wege vorhanden
-    wege = Weg.objects.filter(adresse1=adresse1, adresse2=adresse2) | Weg.objects.filter(adresse1=adresse2,
-                                                                                         adresse2=adresse1)
-    # print(wege)
-    if wege:
-        return wege[0].pk
-    else:
-        weg = make_weg(adresse1, adresse2)
-        if weg:
-            return weg
-        else:
-            return False
-    # bei bedarf insert, werte für weg + zeit per google api ermitteln
+from assistenten.functions.calendar_functions import get_duration
 
 
 class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
     model = Schicht
     context_object_name = 'einkommenssteuer'
-    template_name = 'assistenten/einkommenssteuer.html'
+    template_name = 'assistenten/assistenten/einkommenssteuer.html'
     act_year = timezone.now().year
     wege = {}
     abwesenheit = {}

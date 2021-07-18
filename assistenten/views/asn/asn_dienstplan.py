@@ -4,16 +4,16 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import get_sliced_schichten, add_feste_schichten, get_schicht_templates
+from assistenten.functions.schicht_functions import get_sliced_schichten_by_asn, add_feste_schichten_asn, \
+    get_schicht_templates, sort_schicht_data_by_beginn
 from assistenten.models import Schicht
-from assistenten.views.assistenten.as_schicht_tabelle_view import get_monatserster, \
-    sort_schicht_data_by_beginn, get_first_of_next_month, shift_month
+from assistenten.functions.calendar_functions import get_monatserster, get_first_of_next_month, shift_month
 
 
 class AsnDienstplanView(LoginRequiredMixin, TemplateView):
     model = Schicht
     context_object_name = 'as_dienstplan_monat'
-    template_name = 'assistenten/show_dienstplan.html'
+    template_name = 'assistenten/asn/show_dienstplan.html'
     act_date = timezone.now()
     schichten_view_data = {}
 
@@ -43,7 +43,7 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
 
     def calc_schichten(self, start, ende):
 
-        schichten = get_sliced_schichten(
+        schichten = get_sliced_schichten_by_asn(
             start=self.act_date,
             end=ende,
             asn=self.request.user.assistenznehmer
@@ -51,8 +51,8 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
 
         # feste Schichten
         if not schichten:
-            add_feste_schichten(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
-            schichten = get_sliced_schichten(
+            add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
+            schichten = get_sliced_schichten_by_asn(
                 start=self.act_date,
                 end=ende,
                 asn=self.request.user.assistenznehmer

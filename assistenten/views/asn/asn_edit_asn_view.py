@@ -9,7 +9,7 @@ from assistenten.models import ASN
 
 
 class AsnEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    template_name = "assistenten/asn_edit_asn.html"
+    template_name = "assistenten/asn/asn_edit_asn.html"
     form_class = AsnEditAsnMultiForm
     model = ASN
     success_url = reverse_lazy('index')
