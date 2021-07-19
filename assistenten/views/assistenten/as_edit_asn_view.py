@@ -11,7 +11,7 @@ from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
 
 class AsCreateAsnView(LoginRequiredMixin, CreateView):
-    template_name = "assistenten/as_edit_asn.html"
+    template_name = "assistenten/assistenten/as_edit_asn.html"
     form_class = AsCreateAsnMultiForm
     model = ASN
     success_url = reverse_lazy('as_edit_asn')
@@ -44,7 +44,7 @@ class AsCreateAsnView(LoginRequiredMixin, CreateView):
 
 
 class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    template_name = "assistenten/as_edit_asn.html"
+    template_name = "assistenten/assistenten/as_edit_asn.html"
     form_class = AsEditAsnMultiForm
     model = ASN
     success_url = reverse_lazy('as_edit_asn')
