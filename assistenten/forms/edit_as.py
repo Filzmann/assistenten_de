@@ -38,6 +38,6 @@ class EditAsForm(AsnEditAsForm):
 
     einstellungsdatum = forms.DateTimeField(
         input_formats=['%d.%m.%Y'],
-        widget=XDSoftDatePickerInput(),
+        widget=XDSoftDatePickerInput(attrs={'autocomplete': 'off'}),
         required=False
     )

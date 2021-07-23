@@ -35,6 +35,6 @@ class FesteSchichtenForm(BetterModelForm):
     )
     ende = forms.TimeField(
         input_formats=['%H:%M'],
-        widget=XDSoftTimePickerInput(),
+        widget=XDSoftTimePickerInput(attrs={'autocomplete': 'off'}),
         required=False
     )
