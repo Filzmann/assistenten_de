@@ -94,6 +94,70 @@ legend
     background-color: #808080;
 }
 
+/* dienstplan calendar view */
+.calendar_table
+{
+    width:100%;
+}
+
+.calendar_table td
+{
+    width: calc(100%/7);
+    min-width: 5em;
+}
+
+.weekday
+{
+    text-align: center;
+
+}
+
+.day
+{
+    border: 1px solid black;
+    vertical-align: top;
+}
+.calendar-day
+{
+    width:100%;
+    font-size: 1.2em;
+    color: black;
+    background-color: lightblue;
+    text-align: center;
+}
+.calendar-schicht
+{
+    width: 100%;
+    border: 1px dotted black;
+}
+.calendar-schicht form
+{
+    display: inline-block;
+}
+.calendar-schicht-zeit
+{
+    width:45%;
+    display: inline-block;
+    vertical-align: top;
+    overflow: auto;
+}
+.calendar-schicht-person
+{
+    display: inline-block;
+    width:50%;
+    overflow: auto;
+    vertical-align: top;
+}
+#calendar-view
+{
+    display:inline-block;
+}
+#list-view
+{
+    display: none;
+}
+
+
 
 
 

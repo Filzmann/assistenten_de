@@ -69,6 +69,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         context['schichttabelle'] = self.get_table_data()
         self.calc_add_sum_data()
         context['summen'] = self.summen
+        context['first_of_month'] = self.act_date
+        context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
 
         # brutto in db speichern
         brutto_in_db(
@@ -161,6 +163,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         )
 
         # feste Schichten
+        # TODO: per Button auslösen mit check ob Schicht vorhanden
         if not schichten:
             add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
             schichten = get_sliced_schichten_by_as(
