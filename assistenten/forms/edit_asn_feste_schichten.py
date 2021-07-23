@@ -30,7 +30,7 @@ class FesteSchichtenForm(BetterModelForm):
     wochentag = forms.CharField(label='Wochentag', widget=forms.Select(choices=CHOICES))
     beginn = forms.TimeField(
         input_formats=['%H:%M'],
-        widget=XDSoftTimePickerInput(),
+        widget=XDSoftTimePickerInput(attrs={'autocomplete': 'off'}),
         required=False
     )
     ende = forms.TimeField(
