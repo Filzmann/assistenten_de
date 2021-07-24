@@ -16,4 +16,7 @@ class FesteSchicht(models.Model):
 
 
     def __repr__(self):
-        return f"Feste Schicht({self.wochentag!r}, {self.beginn!r} - {self.ende!r})"
+        return f"Feste Schicht({self.wochentag!r}, {self.beginn!r} - {self.ende!r} asn: {self.asn!r} as: {self.assistent!r} )"
+
+    def __str__(self):
+        return f"Feste Schicht({self.wochentag!r}, {self.beginn!r} - {self.ende!r} asn: {self.asn!r} as: {self.assistent!r} )"

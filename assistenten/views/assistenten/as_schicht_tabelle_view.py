@@ -8,7 +8,8 @@ from assistenten.functions.schicht_functions import berechne_sa_so_weisil_feiert
     berechne_urlaub_au_saetze, brutto_in_db, check_schicht, \
     get_lohn, get_nachtstunden, get_sliced_schichten_by_as, sort_schicht_data_by_beginn, add_feste_schichten_as
 from assistenten.models import Schicht, Urlaub, AU
-from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, shift_month
+from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
+    shift_month
 
 
 class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
@@ -132,6 +133,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['ueberstunden_kumuliert'] = float(lohn.ueberstunden_zuschlag) * ueberstunden
 
     def calc_freie_sonntage(self):
+
         year = self.act_date.year
         # erster sonntag
         janfirst = datetime(year, 1, 1)
@@ -146,8 +148,11 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         for kw in range(1, 54):
             if sunday.year == year:
                 wochencounter += 1
-                # print('---------------')
-                if check_schicht(sunday):
+                if check_schicht(
+                        beginn=sunday,
+                        ende=sunday + timedelta(hours=23, minutes=59, seconds=59),
+                        assistent=self.request.user.assistent
+                ):
                     sontagsschichtcounter += 1
 
             sunday = sunday + timedelta(days=7)
@@ -163,14 +168,13 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         )
 
         # feste Schichten
-        # TODO: per Button auslösen mit check ob Schicht vorhanden
-        if not schichten:
-            add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
-            schichten = get_sliced_schichten_by_as(
-                start=self.act_date,
-                end=ende,
-                assistent=self.request.user.assistent
-            )
+
+        add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
+        schichten = get_sliced_schichten_by_as(
+            start=self.act_date,
+            end=ende,
+            assistent=self.request.user.assistent
+        )
 
         for schicht in schichten:
             if not schicht['beginn'].strftime('%d') in self.schichten_view_data.keys():
@@ -234,7 +238,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                     'stundenlohn': lohn.grundlohn,
                     'schichtlohn': float(lohn.grundlohn) * stunden,
                     'bsd': float(lohn.grundlohn) * stunden * (
-                            lohn.kurzfristig_zuschlag_prozent / 100) if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0,
+                            lohn.kurzfristig_zuschlag_prozent / 100) if 'ist_kurzfristig' in schicht and schicht[
+                        'ist_kurzfristig'] else 0,
                     'orgazulage': lohn.orga_zuschlag,
                     'orgazulage_schicht': float(lohn.orga_zuschlag) * stunden,
                     'wechselzulage': lohn.wechselschicht_zuschlag,

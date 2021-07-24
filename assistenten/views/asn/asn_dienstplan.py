@@ -50,14 +50,12 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
         )
 
         # feste Schichten
-        # TODO: per Button auslösen mit check ob Schicht vorhanden
-        if not schichten:
-            add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
-            schichten = get_sliced_schichten_by_asn(
-                start=self.act_date,
-                end=ende,
-                asn=self.request.user.assistenznehmer
-            )
+        add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
+        schichten = get_sliced_schichten_by_asn(
+            start=self.act_date,
+            end=ende,
+            asn=self.request.user.assistenznehmer
+        )
 
         for schicht in schichten:
             if not schicht['beginn'].strftime('%d') in self.schichten_view_data.keys():
