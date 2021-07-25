@@ -38,14 +38,8 @@ class AsnEditSchichtForm(BetterModelForm):
         # initial=datetime.now().strftime('%d.%m.%Y %H:%M')
     )
 
-    beginn_adresse = forms.ModelChoiceField(queryset=None,
-                                            empty_label='Neue Adresse eingeben',
-                                            required=False
-                                            )
-    ende_adresse = forms.ModelChoiceField(queryset=None,
-                                          empty_label='Neue Adresse eingeben',
-                                          required=False
-                                          )
+    beginn_adresse = forms.ModelChoiceField(queryset=None)
+    ende_adresse = forms.ModelChoiceField(queryset=None)
 
     ist_kurzfristig = forms.BooleanField(label='BSD/RB', required=False)
     ist_ausfallgeld = forms.BooleanField(label='Ausfallgeld', required=False)
@@ -75,10 +69,9 @@ class AsnEditSchichtForm(BetterModelForm):
 
         # get ASN Templates & addresses
         self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=asn.id)
+
         # und seine Adresslisten
         asn_addresses = get_address(asn=asn)
+        asn_home = get_address(asn=asn, is_home=True).first()
         self.fields['beginn_adresse'].queryset = asn_addresses
-        # damit fliegt das empty_label raus und muss neu rangehangen werden...
-        self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
         self.fields['ende_adresse'].queryset = asn_addresses
-        self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'

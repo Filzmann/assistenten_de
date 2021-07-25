@@ -19,6 +19,9 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
         kwargs = super(AsnCreateSchichtView, self).get_form_kwargs()
         # übergebe den request in die kwargs, damit er im Form verfügbar ist.
         kwargs.update({'request': self.request})
+
+
+
         # haben wir schon daten im Objekt? dann kommen diese in die kwargs
         if self.object:
             kwargs.update(
@@ -36,17 +39,15 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
             local_kwargs_data['schicht-beginn'] = beginnende
             local_kwargs_data['schicht-ende'] = beginnende
 
-        # wenn asn in POST select home-adresse für beginn und ende der schicht
 
-        if self.request.method in ('POST', 'PUT'):
-            local_post = self.request.POST.copy()
-            home_address_id = get_address(asn=self.request.user.assistenznehmer, is_home=True).first()
-            local_post['schicht-beginn_adresse'] = home_address_id
-            local_post['schicht-ende_adresse'] = home_address_id
-            # local kwargs wird ergänzt und für einige keys überschrieben,
-            # damit alle vorhandenen Daten gespeichert werden können
-            for key in local_post:
-                local_kwargs_data[key] = local_post[key]
+        local_post = self.request.POST.copy()
+        home_address_id = get_address(asn=self.request.user.assistenznehmer, is_home=True).first()
+        local_post['schicht-beginn_adresse'] = home_address_id
+        local_post['schicht-ende_adresse'] = home_address_id
+        # local kwargs wird ergänzt und für einige keys überschrieben,
+        # damit alle vorhandenen Daten gespeichert werden können
+        for key in local_post:
+            local_kwargs_data[key] = local_post[key]
 
         kwargs.update(data=local_kwargs_data)
         return kwargs
@@ -84,19 +85,8 @@ class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
             kwargs.update(
                 instance={'schicht': self.object, },
             )
-        local_kwargs_data = kwargs['data'].copy() if 'data' in kwargs else {}
 
-        # wenn asn in POST select home-adresse für beginn und ende der schicht
-        if self.request.method in ('POST', 'PUT'):
-            local_post = self.request.POST.copy()
-            home_address = get_address(asn=self.request.user.assistenznehmer, is_home=True).first()
-            local_post['schicht-beginn_adresse'] = home_address
-            local_post['schicht-ende_adresse'] = home_address
-            # local kwargs wird ergänzt und für einige keys überschrieben,
-            # damit alle vorhandenen Daten gespeichert werden können
-            for key in local_post:
-                local_kwargs_data[key] = local_post[key]
-            kwargs.update(data=local_kwargs_data)
+
         return kwargs
 
     def form_valid(self, form):
