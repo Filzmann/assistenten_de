@@ -37,7 +37,7 @@ def get_feste_schichten(asn=None, assistent=None):
     if assistent:
         feste_schichten = feste_schichten.filter(assistent=assistent.id)
 
-    wtage = {'0': 'Mo', '1': 'Di', '2': 'Mi', '3': 'Do', '4': 'Fr', '5': 'Sa', '6': 'So'}
+    wtage = {'1': 'Mo', '2': 'Di', '3': 'Mi', '4': 'Do', '5': 'Fr', '6': 'Sa', '7': 'So'}
 
     for feste_schicht in feste_schichten:
         feste_schichten_liste.append({
@@ -110,110 +110,14 @@ def split_by_null_uhr_asn(schicht):
 
 def add_feste_schichten_asn(erster_tag, letzter_tag, asn):
     add_feste_schichten(erster_tag=erster_tag, letzter_tag=letzter_tag, asn=asn)
-    # feste_schichten = FesteSchicht.objects.filter(asn=asn)
-    #
-    # for feste_schicht in feste_schichten:
-    #     wtag_int = int(feste_schicht.wochentag)
-    #     erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
-    #     monat = erster_tag.month
-    #     year = erster_tag.year
-    #     maxday = (letzter_tag - timedelta(days=1)).day
-    #     assi = feste_schicht.assistent
-    #     for woche in range(0, 5):
-    #         tag = woche * 7 + erster_xxtag_des_monats
-    #         if tag <= maxday:
-    #             if feste_schicht.beginn < feste_schicht.ende:
-    #                 start = timezone.make_aware(datetime(year=year,
-    #                                                      month=monat,
-    #                                                      day=tag,
-    #                                                      hour=feste_schicht.beginn.hour,
-    #                                                      minute=feste_schicht.beginn.minute))
-    #                 end = timezone.make_aware(datetime(year=year,
-    #                                                    month=monat,
-    #                                                    day=tag,
-    #                                                    hour=feste_schicht.ende.hour,
-    #                                                    minute=feste_schicht.ende.minute))
-    #             # nachtschicht. es gibt keine regelmäßigen dienstreisen!
-    #             else:
-    #                 start = timezone.make_aware(datetime(year=year,
-    #                                                      month=monat,
-    #                                                      day=tag,
-    #                                                      hour=feste_schicht.beginn.hour,
-    #                                                      minute=feste_schicht.beginn.minute))
-    #                 end = timezone.make_aware(datetime(year=year,
-    #                                                    month=monat,
-    #                                                    day=tag,
-    #                                                    hour=feste_schicht.ende.hour,
-    #                                                    minute=feste_schicht.ende.minute) + timedelta(days=1))
-    #             if not check_au(datum=start, assistent=assi) and \
-    #                     not check_urlaub(datum=start, assistent=assi) and \
-    #                     not check_au(datum=end - timedelta(minutes=1), assistent=assi) \
-    #                     and not check_urlaub(datum=end - timedelta(minutes=1), assistent=assi):
-    #                 home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
-    #                 schicht_neu = Schicht(beginn=start,
-    #                                       ende=end,
-    #                                       asn=asn,
-    #                                       assistent=assi,
-    #                                       beginn_adresse=home,
-    #                                       ende_adresse=home)
-    #                 schicht_neu.save()
 
 
 def add_feste_schichten_as(erster_tag, letzter_tag, assistent):
     add_feste_schichten(erster_tag=erster_tag, letzter_tag=letzter_tag, assistent=assistent)
-    # feste_schichten = FesteSchicht.objects.filter(assistent=assistent)
-    #
-    # for feste_schicht in feste_schichten:
-    #     wtag_int = int(feste_schicht.wochentag)
-    #     erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
-    #     monat = erster_tag.month
-    #     year = erster_tag.year
-    #     maxday = (letzter_tag - timedelta(days=1)).day
-    #     asn = feste_schicht.asn
-    #     for woche in range(0, 5):
-    #         tag = woche * 7 + erster_xxtag_des_monats
-    #         if tag <= maxday:
-    #             if feste_schicht.beginn < feste_schicht.ende:
-    #                 start = timezone.make_aware(datetime(year=year,
-    #                                                      month=monat,
-    #                                                      day=tag,
-    #                                                      hour=feste_schicht.beginn.hour,
-    #                                                      minute=feste_schicht.beginn.minute))
-    #                 end = timezone.make_aware(datetime(year=year,
-    #                                                    month=monat,
-    #                                                    day=tag,
-    #                                                    hour=feste_schicht.ende.hour,
-    #                                                    minute=feste_schicht.ende.minute))
-    #             # nachtschicht. es gibt keine regelmäßigen dienstreisen!
-    #             else:
-    #                 start = timezone.make_aware(datetime(year=year,
-    #                                                      month=monat,
-    #                                                      day=tag,
-    #                                                      hour=feste_schicht.beginn.hour,
-    #                                                      minute=feste_schicht.beginn.minute))
-    #                 end = timezone.make_aware(datetime(year=year,
-    #                                                    month=monat,
-    #                                                    day=tag,
-    #                                                    hour=feste_schicht.ende.hour,
-    #                                                    minute=feste_schicht.ende.minute) + timedelta(days=1))
-    #             if not check_au(datum=start, assistent=assistent) and \
-    #                     not check_urlaub(datum=start, assistent=assistent) and \
-    #                     not check_au(datum=end - timedelta(minutes=1), assistent=assistent) \
-    #                     and not check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent):
-    #                 home = Adresse.objects.filter(is_home=True).filter(asn=asn)[0]
-    #                 schicht_neu = Schicht(beginn=start,
-    #                                       ende=end,
-    #                                       asn=asn,
-    #                                       assistent=assistent,
-    #                                       beginn_adresse=home,
-    #                                       ende_adresse=home)
-    #                 schicht_neu.save()
 
 
 def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
     feste_schichten = FesteSchicht.objects
-
-
 
     if assistent:
         feste_schichten = feste_schichten.filter(assistent=assistent)
@@ -223,7 +127,7 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
     for feste_schicht in feste_schichten:
 
-        wtag_int = int(feste_schicht.wochentag)
+        wtag_int = int(feste_schicht.wochentag)-1
         erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
         monat = erster_tag.month
         year = erster_tag.year
