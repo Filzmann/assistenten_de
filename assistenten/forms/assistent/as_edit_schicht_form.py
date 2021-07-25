@@ -7,7 +7,7 @@ from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate, Assistent
 from assistenten.widgets import XDSoftDateTimePickerInput
 
 
-class EditSchichtForm(BetterModelForm):
+class AsEditSchichtForm(BetterModelForm):
     class Meta:
         fields = [
             'beginn',
@@ -24,7 +24,7 @@ class EditSchichtForm(BetterModelForm):
 
     asn = forms.ModelChoiceField(queryset=None,
                                  empty_label='Neuer ASN',
-                                 widget=forms.Select(attrs={"onChange": 'submit()'}),
+                                 widget=forms.Select(attrs={"onChange": 'create_new_or_submit()'}),
                                  required=False)
 
     beginn = forms.DateTimeField(
@@ -66,7 +66,7 @@ class EditSchichtForm(BetterModelForm):
             self.request = kwargs.pop('request')
         self.label_suffix = ""  # Removes : as label suffix
 
-        super(EditSchichtForm, self).__init__(*args, **kwargs)
+        super(AsEditSchichtForm, self).__init__(*args, **kwargs)
 
         self.fields['asn'].queryset = get_objects_for_user(
             self.request.user, 'view_asn', klass=ASN, with_superuser=False)

@@ -5,173 +5,114 @@
 {% endblock %}
 
 {% block content %}
-
-
-
     <div>
-        <form action="" method="post">
+        <form action="" method="post" id="schicht-form">
             {% block form_head %}
             {% csrf_token %}
             {% endblock %}
             {% block form_body %}
                 {{ form.non_field_errors }}
-                    <fieldset>
-                        <legend>Wer?</legend>
+                <fieldset>
+                    <legend>Wer?</legend>
+                    <div>
+                        {{ form.schicht.asn.label_tag }} {{ form.schicht.asn }}
+                    </div>
+                    <fieldset id="fieldset-neuer-assistenznehmer" >
+                        <legend>Neuer Assistenznehmer</legend>
+                        <div>
+                            {{ form.asn_stammdaten.kuerzel.label_tag }} {{ form.asn_stammdaten.kuerzel }}
+                        </div>
+                        <div>
+                            {{ form.asn_stammdaten.name.label_tag }} {{ form.asn_stammdaten.name }}
+                        </div>
+                        <div>
+                            {{ form.asn_stammdaten.vorname.label_tag }} {{ form.asn_stammdaten.vorname }}
+                        </div>
+                        <div>
+                            {{ form.asn_stammdaten.email.label_tag }} {{ form.asn_stammdaten.email }}
+                        </div>
+                        <div>
+                            {{ form.asn_home.strasse.label_tag }} {{ form.asn_home.strasse }}
+                        </div>
+                        <div>
+                            {{ form.asn_home.hausnummer.label_tag }} {{ form.asn_home.hausnummer }}
+                        </div>
+                        <div>
+                            {{ form.asn_home.plz.label_tag }} {{ form.asn_home.plz }}
+                        </div>
+                        <div>
+                            {{ form.asn_home.stadt.label_tag }} {{ form.asn_home.stadt }}
+                        </div>
+                    </fieldset>
+
+                    {% if form.schicht.asn.value %}
+                        <fieldset id="fieldset-schicht-templates">
+
+                            <legend>Schichtvorlagen</legend>
                             <div>
-                                {{ form.schicht.asn.label_tag }} {{ form.schicht.asn }}
-                            </div>
-                            {% if not form.schicht.asn.value %}
-                                <fieldset id="fieldset-neuer-assistenznehmer" >
-                                    <legend>Neuer Assistenznehmer</legend>
-                                    <div>
-                                        {{ form.asn_stammdaten.kuerzel.label_tag }} {{ form.asn_stammdaten.kuerzel }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_stammdaten.name.label_tag }} {{ form.asn_stammdaten.name }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_stammdaten.vorname.label_tag }} {{ form.asn_stammdaten.vorname }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_stammdaten.email.label_tag }} {{ form.asn_stammdaten.email }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_home.strasse.label_tag }} {{ form.asn_home.strasse }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_home.hausnummer.label_tag }} {{ form.asn_home.hausnummer }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_home.plz.label_tag }} {{ form.asn_home.plz }}
-                                    </div>
-                                    <div>
-                                        {{ form.asn_home.stadt.label_tag }} {{ form.asn_home.stadt }}
-                                    </div>
-                                </fieldset>
-                            {% else %}
-                                <fieldset id="fieldset-schicht-templates">
-                                    <script >
-                                        function use_template()
-                                        {
-                                            template_radios=document.getElementsByName('schicht-templates');
-                                            for(i=0;i<template_radios.length; i++)
-                                                if(template_radios[i].checked)
-                                                    var selectedTemplate=template_radios[i].parentNode.innerHTML;
-                                            selectedTemplate = selectedTemplate.split(">")[1].substr(-13)
-                                            var vonbis = selectedTemplate.split(" - ")
-                                            var von = vonbis[0];
-                                            var bis = vonbis[1];
-                                            var beginnfeld = document.getElementById('id_schicht-beginn').value;
-                                            if (beginnfeld != '')
-                                            {
-                                                var beginntag = beginnfeld.split(" ")[0];
-                                                beginnArray= beginntag.split('.');
-
-                                                beginnDateTime = new Date(parseInt(beginnArray[2], 10), parseInt(beginnArray[1],10)-1, parseInt(beginnArray[0],10), parseInt(von.split(':')[0],10), parseInt(von.split(':')[1],10));
-
-                                            }
-                                            else{
-                                                beginnDateTime = new Date();
-                                                beginnDateTime.setHours(von.split(':')[0]);
-                                                beginnDateTime.setMinutes(von.split(':')[1]);
-                                            }
-                                            endeDateTime = new Date(beginnDateTime.getFullYear(),
-                                                                    beginnDateTime.getMonth(),
-                                                                    beginnDateTime.getDate(),
-                                                                    bis.split(':')[0], bis.split(':')[1]);
-                                            // check ob tag oder nachtschicht, wir vernachlässigen die minuten
-                                            // bei nachtschicht Ende am Folgetag
-                                            if( beginnDateTime.getHours() > endeDateTime.getHours())
-                                            {
-                                                //nachtschicht
-                                                //alert("nachtschicht")
-                                                endeDateTime.setTime(endeDateTime.getTime() + 24*60*60*1000);
-                                            }
-                                            //alert(beginnDateTime);
-                                            beginnfeld = (beginnDateTime.getDate()).toString().padStart(2,'0') +"."
-                                            + (beginnDateTime.getMonth() + 1).toString().padStart(2,'0') +"."
-                                            + beginnDateTime.getFullYear() +" "
-                                            + beginnDateTime.getHours().toString().padStart(2,'0') +":"
-                                            + beginnDateTime.getMinutes().toString().padStart(2,'0');
-                                            document.getElementById('id_schicht-beginn').value=beginnfeld;
-
-                                            //alert(endeDateTime);
-                                            endfeld= (endeDateTime.getDate()).toString().padStart(2,'0') +"."
-                                            + (endeDateTime.getMonth() + 1).toString().padStart(2,'0') +"."
-                                            + endeDateTime.getFullYear() +" "
-                                            + endeDateTime.getHours().toString().padStart(2,'0') +":"
-                                            + endeDateTime.getMinutes().toString().padStart(2,'0');
-                                            document.getElementById('id_schicht-ende').value=endfeld;
-
-
-                                        }
-
-                                    </script>
-                                    <legend>Schichtvorlagen</legend>
-                                    <div>
-                                         {{ form.schicht.templates }}
-                                    </div>
-                                </fieldset>
-                            {% endif %}
-                        </fieldset>
-                        <fieldset>
-                            <legend>Wann?</legend>
-
-                            <div>
-                                {{ form.schicht.beginn.label_tag }} {{ form.schicht.beginn }}
-                            </div>
-                            {% for error in form.schicht.beginn.errors %}
-                                <div class="alert alert-danger">
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                            <div>
-                                {{ form.schicht.ende.label_tag }} {{ form.schicht.ende }}
-                            </div>
-                            {% for error in form.schicht.end.errors %}
-                                <div class="alert alert-danger">
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                        </fieldset>
-                        <fieldset>
-                            <legend>
-                                Was noch?
-                            </legend>
-                            <div>
-                                {{ form.schicht.ist_kurzfristig }} {{ form.schicht.ist_kurzfristig.label_tag }}
-                            </div><div>
-                                {{ form.schicht.ist_ausfallgeld }} {{ form.schicht.ist_ausfallgeld.label_tag }}
-                            </div><div>
-                                {{ form.schicht.ist_assistententreffen }} {{ form.schicht.ist_assistententreffen.label_tag }}
-                            </div><div>
-                                {{ form.schicht.ist_pcg}} {{ form.schicht.ist_pcg.label_tag }}
-                            </div><div>
-                                {{ form.schicht.ist_schulung }} {{ form.schicht.ist_schulung.label_tag }}
+                                 {{ form.schicht.templates }}
                             </div>
                         </fieldset>
-                        {% if form.schicht.asn.value %}
-                            <fieldset>
-                                <legend>Wo?</legend>
-                                <div>
-                                    {{ form.schicht.beginn_adresse.label_tag }} {{ form.schicht.beginn_adresse }}
-                                </div>
-                                {% for error in form.schicht.beginn_adresse.errors %}
-                                <div class="alert alert-danger">
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                                <div>
-                                    {{ form.schicht.ende_adresse.label_tag }} {{ form.schicht.ende_adresse }}
-                                </div>
-                                {% for error in form.schicht.ende_adresse.errors %}
-                                <div class="alert alert-danger">
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                            </fieldset>
-                        {% endif %}
-                {% endblock %}
+                    {% endif %}
+                </fieldset>
+                <fieldset>
+                    <legend>Wann?</legend>
+
+                    <div>
+                        {{ form.schicht.beginn.label_tag }} {{ form.schicht.beginn }}
+                    </div>
+                    {% for error in form.schicht.beginn.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                    <div>
+                        {{ form.schicht.ende.label_tag }} {{ form.schicht.ende }}
+                    </div>
+                    {% for error in form.schicht.end.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                </fieldset>
+                <fieldset>
+                    <legend>
+                        Was noch?
+                    </legend>
+                    <div>
+                        {{ form.schicht.ist_kurzfristig }} {{ form.schicht.ist_kurzfristig.label_tag }}
+                    </div><div>
+                        {{ form.schicht.ist_ausfallgeld }} {{ form.schicht.ist_ausfallgeld.label_tag }}
+                    </div><div>
+                        {{ form.schicht.ist_assistententreffen }} {{ form.schicht.ist_assistententreffen.label_tag }}
+                    </div><div>
+                        {{ form.schicht.ist_pcg}} {{ form.schicht.ist_pcg.label_tag }}
+                    </div><div>
+                        {{ form.schicht.ist_schulung }} {{ form.schicht.ist_schulung.label_tag }}
+                    </div>
+                </fieldset>
+                {% if form.schicht.asn.value %}
+                    <fieldset id="fieldset-schicht-ort">
+                        <legend>Wo?</legend>
+                        <div>
+                            {{ form.schicht.beginn_adresse.label_tag }} {{ form.schicht.beginn_adresse }}
+                        </div>
+                        {% for error in form.schicht.beginn_adresse.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                        <div>
+                            {{ form.schicht.ende_adresse.label_tag }} {{ form.schicht.ende_adresse }}
+                        </div>
+                        {% for error in form.schicht.ende_adresse.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                    </fieldset>
+                {% endif %}
+            {% endblock %}
 
             <div class="buttonleiste">
                 <input type="submit" value="Speichern" name="just_save">
@@ -180,7 +121,84 @@
             </div>
         </form>
     </div>
+    <script >
+        function create_new_or_submit()
+        {
 
+            if(document.getElementById('id_schicht-asn').value)
+            {
+
+                document.getElementById("fieldset-neuer-assistenznehmer").style.display='none';
+                document.getElementById("schicht-form").submit();
+            }
+            else
+            {
+                document.getElementById("fieldset-neuer-assistenznehmer").style.display='inline-block';
+                document.getElementById("fieldset-schicht-templates").style.display='none';
+                document.getElementById("fieldset-schicht-ort").style.display='none';
+            }
+        }
+        if(document.getElementById('id_schicht-asn').value)
+        {
+            document.getElementById("fieldset-neuer-assistenznehmer").style.display='none';
+        }
+
+        function use_template()
+        {
+            template_radios=document.getElementsByName('schicht-templates');
+            for(i=0;i<template_radios.length; i++)
+                if(template_radios[i].checked)
+                    var selectedTemplate=template_radios[i].parentNode.innerHTML;
+            selectedTemplate = selectedTemplate.split(">")[1].substr(-13)
+            var vonbis = selectedTemplate.split(" - ")
+            var von = vonbis[0];
+            var bis = vonbis[1];
+            var beginnfeld = document.getElementById('id_schicht-beginn').value;
+            if (beginnfeld != '')
+            {
+                var beginntag = beginnfeld.split(" ")[0];
+                beginnArray= beginntag.split('.');
+
+                beginnDateTime = new Date(parseInt(beginnArray[2], 10), parseInt(beginnArray[1],10)-1, parseInt(beginnArray[0],10), parseInt(von.split(':')[0],10), parseInt(von.split(':')[1],10));
+
+            }
+            else{
+                beginnDateTime = new Date();
+                beginnDateTime.setHours(von.split(':')[0]);
+                beginnDateTime.setMinutes(von.split(':')[1]);
+            }
+            endeDateTime = new Date(beginnDateTime.getFullYear(),
+                                    beginnDateTime.getMonth(),
+                                    beginnDateTime.getDate(),
+                                    bis.split(':')[0], bis.split(':')[1]);
+            // check ob tag oder nachtschicht, wir vernachlässigen die minuten
+            // bei nachtschicht Ende am Folgetag
+            if( beginnDateTime.getHours() > endeDateTime.getHours())
+            {
+                //nachtschicht
+                //alert("nachtschicht")
+                endeDateTime.setTime(endeDateTime.getTime() + 24*60*60*1000);
+            }
+            //alert(beginnDateTime);
+            beginnfeld = (beginnDateTime.getDate()).toString().padStart(2,'0') +"."
+            + (beginnDateTime.getMonth() + 1).toString().padStart(2,'0') +"."
+            + beginnDateTime.getFullYear() +" "
+            + beginnDateTime.getHours().toString().padStart(2,'0') +":"
+            + beginnDateTime.getMinutes().toString().padStart(2,'0');
+            document.getElementById('id_schicht-beginn').value=beginnfeld;
+
+            //alert(endeDateTime);
+            endfeld= (endeDateTime.getDate()).toString().padStart(2,'0') +"."
+            + (endeDateTime.getMonth() + 1).toString().padStart(2,'0') +"."
+            + endeDateTime.getFullYear() +" "
+            + endeDateTime.getHours().toString().padStart(2,'0') +":"
+            + endeDateTime.getMinutes().toString().padStart(2,'0');
+            document.getElementById('id_schicht-ende').value=endfeld;
+
+
+        }
+
+    </script>
 {% endblock %}
 
 

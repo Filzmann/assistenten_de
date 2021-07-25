@@ -24,7 +24,7 @@ class AsnEditSchichtForm(BetterModelForm):
 
     assistent = forms.ModelChoiceField(queryset=None,
                                        empty_label='Neuer Assistent',
-                                       widget=forms.Select(attrs={"onChange": 'submit()'}),
+                                       widget=forms.Select(attrs={"onChange": 'create_new_or_submit()'}),
                                        required=False)
 
     beginn = forms.DateTimeField(

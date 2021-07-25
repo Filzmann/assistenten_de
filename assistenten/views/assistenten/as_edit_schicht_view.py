@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.utils.datetime_safe import datetime
 from django.views.generic import UpdateView, CreateView, DeleteView
 from django.shortcuts import redirect
-from assistenten.forms.edit_schicht_multiform import EditSchichtMultiForm, CreateSchichtMultiForm
+from assistenten.forms.assistent.as_edit_schicht_multiform import AsCreateSchichtMultiForm, AsEditSchichtMultiForm
 from assistenten.models import Schicht, Adresse, ASN
 
 # TODO beim Eintragen von Schichten über den Jahreswechsel werden daten falsch übernommen.
@@ -12,7 +12,7 @@ from assistenten.models import Schicht, Adresse, ASN
 
 class AsCreateSchichtView(LoginRequiredMixin, CreateView):
     template_name = "assistenten/assistenten/as_edit_schicht.html"
-    form_class = CreateSchichtMultiForm
+    form_class = AsCreateSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('index')
 
@@ -67,6 +67,7 @@ class AsCreateSchichtView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         schicht = form['schicht'].save(commit=False)
+        print(schicht)
         if not hasattr(schicht, 'asn'):
             schicht.asn = form['asn_stammdaten'].save()
             schicht.asn.assistents.add(self.request.user.assistent)
@@ -87,7 +88,7 @@ class AsCreateSchichtView(LoginRequiredMixin, CreateView):
 
 class AsEditSchichtView(LoginRequiredMixin, UpdateView):
     template_name = "assistenten/assistenten/as_edit_schicht.html"
-    form_class = EditSchichtMultiForm
+    form_class = AsEditSchichtMultiForm
     model = Schicht
     success_url = reverse_lazy('edit_schicht')
 
@@ -109,7 +110,7 @@ class AsEditSchichtView(LoginRequiredMixin, UpdateView):
         # wenn asn in POST select home-adresse für beginn und ende der schicht
         if self.request.method in ('POST', 'PUT'):
             local_post = self.request.POST.copy()
-            if 'schicht-asn' in kwargs['data']:
+            if 'schicht-asn' in kwargs['data'] and kwargs['data']['schicht-asn']:
                 home_address_id = Adresse.objects.filter(
                     is_home=True).filter(
                     asn=ASN.objects.get(

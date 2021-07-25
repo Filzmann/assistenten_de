@@ -4,7 +4,7 @@ from django.utils.datetime_safe import datetime
 from django.views.generic import UpdateView, CreateView, DeleteView
 from django.shortcuts import redirect
 from guardian.shortcuts import assign_perm
-from assistenten.forms.edit_schicht_multiform import AsnCreateSchichtMultiForm, AsnEditSchichtMultiForm
+from assistenten.forms.asn.asn_edit_schicht_multiform import AsnCreateSchichtMultiForm, AsnEditSchichtMultiForm
 from assistenten.functions.person_functions import get_address
 from assistenten.models import Schicht
 
