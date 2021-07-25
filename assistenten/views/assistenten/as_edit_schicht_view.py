@@ -105,7 +105,7 @@ class AsEditSchichtView(LoginRequiredMixin, UpdateView):
             )
 
         local_kwargs_data = kwargs['data'].copy() if 'data' in kwargs else {}
-        print(kwargs)
+
         # wenn asn in POST select home-adresse für beginn und ende der schicht
         if self.request.method in ('POST', 'PUT'):
             local_post = self.request.POST.copy()
