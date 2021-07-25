@@ -109,11 +109,11 @@ def split_by_null_uhr_asn(schicht):
 
 
 def add_feste_schichten_asn(erster_tag, letzter_tag, asn):
-    add_feste_schichten(erster_tag=erster_tag, letzter_tag=letzter_tag, asn=asn)
+    add_feste_schichten(erster_tag=erster_tag, letzter_tag=letzter_tag, asn=asn, assistent=None)
 
 
 def add_feste_schichten_as(erster_tag, letzter_tag, assistent):
-    add_feste_schichten(erster_tag=erster_tag, letzter_tag=letzter_tag, assistent=assistent)
+    add_feste_schichten(erster_tag=erster_tag, letzter_tag=letzter_tag, assistent=assistent, asn=None)
 
 
 def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
@@ -162,9 +162,9 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
                 # TODO Sperrzeiten des AS checken
 
-                if not check_au(datum=start, assistent=feste_schicht.assistent) and \
-                        not check_urlaub(datum=start, assistent=feste_schicht.assistent) and \
-                        not check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent) \
+                if not check_au(datum=start, assistent=feste_schicht.assistent)\
+                        and not check_urlaub(datum=start, assistent=feste_schicht.assistent)\
+                        and not check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent) \
                         and not check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent) \
                         and not check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False) \
                         and not check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn):
@@ -410,14 +410,18 @@ def check_urlaub(datum, assistent):
 
 def check_schicht(beginn, ende, assistent=False, asn=False):
     """prüft, ob an einem gegeben Datum eine Schicht ist."""
-    # print(beginn)
-    # print(ende)
-    # print(assistent)
-    # print(asn)
-    # print('---------------------------------')
+    # anfang eine minute später und ende eine minute früher, um den Schichtwechsel zu vermeiden
+    beginn = beginn + timedelta(minutes=1)
+    ende = ende - timedelta(minutes=1)
+    print(beginn)
+    print(ende)
+    print(assistent)
+    print(asn)
+    print('---------------------------------')
     # alle schichten, die "heute" anfangen, heute enden oder vor heute anfangen und nach heute enden.
-    schichten = Schicht.objects.filter(beginn__range=(beginn, ende)) | Schicht.objects.filter(
-        ende__range=(beginn, ende)) | Schicht.objects.filter(beginn__lte=beginn).filter(ende__gte=ende)
+    schichten = Schicht.objects.filter(beginn__range=(beginn, ende)) | \
+                Schicht.objects.filter(ende__range=(beginn, ende)) |\
+                Schicht.objects.filter(beginn__lte=beginn).filter(ende__gte=ende)
 
     if assistent:
         schichten = schichten.filter(assistent=assistent)
@@ -425,6 +429,7 @@ def check_schicht(beginn, ende, assistent=False, asn=False):
     if asn:
         schichten = schichten.filter(assistent=assistent)
 
+    print(schichten)
     if schichten:
         return True
     return False

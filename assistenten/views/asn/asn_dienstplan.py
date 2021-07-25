@@ -51,6 +51,7 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
 
         # feste Schichten
         add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
+
         schichten = get_sliced_schichten_by_asn(
             start=self.act_date,
             end=ende,

@@ -168,8 +168,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         )
 
         # feste Schichten
-
         add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
+
         schichten = get_sliced_schichten_by_as(
             start=self.act_date,
             end=ende,
