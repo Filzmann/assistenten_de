@@ -3,7 +3,7 @@ from datetime import timedelta
 import googlemaps
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
-
+from django.db.models import Q
 from assistenten.models import SchichtTemplate, FesteSchicht, Schicht, Adresse, Weg, Brutto, AU, Urlaub, Lohn
 from assistenten.functions.calendar_functions import check_feiertag, get_ersten_xxtag, get_duration
 from assistenten_de.settings import GOOGLE_API_KEY
@@ -127,7 +127,7 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
     for feste_schicht in feste_schichten:
 
-        wtag_int = int(feste_schicht.wochentag)-1
+        wtag_int = int(feste_schicht.wochentag) - 1
         erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
         monat = erster_tag.month
         year = erster_tag.year
@@ -162,12 +162,26 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
                 # TODO Sperrzeiten des AS checken
 
-                if not check_au(datum=start, assistent=feste_schicht.assistent)\
-                        and not check_urlaub(datum=start, assistent=feste_schicht.assistent)\
-                        and not check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent) \
-                        and not check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent) \
-                        and not check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False) \
-                        and not check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn):
+                if not (check_au(datum=start, assistent=feste_schicht.assistent) \
+                        or check_urlaub(datum=start, assistent=feste_schicht.assistent) \
+                        or check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent) \
+                        or check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent) \
+                        or check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False) \
+                        or check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)):
+                    # TODO Sperrzeiten des AS checken
+                    print('~~~~~~~Drin~~~~~~~~~~~~~~~')
+                    print('AU Beginn:' + str(check_au(datum=start, assistent=feste_schicht.assistent)))
+                    print('urlaub Beginn:' + str(check_urlaub(datum=start, assistent=feste_schicht.assistent)))
+                    print(
+                        'AU Ende' + str(check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent)))
+                    print('Urlaub ende:' + str(check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent)))
+                    print('Schicht AS' + str(
+                        check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False,
+                                      speak=True)))
+                    print('Schicht ASN' + str(
+                        check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn, speak=True)))
+                    print('~~~~~~~~~~~~~~~~~~~~~~')
+
                     home = Adresse.objects.filter(is_home=True).filter(asn=feste_schicht.asn)[0]
                     schicht_neu = Schicht(beginn=start,
                                           ende=end,
@@ -408,28 +422,43 @@ def check_urlaub(datum, assistent):
         return False
 
 
-def check_schicht(beginn, ende, assistent=False, asn=False):
-    """prüft, ob an einem gegeben Datum eine Schicht ist."""
+def check_schicht(beginn, ende, assistent=False, asn=False, speak=False):
+    """prüft, ob an einem gegeben Datum eine Schicht ist.
+    wenn speak = true gibt es mehrer print-Ausgaben zur Analyse"""
     # anfang eine minute später und ende eine minute früher, um den Schichtwechsel zu vermeiden
+
     beginn = beginn + timedelta(minutes=1)
     ende = ende - timedelta(minutes=1)
-    print(beginn)
-    print(ende)
-    print(assistent)
-    print(asn)
-    print('---------------------------------')
+    if speak:
+        print('---' + str(beginn))
+        print('---' + str(ende))
+        print('---' + str(assistent))
+        print('---' + str(asn))
+        # print('---------------------------------')
     # alle schichten, die "heute" anfangen, heute enden oder vor heute anfangen und nach heute enden.
-    schichten = Schicht.objects.filter(beginn__range=(beginn, ende)) | \
-                Schicht.objects.filter(ende__range=(beginn, ende)) |\
-                Schicht.objects.filter(beginn__lte=beginn).filter(ende__gte=ende)
+    # Q-Notation importiert zur übersichtlichen und kurzen Darstellung von "und" (&) und "oder" (|)
+    schichten = Schicht.objects.filter(
+        Q(beginn__range=(beginn, ende))|Q(ende__range=(beginn, ende))|Q(Q(beginn__lte=beginn) & Q(ende__gte=ende))
+    )
 
     if assistent:
+        if speak:
+            print('---vor AS + ASN ---')
+            print(assistent)
+            print(asn)
+            print(schichten)
         schichten = schichten.filter(assistent=assistent)
 
     if asn:
-        schichten = schichten.filter(assistent=assistent)
+        if speak:
+            print('---vor ASN ---')
+            print(asn)
+            print(schichten)
+        schichten = schichten.filter(asn=asn)
 
-    print(schichten)
+    if speak:
+        print('---nach AS + ASN ---')
+        print(schichten)
     if schichten:
         return True
     return False
