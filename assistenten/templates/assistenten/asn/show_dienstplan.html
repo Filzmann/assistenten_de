@@ -5,7 +5,7 @@
 {% load tz %}
 
 {% block content %}
-    <div>
+    <div class="nav">
         <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
         <div class ="inline">
             <form method="get" action="">

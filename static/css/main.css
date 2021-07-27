@@ -88,10 +88,14 @@ legend
 .samstag
 {
     background-color: #a9a9a9;
+    color-adjust:exact;
+    -webkit-print-color-adjust:exact;
 }
 .sonntag
 {
     background-color: #808080;
+    color-adjust:exact;
+    -webkit-print-color-adjust:exact;
 }
 
 /* dienstplan calendar view */
@@ -123,6 +127,8 @@ legend
     font-size: 1.2em;
     color: black;
     background-color: lightblue;
+    color-adjust:exact;
+    -webkit-print-color-adjust:exact;
     text-align: center;
 }
 .calendar-schicht
@@ -157,7 +163,34 @@ legend
     display: none;
 }
 
+@media print {
+    img, form
+    {
+        display:none;
+    }
 
+    div.nav
+    {
+        display:none  !important;
+    }
+
+    a::after{
+        content: "" !important;
+    }
+    .samstag
+    {
+        background-color: #a9a9a9 !important;
+        color-adjust:exact;
+        -webkit-print-color-adjust:exact !important;
+
+    }
+    .sonntag
+    {
+        background-color: #808080 !important;
+        color-adjust:exact;
+        -webkit-print-color-adjust:exact !important;
+    }
+}
 
 
 
