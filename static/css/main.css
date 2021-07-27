@@ -164,9 +164,9 @@ legend
 }
 
 @media print {
-    img, form
+    img, form.inline
     {
-        display:none;
+        display:none !important;
     }
 
     div.nav
