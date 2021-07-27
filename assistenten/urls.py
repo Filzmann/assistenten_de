@@ -8,6 +8,8 @@ from assistenten.views.asn.asn_edit_asn_view import AsnEditAsnView
 from assistenten.views.asn.asn_edit_schicht_view import AsnCreateSchichtView, AsnEditSchichtView
 from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
 from assistenten.views.assistenten.as_edit_schicht_view import AsCreateSchichtView, AsEditSchichtView, DeleteSchichtView
+from .views.edit_feste_sperrzeit_view import CreateFesteSperrzeitView, EditFesteSperrzeitView
+from .views.edit_sperrzeit_view import CreateSperrzeitView, EditSperrzeitView
 from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
 from assistenten.views.assistenten.einkommenssteuer_view import EinkommenssteuerView
 from .views.group_based_redirector import GroupBasedRedirector
@@ -50,5 +52,8 @@ urlpatterns = [
     path('del_au/<int:pk>', DeleteAUView.as_view(), name='del_au'),
     path('einkommenssteuer', EinkommenssteuerView.as_view(), name='einkommenssteuer'),
     path('askhole', AskholeView.as_view(), name='askhole'),
-
+    path('create_sperrzeit', CreateSperrzeitView.as_view(), name='create_sperrzeit'),
+    path('edit_sperrzeit', EditSperrzeitView.as_view(), name='edit_sperrzeit'),
+    path('create_feste_sperrzeit', CreateFesteSperrzeitView.as_view(), name='create_feste_sperrzeit'),
+    path('edit_feste_sperrzeit', EditFesteSperrzeitView.as_view(), name='edit_feste_sperrzeit'),
 ]

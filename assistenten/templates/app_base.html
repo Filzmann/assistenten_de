@@ -42,6 +42,7 @@
                     {% if request.user|has_group:"Assistenznehmer"%}
                         <li><a href="{% url 'asn_create_schicht' %}">Schicht</a></li>
                     {% endif %}
+                    <li><a href="{% url 'create_sperrzeit' %}" >Sperrzeit eintragen</a></li>
                 </ul>
             </li>
         </ul>

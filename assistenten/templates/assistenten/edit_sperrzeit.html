@@ -1,0 +1,39 @@
+{% extends "app_base.html" %}
+
+{% block title %}Sperrzeiten bearbeiten{% endblock %}
+
+{% block heading %}
+  <h2>Sperrzeiten bearbeiten</h2>
+{% endblock %}
+
+{% block content %}
+    <div>
+        <a class="inline" href="{% url 'create_sperrzeit' %}" >Sperrzeit eintragen</a>
+        <a class="inline" href="{% url 'create_feste_sperrzeit' %}" >regelmäßige Sperrzeit eintragen</a>
+    </div>
+
+    <div>
+        {# TODO angepasste Texte für ASN/AS mit filter: if request.user|has_group:"Assistenten" #}
+        <h4>Was sind Sperrzeiten?</h4>
+        <p>Sperrzeiten sind die Zeiten, an denen Du einfach mal weder Lust noch Zeit hast, Arbeiten zu gehen (Wenn du Assistent bist) oder einfach mal keine Assistenz benötigst.
+            Egal wer sich wie meldet, eine Schicht in dem Zeitraum wirst du ablehnen.<br>
+            Du hast immer Dienstags eine feste Schicht beim ASN XYZ? Normalerweise wird diese automatisch eingetragen.
+            Sperrst du diesen einen Dienstag, an dem du zum Beispiel Geburtstag hast, wird die niemand mehr mit Anfragen belästigen.
+        </p>
+        <h4>Ja aber was sind denn jetzt regelmäßige Sperrzeiten?</h4>
+        <p>
+            Jeden Dienstag zwischen 18 und 19 Uhr hast du Unterricht im Gebrauch der phillipinischen Nasenflöte.
+            Selbstverständlich kann sich das im Büro keiner von 1000 Assistenten merken.
+            Trotzdem muss dich für diesen Zeitraum einfach keiner fragen, ob du Zeit/Bock hast, Geld zu verdienen.
+        </p>
+
+    </div>
+    <div>
+        <form action="" method="post">
+            {% include 'betterforms/form_as_fieldsets.html' %}
+            <div class="buttonleiste">
+                <input type="submit" value="Speichern">
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -12,3 +12,4 @@ from .urlaub import *
 from .schicht import *
 from .schicht_templates import *
 from .weg import *
+from .sperrzeit import *
