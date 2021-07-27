@@ -20,8 +20,8 @@ def get_schicht_templates(asn, order_by=False):
         schicht_template_liste.append({
             'id': schicht_template.id,
             'bezeichner': schicht_template.bezeichner,
-            'beginn': schicht_template.beginn.strftime("%H:%M"),
-            'ende': schicht_template.ende.strftime("%H:%M"),
+            'beginn': schicht_template.beginn,
+            'ende': schicht_template.ende,
         })
 
     return schicht_templates
@@ -47,20 +47,6 @@ def get_feste_schichten(asn=None, assistent=None):
             'ende': feste_schicht.ende.strftime("%H:%M"),
         })
     return feste_schichten_liste
-
-
-def get_sliced_schichten_by_asn(start, end, asn):
-    schichten = \
-        Schicht.objects.filter(beginn__range=(start, end)).filter(asn=asn) | \
-        Schicht.objects.filter(ende__range=(start, end)).filter(asn=asn)
-
-    sliced_schichten = []
-    for schicht in schichten:
-        ergebnisse = split_by_null_uhr_asn(schicht)
-        for ergebnis in ergebnisse:
-            sliced_schichten.append(ergebnis)
-
-    return sliced_schichten
 
 
 def split_by_null_uhr_asn(schicht):
@@ -169,19 +155,6 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
                         or check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False) \
                         or check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)):
                     # TODO Sperrzeiten des AS checken
-                    print('~~~~~~~Drin~~~~~~~~~~~~~~~')
-                    print('AU Beginn:' + str(check_au(datum=start, assistent=feste_schicht.assistent)))
-                    print('urlaub Beginn:' + str(check_urlaub(datum=start, assistent=feste_schicht.assistent)))
-                    print(
-                        'AU Ende' + str(check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent)))
-                    print('Urlaub ende:' + str(check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent)))
-                    print('Schicht AS' + str(
-                        check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False,
-                                      speak=True)))
-                    print('Schicht ASN' + str(
-                        check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn, speak=True)))
-                    print('~~~~~~~~~~~~~~~~~~~~~~')
-
                     home = Adresse.objects.filter(is_home=True).filter(asn=feste_schicht.asn)[0]
                     schicht_neu = Schicht(beginn=start,
                                           ende=end,
@@ -438,7 +411,7 @@ def check_schicht(beginn, ende, assistent=False, asn=False, speak=False):
     # alle schichten, die "heute" anfangen, heute enden oder vor heute anfangen und nach heute enden.
     # Q-Notation importiert zur übersichtlichen und kurzen Darstellung von "und" (&) und "oder" (|)
     schichten = Schicht.objects.filter(
-        Q(beginn__range=(beginn, ende))|Q(ende__range=(beginn, ende))|Q(Q(beginn__lte=beginn) & Q(ende__gte=ende))
+        Q(beginn__range=(beginn, ende)) | Q(ende__range=(beginn, ende)) | Q(Q(beginn__lte=beginn) & Q(ende__gte=ende))
     )
 
     if assistent:
@@ -543,9 +516,26 @@ def get_nachtstunden(schicht):
 
 
 def get_sliced_schichten_by_as(start, end, assistent):
+    """wrapper for get_sliced_schichten"""
+    return get_sliced_schichten(start=start, end=end, assistent=assistent)
+
+
+def get_sliced_schichten_by_asn(start, end, asn):
+    """wrapper for get_sliced_schichten"""
+    return get_sliced_schichten(start=start, end=end, asn=asn)
+
+
+def get_sliced_schichten(start, end, assistent=False, asn=False):
+    """returns all shifts of specificated as/asn. Splits all nightshifts at midnight"""
     schichten = \
-        Schicht.objects.filter(beginn__range=(start, end)).filter(assistent=assistent) | \
-        Schicht.objects.filter(ende__range=(start, end)).filter(assistent=assistent)
+        Schicht.objects.filter(beginn__range=(start, end)) | \
+        Schicht.objects.filter(ende__range=(start, end))
+
+    if assistent:
+        schichten = schichten.filter(assistent=assistent)
+
+    if asn:
+        schichten = schichten.filter(asn=asn)
 
     sliced_schichten = []
     for schicht in schichten:
@@ -559,20 +549,7 @@ def get_sliced_schichten_by_as(start, end, assistent):
 def sort_schicht_data_by_beginn(schichten: list):
     """sortiert die schichten an einem tag (in Form einer Liste von dicts von strings)
     nach ihrem beginn"""
-    ausgabe = []
-
-    for schicht in schichten:
-        insert_flag = False
-        beginn_akt_schicht = schicht['von']
-        for zaehler in range(0, len(ausgabe)):
-            if beginn_akt_schicht < ausgabe[zaehler]['von']:
-                ausgabe.insert(zaehler, schicht)
-                insert_flag = True
-                break
-        if not insert_flag:
-            ausgabe.append(schicht)
-
-    return ausgabe
+    return sorted(schichten, key=lambda j: j['von'])
 
 
 def split_by_null_uhr(schicht):

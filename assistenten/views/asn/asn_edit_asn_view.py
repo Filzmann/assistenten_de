@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic.edit import UpdateView
 from guardian.mixins import PermissionRequiredMixin
 from assistenten.forms.asn.asn_edit_asn_multiform import AsnEditAsnMultiForm

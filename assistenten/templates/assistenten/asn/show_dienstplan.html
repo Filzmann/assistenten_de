@@ -52,13 +52,6 @@
 
     </div>
 
-    <!-- div>
-        {% for template in schicht_templates %}
-            <div> {{ template.beginn }} - {{ template.ende }} {{template.bezeichner}}</div>
-        {% endfor %}
-
-    </div-->
-
     <div id="calendar-view">
         <table class="calendar_table">
             <tr>
@@ -125,75 +118,57 @@
     <div id="list-view">
         <table border="1">
         <tr>
-            <td></td>
             <td>Tag</td>
-            <td>von</td>
-            <td>bis</td>
-            <td>AS</td>
-
+            {% for template in templates %}
+                <td>{{ template.beginn }} - {{ template.ende }}</td>
+            {% endfor %}
         </tr>
-        {% for tag, schichten in schichttabelle.items %}
-            {% if schichten %}
-                {% for schicht in schichten %}
-                    <tr class="
+        {% for tag, filled_templates in schichten_nach_templates.items %}
+            <tr class="
                         {% if tag|localtime|date:"w" == "0" %}
                             sonntag
                         {% elif tag|localtime|date:"w" == "6" %}
                             samstag
                         {% endif %}
                     ">
+                <td class="center">
+                    {{ tag|localtime|date:"D d" }}
+                    <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                        <img src="{% static 'images/add.png'%}">
+                    </a>
+                </td>
+
+                {% for id, schichten in filled_templates.items %}
                         <td>
-
-
-                                <form method="post">
-                                     {% csrf_token %}
-                                    <input type="image"
-                                           src="{% static 'images/del.png'%}"
-                                           formaction="{% url 'del_schicht' schicht.schicht_id %}"
-                                           value=""
-                                           onClick="return confirm('Wollen Sie wirklich löschen?')"
-                                    >
+                            {% for schicht in schichten %}
+                                <div>
+                                    {{ schicht.assistent.vorname }} {{ schicht.assistent.name }}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="image"
+                                               src="{% static 'images/del.png'%}"
+                                               formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                               value=""
+                                               onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                        >
+                                    </form>
                                     <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
                                         <img src="{% static 'images/edit.png'%}">
                                     </a>
-                                    <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
-                                        <img src="{% static 'images/add.png'%}">
-                                    </a>
+                                </div>
+                            {% endfor %}
 
-                                </form>
-
-                            </td>
-
-                            <td class="center">
-                                {{ tag|localtime|date:"D d" }}
-                            </td>
-                            <td>{{ schicht.von|localtime|date:"H:i" }}</td>
-                            <td>{{ schicht.bis|localtime|date:"H:i" }}</td>
-                            <td>{{ schicht.assistent }}</td>
-
-                        </tr>
-
-                {% endfor %}
-            {% else %}
-                <tr class="
-                    {% if tag|localtime|date:"w" == "0" %}
-                        sonntag
-                    {% elif tag|localtime|date:"w" == "6" %}
-                        samstag
-                    {% endif %}
-                ">
-                    <td>
-                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
-                            <img src="{% static 'images/add.png'%}">
-                        </a>
-                    </td>
-                    <td class="center">
-                        {{ tag|localtime|date:"D d" }}
-                    </td>
-                </tr>
-            {% endif %}
+                        </td>
+                    {% endfor %}
+             </tr>
         {% endfor %}
     </table>
     </div>
+
+
+
+
+
+
 {% endblock %}
 <pre>{% filter force_escape %} {% debug %} {% endfilter %} </pre>

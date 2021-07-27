@@ -67,7 +67,7 @@ class AsCreateSchichtView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         schicht = form['schicht'].save(commit=False)
-        print(schicht)
+
         if not hasattr(schicht, 'asn'):
             schicht.asn = form['asn_stammdaten'].save()
             schicht.asn.assistents.add(self.request.user.assistent)
@@ -124,6 +124,7 @@ class AsEditSchichtView(LoginRequiredMixin, UpdateView):
                 # damit alle vorhandenen Daten gespeichert werden können
                 for key in local_post:
                     local_kwargs_data[key] = local_post[key]
+
 
         if local_kwargs_data:
             kwargs.update(

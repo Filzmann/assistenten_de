@@ -1,12 +1,12 @@
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
+from django.utils.datetime_safe import datetime, time
 from django.views.generic import TemplateView
 
 from assistenten.functions.schicht_functions import get_sliced_schichten_by_asn, add_feste_schichten_asn, \
     get_schicht_templates, sort_schicht_data_by_beginn
-from assistenten.models import Schicht
+from assistenten.models import Schicht, SchichtTemplate
 from assistenten.functions.calendar_functions import get_monatserster, get_first_of_next_month, shift_month
 
 
@@ -34,20 +34,94 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['nav_timedelta'] = self.get_time_navigation_data()
         context['schichttabelle'] = self.get_table_data()
-        context['schicht_templates'] = get_schicht_templates(asn=self.request.user.assistenznehmer, order_by='beginn')
         context['first_of_month'] = self.act_date
-        context['days_before_first'] = (int(self.act_date.strftime("%w")) +6) % 7
+        context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
+        context['templates'], context['schichten_nach_templates'] = self.sort_schichten_in_templates()
 
         self.reset()
         return context
 
-    def calc_schichten(self, start, ende):
+    def sort_schichten_in_templates(self):
+        splitted_templates = []
+        templates = get_schicht_templates(asn=self.request.user.assistenznehmer, order_by='beginn')
+        # Todo Sub-Templates und verschobene Templates
+        for template in templates:
+            if template.beginn < template.ende:
+
+                splitted_templates.append(
+                    {
+                        'beginn': template.beginn,
+                        'ende': template.ende
+                    }
+                )
+            else:
+                splitted_templates.append(
+                    {
+                        'beginn': template.beginn,
+                        'ende': time(0)
+                    }
+                )
+                splitted_templates.append(
+                    {
+                        'beginn': time(0),
+                        'ende': template.ende
+                    }
+                )
+        splitted_templates = sorted(splitted_templates, key=lambda j: j['beginn'])
+
+        start = self.act_date
+
+        # schichtsammlung durch ergänzung von leeren Tagen zu Kalender konvertieren
+        end = shift_month(self.act_date, step=1)
+        monatsletzter = (end - timedelta(days=1)).day
 
         schichten = get_sliced_schichten_by_asn(
             start=self.act_date,
-            end=ende,
+            end=end,
             asn=self.request.user.assistenznehmer
         )
+
+        table_array = {}
+        for i in range(1, monatsletzter + 1):
+            datakey = datetime(year=self.act_date.year, month=self.act_date.month, day=i)
+            template_counter = 0
+            table_array[datakey] = {}
+            for template in splitted_templates:
+                temp_beginn = timezone.make_aware(datetime.combine(datakey, template['beginn']))
+                if template['ende'] == time(0):
+                    temp_ende = timezone.make_aware(
+                        datetime.combine(
+                            datakey + timedelta(days=1),
+                            template['ende']
+                        )
+                    )
+                else:
+                    temp_ende = timezone.make_aware(datetime.combine(datakey, template['ende']))
+                table_array[datakey][template_counter] = []
+                schicht_counter = 0
+                for schicht in schichten:
+                    # print(temp_beginn)
+                    # print(schicht['beginn'])
+                    # print(temp_ende)
+                    # print(schicht['ende'])
+                    # print('--------------------')
+                    if schicht['beginn'] == temp_beginn and schicht['ende'] == temp_ende:
+                        # Wenn sich mehrere Assistenten um die gleiche Schicht "bewerben",
+                        # können mehrere Schichten im selben Template stehen
+
+                        table_array[datakey][template_counter].append(schicht)
+                        schichten.remove(schicht)
+                        schicht_counter += 1
+
+                if schicht_counter == 0:
+                    table_array[datakey][template_counter] = []
+                template_counter += 1
+        print(schichten)
+        print('---hurz-----')
+
+        return splitted_templates, table_array
+
+    def calc_schichten(self, start, ende):
 
         # feste Schichten
         add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
