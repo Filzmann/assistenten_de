@@ -143,7 +143,7 @@
                             {% for schicht in schichten %}
                                 <div>
                                     {{ schicht.assistent.vorname }} {{ schicht.assistent.name }}
-                                    <form method="post">
+                                    <form method="post" class="inline">
                                         {% csrf_token %}
                                         <input type="image"
                                                src="{% static 'images/del.png'%}"
@@ -152,7 +152,7 @@
                                                onClick="return confirm('Wollen Sie wirklich löschen?')"
                                         >
                                     </form>
-                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
+                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}"  class="inline">
                                         <img src="{% static 'images/edit.png'%}">
                                     </a>
                                 </div>

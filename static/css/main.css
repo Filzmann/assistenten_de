@@ -171,7 +171,7 @@ legend
 
     div.nav
     {
-        display:none  !important;
+        display:none;
     }
 
     a::after{
