@@ -143,18 +143,20 @@
                             {% for schicht in schichten %}
                                 <div>
                                     {{ schicht.assistent.vorname }} {{ schicht.assistent.name }}
-                                    <form method="post" class="inline">
-                                        {% csrf_token %}
-                                        <input type="image"
-                                               src="{% static 'images/del.png'%}"
-                                               formaction="{% url 'del_schicht' schicht.schicht_id %}"
-                                               value=""
-                                               onClick="return confirm('Wollen Sie wirklich löschen?')"
-                                        >
-                                    </form>
-                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}"  class="inline">
-                                        <img src="{% static 'images/edit.png'%}">
-                                    </a>
+                                    <div style="float:right;">
+                                        <form method="post" class="inline">
+                                            {% csrf_token %}
+                                            <input type="image"
+                                                   src="{% static 'images/del.png'%}"
+                                                   formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                                   value=""
+                                                   onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                            >
+                                        </form>
+                                        <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}"  class="inline">
+                                            <img src="{% static 'images/edit.png'%}">
+                                        </a>
+                                    </div>
                                 </div>
                             {% endfor %}
 
