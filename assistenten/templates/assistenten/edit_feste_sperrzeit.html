@@ -14,7 +14,6 @@
     </div>
     <div  class="liste-in-fieldset">
         <form action="" method="post">
-            {% csrf_token %}
             {% include 'betterforms/form_as_fieldsets.html' %}
             <div class="buttonleiste">
                 <input type="submit" value="Speichern">
@@ -27,13 +26,14 @@
         <ul>
           {% for sperrzeit in sperrzeiten_liste %}
             <li>
+
               <input type="image"
                      src="{% static 'images/del.png'%}"
-                     formaction="{% url 'del_sperrzeit' sperrzeit.id %}"
+                     formaction="{% url 'del_feste_sperrzeit' sperrzeit.id %}"
                      value=""
                      onClick="return confirm('Wollen Sie wirklich löschen?')"
               >
-              {{sperrzeit.beginn}} - {{sperrzeit.ende}}
+              {{sperrzeit.wochentag}}, {{sperrzeit.beginn}} - {{sperrzeit.ende}}
             </li>
           {% endfor %}
         </ul>

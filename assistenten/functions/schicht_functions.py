@@ -2,10 +2,13 @@ from datetime import timedelta
 
 import googlemaps
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
+from django.utils.datetime_safe import datetime, time
 from django.db.models import Q
-from assistenten.models import SchichtTemplate, FesteSchicht, Schicht, Adresse, Weg, Brutto, AU, Urlaub, Lohn
-from assistenten.functions.calendar_functions import check_feiertag, get_ersten_xxtag, get_duration
+
+from assistenten.functions.constants import WTAGE
+from assistenten.models import SchichtTemplate, FesteSchicht, Schicht, Adresse, Weg, Brutto, AU, Urlaub, Lohn, \
+    Sperrzeit, FesteSperrzeit
+from assistenten.functions.calendar_functions import check_feiertag, get_ersten_xxtag, get_duration, shift_month
 from assistenten_de.settings import GOOGLE_API_KEY
 
 
@@ -37,12 +40,10 @@ def get_feste_schichten(asn=None, assistent=None):
     if assistent:
         feste_schichten = feste_schichten.filter(assistent=assistent.id)
 
-    wtage = {'1': 'Mo', '2': 'Di', '3': 'Mi', '4': 'Do', '5': 'Fr', '6': 'Sa', '7': 'So'}
-
     for feste_schicht in feste_schichten:
         feste_schichten_liste.append({
             'id': feste_schicht.id,
-            'wochentag': wtage[feste_schicht.wochentag],
+            'wochentag': WTAGE[feste_schicht.wochentag],
             'beginn': feste_schicht.beginn.strftime("%H:%M"),
             'ende': feste_schicht.ende.strftime("%H:%M"),
         })
@@ -148,12 +149,14 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
                 # TODO Sperrzeiten des AS checken
 
-                if not (check_au(datum=start, assistent=feste_schicht.assistent) \
-                        or check_urlaub(datum=start, assistent=feste_schicht.assistent) \
-                        or check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent) \
-                        or check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent) \
-                        or check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False) \
-                        or check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)):
+                if not (check_au(datum=start, assistent=feste_schicht.assistent)
+                        or check_urlaub(datum=start, assistent=feste_schicht.assistent)
+                        or check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent)
+                        or check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent)
+                        or check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False)
+                        or check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)
+                        or check_sperrzeit(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False)
+                        or check_sperrzeit(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)):
                     # TODO Sperrzeiten des AS checken
                     home = Adresse.objects.filter(is_home=True).filter(asn=feste_schicht.asn)[0]
                     schicht_neu = Schicht(beginn=start,
@@ -395,6 +398,34 @@ def check_urlaub(datum, assistent):
         return False
 
 
+def check_sperrzeit(beginn, ende, assistent=False, asn=False):
+    beginn = beginn + timedelta(minutes=1)
+    ende = ende - timedelta(minutes=1)
+    # alle schichten, die "heute" anfangen, heute enden oder vor heute anfangen und nach heute enden.
+    # Q-Notation importiert zur übersichtlichen und kurzen Darstellung von "und" (&) und "oder" (|)
+    sperrzeiten = Sperrzeit.objects.filter(
+        Q(beginn__range=(beginn, ende)) | Q(ende__range=(beginn, ende)) | Q(Q(beginn__lte=beginn) & Q(ende__gte=ende))
+    )
+    if assistent:
+        sperrzeiten = sperrzeiten.filter(assistent=assistent)
+    if asn:
+        sperrzeiten = sperrzeiten.filter(asn=asn)
+    if sperrzeiten:
+        return True
+
+    sperrzeiten = FesteSperrzeit.objects.filter(
+        Q(beginn__range=(beginn, ende)) | Q(ende__range=(beginn, ende)) | Q(Q(beginn__lte=beginn) & Q(ende__gte=ende))
+    )
+    if assistent:
+        sperrzeiten = sperrzeiten.filter(assistent=assistent)
+    if asn:
+        sperrzeiten = sperrzeiten.filter(asn=asn)
+    if sperrzeiten:
+        return True
+
+    return False
+
+
 def check_schicht(beginn, ende, assistent=False, asn=False, speak=False):
     """prüft, ob an einem gegeben Datum eine Schicht ist.
     wenn speak = true gibt es mehrer print-Ausgaben zur Analyse"""
@@ -610,3 +641,97 @@ def split_by_null_uhr(schicht):
             'ende_adresse': schicht.ende_adresse
         })
     return ausgabe
+
+
+def get_sperrzeiten(user, fest=False):
+    usergroup = user.groups.values_list('name', flat=True).first()
+
+    if fest:
+        sperrzeiten = FesteSperrzeit.objects.order_by('-beginn')
+    else:
+        sperrzeiten = Sperrzeit.objects.order_by('-beginn')
+    if usergroup == "Assistenten":
+        sperrzeiten = sperrzeiten.filter(assistent=user.assistent)
+    elif usergroup == "Assistenznehmer":
+        sperrzeiten = sperrzeiten.filter(asn=user.assistenznehmer)
+    if not fest:
+        sperrzeiten = sperrzeiten.filter(beginn__gte=timezone.now())
+
+    if fest:
+        for sperrzeit in sperrzeiten:
+            sperrzeit.wochentag = WTAGE[str(sperrzeit.wochentag)]
+    return sperrzeiten
+
+
+def sort_schichten_in_templates(asn, date):
+    splitted_templates = []
+    templates = get_schicht_templates(asn=asn, order_by='beginn')
+    # Todo Sub-Templates und verschobene Templates
+    for template in templates:
+        if template.beginn < template.ende:
+
+            splitted_templates.append(
+                {
+                    'beginn': template.beginn,
+                    'ende': template.ende
+                }
+            )
+        else:
+            splitted_templates.append(
+                {
+                    'beginn': template.beginn,
+                    'ende': time(0)
+                }
+            )
+            splitted_templates.append(
+                {
+                    'beginn': time(0),
+                    'ende': template.ende
+                }
+            )
+    splitted_templates = sorted(splitted_templates, key=lambda j: j['beginn'])
+
+    start = date
+
+    # schichtsammlung durch ergänzung von leeren Tagen zu Kalender konvertieren
+    end = shift_month(date, step=1)
+    monatsletzter = (end - timedelta(days=1)).day
+
+    schichten = get_sliced_schichten_by_asn(
+        start=date,
+        end=end,
+        asn=asn
+    )
+
+    table_array = {}
+    for i in range(1, monatsletzter + 1):
+        datakey = datetime(year=date.year, month=date.month, day=i)
+        template_counter = 0
+        table_array[datakey] = {}
+        for template in splitted_templates:
+            temp_beginn = timezone.make_aware(datetime.combine(datakey, template['beginn']))
+            if template['ende'] == time(0):
+                temp_ende = timezone.make_aware(
+                    datetime.combine(
+                        datakey + timedelta(days=1),
+                        template['ende']
+                    )
+                )
+            else:
+                temp_ende = timezone.make_aware(datetime.combine(datakey, template['ende']))
+            table_array[datakey][template_counter] = []
+            schicht_counter = 0
+            for schicht in schichten:
+                if schicht['beginn'] == temp_beginn and schicht['ende'] == temp_ende:
+                    # Wenn sich mehrere Assistenten um die gleiche Schicht "bewerben",
+                    # können mehrere Schichten im selben Template stehen
+
+                    table_array[datakey][template_counter].append(schicht)
+                    schichten.remove(schicht)
+                    schicht_counter += 1
+
+            if schicht_counter == 0:
+                table_array[datakey][template_counter] = []
+            template_counter += 1
+
+    return splitted_templates, table_array

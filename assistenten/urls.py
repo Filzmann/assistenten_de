@@ -1,24 +1,32 @@
+from django.contrib.auth.views import PasswordChangeView, PasswordResetDoneView, PasswordChangeDoneView
 from django.urls import path
-from .views.askhole import AskholeView
-from assistenten.views.assistenten.as_edit_asn_view import AsCreateAsnView, AsEditAsnView, DeleteFesteSchichtenView, DeleteSchichtTemplateView
+from assistenten.views.askhole import AskholeView
+from assistenten.views.assistenten.as_edit_asn_view import AsCreateAsnView, AsEditAsnView, DeleteFesteSchichtenView, \
+    DeleteSchichtTemplateView
 from assistenten.views.assistenten.as_edit_assistent_view import AsEditAssistentView
 from assistenten.views.asn.asn_dienstplan import AsnDienstplanView
 from assistenten.views.asn.asn_edit_as_view import AsnCreateAsView, AsnEditAsView
 from assistenten.views.asn.asn_edit_asn_view import AsnEditAsnView
 from assistenten.views.asn.asn_edit_schicht_view import AsnCreateSchichtView, AsnEditSchichtView
-from .views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
+from assistenten.views.ebs.eb_dienstplan_view import EbDienstplanView
+from assistenten.views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
 from assistenten.views.assistenten.as_edit_schicht_view import AsCreateSchichtView, AsEditSchichtView, DeleteSchichtView
-from .views.edit_feste_sperrzeit_view import CreateFesteSperrzeitView, EditFesteSperrzeitView
-from .views.edit_sperrzeit_view import CreateSperrzeitView, EditSperrzeitView
-from .views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
+from assistenten.views.edit_feste_sperrzeit_view import CreateFesteSperrzeitView, EditFesteSperrzeitView, \
+    DeleteFesteSperrzeitView
+from assistenten.views.edit_sperrzeit_view import CreateSperrzeitView, EditSperrzeitView, DeleteSperrzeitView
+from assistenten.views.edit_urlaub_view import CreateUrlaubView, EditUrlaubView, DeleteUrlaubView
 from assistenten.views.assistenten.einkommenssteuer_view import EinkommenssteuerView
-from .views.group_based_redirector import GroupBasedRedirector
-from .views.hilfe_view import HilfeView
+from assistenten.views.group_based_redirector import GroupBasedRedirector
+from assistenten.views.hilfe_view import HilfeView
 from assistenten.views.assistenten.as_schicht_tabelle_view import AsSchichtTabellenView
 
 urlpatterns = [
     path('hilfe', HilfeView.as_view(), name='hilfe'),
     path('', GroupBasedRedirector.as_view(), name='index'),
+
+    # Change Password
+    path('change-password/', PasswordChangeView.as_view(success_url='/'), name='change_password'),
+    # path('password-reset/done/',PasswordChangeDoneView.as_view(), name='password_change_done'),
 
     # Assistenten
     path('as_schicht_tabelle', AsSchichtTabellenView.as_view(), name='as_schicht_tabelle'),
@@ -29,8 +37,8 @@ urlpatterns = [
     path('as_create_schicht', AsCreateSchichtView.as_view(), name='as_create_schicht'),
     path('as_create_schicht/<str:y>/<str:m>/<str:d>', AsCreateSchichtView.as_view(), name='as_create_schicht'),
     path('as_edit_schicht/<int:pk>', AsEditSchichtView.as_view(), name='as_edit_schicht'),
-    # ASN
 
+    # ASN
     path('asn_dienstplan', AsnDienstplanView.as_view(), name='asn_dienstplan'),
     path('asn_dienstplan/<int:year>/<int:month>', AsnDienstplanView.as_view(), name='asn_dienstplan'),
     path('asn_edit_asn/<int:pk>', AsnEditAsnView.as_view(), name='asn_edit_asn'),
@@ -39,6 +47,11 @@ urlpatterns = [
     path('asn_create_schicht', AsnCreateSchichtView.as_view(), name='asn_create_schicht'),
     path('asn_create_schicht/<str:y>/<str:m>/<str:d>', AsnCreateSchichtView.as_view(), name='asn_create_schicht'),
     path('asn_edit_schicht/<int:pk>', AsnEditSchichtView.as_view(), name='asn_edit_schicht'),
+
+    # EB
+    path('eb_dienstplan', EbDienstplanView.as_view(), name='eb_dienstplan'),
+    path('eb_dienstplan/<int:year>/<int:month>', EbDienstplanView.as_view(), name='eb_dienstplan'),
+
 
     path('del_feste_schicht/<int:pk>', DeleteFesteSchichtenView.as_view(), name='del_feste_schicht'),
     path('del_schicht_template/<int:pk>', DeleteSchichtTemplateView.as_view(), name='del_schicht_template'),
@@ -54,6 +67,8 @@ urlpatterns = [
     path('askhole', AskholeView.as_view(), name='askhole'),
     path('create_sperrzeit', CreateSperrzeitView.as_view(), name='create_sperrzeit'),
     path('edit_sperrzeit', EditSperrzeitView.as_view(), name='edit_sperrzeit'),
+    path('del_sperrzeit/<int:pk>', DeleteSperrzeitView.as_view(), name='del_sperrzeit'),
     path('create_feste_sperrzeit', CreateFesteSperrzeitView.as_view(), name='create_feste_sperrzeit'),
     path('edit_feste_sperrzeit', EditFesteSperrzeitView.as_view(), name='edit_feste_sperrzeit'),
+    path('del_feste_sperrzeit/<int:pk>', DeleteFesteSperrzeitView.as_view(), name='del_feste_sperrzeit'),
 ]

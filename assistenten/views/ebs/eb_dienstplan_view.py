@@ -1,20 +1,23 @@
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from django.utils.datetime_safe import datetime, time
+from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
+from guardian.shortcuts import get_objects_for_user
 
 from assistenten.functions.schicht_functions import get_sliced_schichten_by_asn, add_feste_schichten_asn, \
-    get_schicht_templates, sort_schicht_data_by_beginn, sort_schichten_in_templates
-from assistenten.models import Schicht, SchichtTemplate
+    sort_schicht_data_by_beginn, sort_schichten_in_templates
+from assistenten.models import Schicht, ASN
 from assistenten.functions.calendar_functions import get_monatserster, get_first_of_next_month, shift_month
 
 
-class AsnDienstplanView(LoginRequiredMixin, TemplateView):
+class EbDienstplanView(LoginRequiredMixin, TemplateView):
     model = Schicht
-    context_object_name = 'as_dienstplan_monat'
-    template_name = 'assistenten/asn/show_dienstplan.html'
+    context_object_name = 'eb_dienstplan_monat'
+    template_name = 'assistenten/ebs/show_dienstplan.html'
     act_date = timezone.now()
+    asn = None
+    assistent = None
     schichten_view_data = {}
 
     def get_context_data(self, **kwargs):
@@ -33,25 +36,32 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['nav_timedelta'] = self.get_time_navigation_data()
+        asn_liste = []
+        asns = get_objects_for_user(self.request.user, 'view_asn', klass=ASN, with_superuser=False)
+        for asn in asns:
+            asn_liste.append((asn.id, asn.kuerzel))
+        kwargs['asn_liste'] = asn_liste
         context['schichttabelle'] = self.get_table_data()
         context['first_of_month'] = self.act_date
         context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
         context['templates'], context['schichten_nach_templates'] = sort_schichten_in_templates(
-            self.request.user.assistenznehmer, self.act_date)
+            self.asn, self.act_date) if self.asn else [], []
 
         self.reset()
         return context
 
-    def calc_schichten(self, start, ende, asn):
+    def calc_schichten(self, start, ende):
 
+        schichten = []
         # feste Schichten
-        add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=asn)
+        if self.asn:
+            add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.asn)
 
-        schichten = get_sliced_schichten_by_asn(
-            start=start,
-            end=ende,
-            asn=asn
-        )
+            schichten = get_sliced_schichten_by_asn(
+                start=self.act_date,
+                end=ende,
+                asn=self.asn
+            )
 
         for schicht in schichten:
             if not schicht['beginn'].strftime('%d') in self.schichten_view_data.keys():
@@ -78,7 +88,7 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
         ende = get_first_of_next_month(this_month=start)
 
         # schichten berechnen und in schicht_view_data bzw. summen einsortieren
-        self.calc_schichten(start=start, ende=ende, asn=self.request.user.assistenznehmer)
+        self.calc_schichten(start=start, ende=ende)
 
         # schichtsammlung durch ergänzung von leeren Tagen zu Kalender konvertieren
         monatsletzter = (shift_month(self.act_date, step=1) - timedelta(days=1)).day

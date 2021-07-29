@@ -11,6 +11,9 @@
                 {% if request.user|has_group:"Assistenznehmer"%}
                     <a href="{% url 'asn_dienstplan' %}">Dienstplan</a>
                 {% endif %}
+                {% if request.user|has_group:"Einsatzbegleitungen"%}
+                    <a href="{% url 'eb_dienstplan' %}">Einsatzpläne</a>
+                {% endif %}
             </li>
         </ul>
         <ul class="nav navbar-nav navbar-left">
@@ -42,7 +45,9 @@
                     {% if request.user|has_group:"Assistenznehmer"%}
                         <li><a href="{% url 'asn_create_schicht' %}">Schicht</a></li>
                     {% endif %}
-                    <li><a href="{% url 'create_sperrzeit' %}" >Sperrzeit eintragen</a></li>
+                    {% if request.user|has_group:"Assistenten" or request.user|has_group:"Assistenznehmer"%}
+                        <li><a href="{% url 'create_sperrzeit' %}" >Sperrzeit eintragen</a></li>
+                    {% endif %}
                 </ul>
             </li>
         </ul>

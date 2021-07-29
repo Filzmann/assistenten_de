@@ -1,0 +1,181 @@
+{% extends "app_base.html" %}
+
+{% load user_tags %}
+{% load static %}
+{% load tz %}
+
+{% block content %}
+    <div class="nav">
+        <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
+        <div class ="inline">
+            <form method="get" action="">
+                <select name="month" onchange="form.submit()">
+                    {% for key, value in nav_timedelta.monatsliste.items %}
+                        <option value="{{ key }}"
+                        {% if key == nav_timedelta.act_date|date:"m" %}
+                            selected="selected"
+                        {% endif %}
+
+                        > {{ value }} </option>
+                    {% endfor %}
+                </select>
+                <select name="year" onchange="form.submit()">
+                    {% for year in nav_timedelta.jahresliste %}
+
+                        <option value="{{ year }}"
+                        {% if year == nav_timedelta.act_date|date:"Y" %}
+                            selected="selected"
+                        {% endif %}
+                        > {{ year }} </option>
+                    {% endfor %}
+                </select>
+
+            </form>
+        </div>
+        <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
+        <script>
+            function showListView()
+            {
+                document.getElementById("calendar-view").style.display = "none";
+                document.getElementById("list-view").style.display = "block";
+            }
+            function showCalendarView()
+            {
+                document.getElementById("calendar-view").style.display = "block";
+                document.getElementById("list-view").style.display = "none";
+            }
+
+        </script>
+
+        <a class="inline" onclick="showListView()">Zeige Listenansicht</a>
+        <a class="inline" onclick="showCalendarView()">Zeige Kalenderansicht</a>
+
+    </div>
+    <div>
+        test
+        {% for asn_id in asn_liste %}
+            <li><a href="{% url 'eb_dienstplan' asn_id.0 %}">{{ asn_id.1 }}</a></li>
+        {% endfor %}
+    </div>
+    <div id="calendar-view">
+        <table class="calendar_table">
+            <tr>
+                <td class="weekday">Mo</td>
+                <td class="weekday">Di</td>
+                <td class="weekday">Mi</td>
+                <td class="weekday">Do</td>
+                <td class="weekday">Fr</td>
+                <td class="weekday">Sa</td>
+                <td class="weekday">So</td>
+            </tr>
+            <tr>
+            {% for i in days_before_first|times %}
+                <td><!-- empty filler cells --></td>
+            {% endfor %}
+
+            {% for tag, schichten in schichttabelle.items %}
+                <td class="day">
+                    <div class="calendar-day">
+                                {{ tag|localtime|date:"d" }}
+                    </div>
+                    {% if schichten %}
+                        {% for schicht in schichten %}
+                            <div class="calendar-schicht">
+                                <div class="calendar-schicht-zeit">{{ schicht.von|localtime|date:"H:i" }} - {{ schicht.bis|localtime|date:"H:i" }}</div>
+                                <div class="calendar-schicht-person">{{ schicht.assistent }}</div>
+                                <div>
+                                    <form method="post">
+                                         {% csrf_token %}
+                                        <input type="image"
+                                               src="{% static 'images/del.png'%}"
+                                               formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                               value=""
+                                               onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                        >
+                                    </form>
+                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
+                                        <img src="{% static 'images/edit.png'%}">
+                                    </a>
+
+
+
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                            <img src="{% static 'images/add.png'%}">
+                        </a>
+                    </div>
+                </td>
+                {% if forloop.counter|add:days_before_first|modulo:7 == 0 %}
+                    </tr>
+                    <tr>
+                {% endif %}
+            {% endfor %}
+            </tr>
+        </table>
+
+    </div>
+
+
+    <div id="list-view">
+        <table border="1">
+        <tr>
+            <td>Tag</td>
+            {% for template in templates %}
+                <td>{{ template.beginn }} - {{ template.ende }}</td>
+            {% endfor %}
+        </tr>
+        {% for tag, filled_templates in schichten_nach_templates.items %}
+            <tr class="
+                        {% if tag|localtime|date:"w" == "0" %}
+                            sonntag
+                        {% elif tag|localtime|date:"w" == "6" %}
+                            samstag
+                        {% endif %}
+                    ">
+                <td class="center">
+                    {{ tag|localtime|date:"D d" }}
+                    <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                        <img src="{% static 'images/add.png'%}">
+                    </a>
+                </td>
+
+                {% for id, schichten in filled_templates.items %}
+                        <td>
+                            {% for schicht in schichten %}
+                                <div>
+                                    {{ schicht.assistent.vorname }} {{ schicht.assistent.name }}
+                                    <div style="float:right;">
+                                        <form method="post" class="inline">
+                                            {% csrf_token %}
+                                            <input type="image"
+                                                   src="{% static 'images/del.png'%}"
+                                                   formaction="{% url 'del_schicht' schicht.schicht_id %}"
+                                                   value=""
+                                                   onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                            >
+                                        </form>
+                                        <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}"  class="inline">
+                                            <img src="{% static 'images/edit.png'%}">
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+
+                        </td>
+                    {% endfor %}
+             </tr>
+        {% endfor %}
+    </table>
+    </div>
+
+
+
+
+
+
+{% endblock %}
+<pre>{% filter force_escape %} {% debug %} {% endfilter %} </pre>
