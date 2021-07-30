@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="nav">
-        <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
+        <a class="buttonlink inline" href="{% url 'eb_dienstplan' nav_timedelta.vormonat_date|date:'Y' nav_timedelta.vormonat_date|date:'m' %}" >Einen Monat zurück</a>
         <div class ="inline">
             <form method="get" action="">
                 <select name="month" onchange="form.submit()">
@@ -32,7 +32,7 @@
 
             </form>
         </div>
-        <a class="buttonlink inline" href="{% url 'asn_dienstplan' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
+        <a class="buttonlink inline" href="{% url 'eb_dienstplan' nav_timedelta.nachmonat_date|date:'Y' nav_timedelta.nachmonat_date|date:'m' %}">Einen Monat weiter</a>
         <script>
             function showListView()
             {
@@ -53,8 +53,8 @@
     </div>
     <div>
         test
-        {% for asn_id in asn_liste %}
-            <li><a href="{% url 'eb_dienstplan' asn_id.0 %}">{{ asn_id.1 }}</a></li>
+        {% for asn in asn_liste %}
+            <li><a href="{% url 'eb_dienstplan' asn.0 %}">{{ asn.1 }}</a></li>
         {% endfor %}
     </div>
     <div id="calendar-view">
@@ -172,10 +172,9 @@
     </table>
     </div>
 
-
+<pre>{% filter force_escape %} {% debug %} {% endfilter %} </pre>
 
 
 
 
 {% endblock %}
-<pre>{% filter force_escape %} {% debug %} {% endfilter %} </pre>

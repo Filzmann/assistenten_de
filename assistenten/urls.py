@@ -50,6 +50,7 @@ urlpatterns = [
 
     # EB
     path('eb_dienstplan', EbDienstplanView.as_view(), name='eb_dienstplan'),
+    path('eb_dienstplan/<int:asn_id>', EbDienstplanView.as_view(), name='eb_dienstplan'),
     path('eb_dienstplan/<int:year>/<int:month>', EbDienstplanView.as_view(), name='eb_dienstplan'),
 
 

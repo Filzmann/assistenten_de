@@ -23,6 +23,9 @@ class EbDienstplanView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         self.reset()
         # Call the base implementation first to get a context
+        print(self.request.GET)
+        if 'asn_id' in kwargs:
+            self.asn = ASN.objects.get(pk=kwargs['asn_id'])
         if 'year' in self.request.GET:
             self.act_date = timezone.make_aware(datetime(year=int(self.request.GET['year']),
                                                          month=int(self.request.GET['month']),
@@ -38,9 +41,11 @@ class EbDienstplanView(LoginRequiredMixin, TemplateView):
         context['nav_timedelta'] = self.get_time_navigation_data()
         asn_liste = []
         asns = get_objects_for_user(self.request.user, 'view_asn', klass=ASN, with_superuser=False)
+        print(self.asn)
         for asn in asns:
             asn_liste.append((asn.id, asn.kuerzel))
-        kwargs['asn_liste'] = asn_liste
+
+        context['asn_liste'] = asn_liste
         context['schichttabelle'] = self.get_table_data()
         context['first_of_month'] = self.act_date
         context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
