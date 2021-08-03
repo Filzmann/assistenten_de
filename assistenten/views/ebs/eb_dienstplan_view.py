@@ -23,7 +23,7 @@ class EbDienstplanView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         self.reset()
         # Call the base implementation first to get a context
-        print(self.request.GET)
+
         if 'asn_id' in kwargs:
             self.asn = ASN.objects.get(pk=kwargs['asn_id'])
         if 'year' in self.request.GET:
@@ -41,7 +41,7 @@ class EbDienstplanView(LoginRequiredMixin, TemplateView):
         context['nav_timedelta'] = self.get_time_navigation_data()
         asn_liste = []
         asns = get_objects_for_user(self.request.user, 'view_asn', klass=ASN, with_superuser=False)
-        print(self.asn)
+
         for asn in asns:
             asn_liste.append((asn.id, asn.kuerzel))
 
@@ -49,13 +49,18 @@ class EbDienstplanView(LoginRequiredMixin, TemplateView):
         context['schichttabelle'] = self.get_table_data()
         context['first_of_month'] = self.act_date
         context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
-        context['templates'], context['schichten_nach_templates'] = sort_schichten_in_templates(
-            self.asn, self.act_date) if self.asn else [], []
+        # print(self.asn)
+        if self.asn:
+            context['templates'], context['schichten_nach_templates'] = sort_schichten_in_templates(
+                self.asn, self.act_date)
+        else:
+            context['templates'], context['schichten_nach_templates'] = [], []
 
         self.reset()
         return context
 
     def calc_schichten(self, start, ende):
+
 
         schichten = []
         # feste Schichten

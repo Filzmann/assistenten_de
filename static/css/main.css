@@ -82,7 +82,12 @@ legend
 
 .container
 {
-    width: 100%
+    width: 100%;
+    vertical-align: top;
+}
+.container div
+{
+    vertical-align: top;
 }
 
 .samstag
@@ -158,10 +163,26 @@ legend
 {
     display:inline-block;
 }
-#list-view
+#list-view, #eb-list-view
 {
     display: none;
 }
+#eb-calendar-view, #eb-list-view
+{
+    width: calc(100% - 220px);
+    display:inline-block;
+}
+.asn-liste
+{
+    display: inline-block;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    margin: 5px;
+    box-shadow: 3px 3px 5px 5px #efefef;
+}
+
+
 
 @media print {
     img, form.inline

@@ -664,6 +664,7 @@ def get_sperrzeiten(user, fest=False):
 
 
 def sort_schichten_in_templates(asn, date):
+
     splitted_templates = []
     templates = get_schicht_templates(asn=asn, order_by='beginn')
     # Todo Sub-Templates und verschobene Templates
@@ -690,7 +691,6 @@ def sort_schichten_in_templates(asn, date):
                 }
             )
     splitted_templates = sorted(splitted_templates, key=lambda j: j['beginn'])
-
     start = date
 
     # schichtsammlung durch ergänzung von leeren Tagen zu Kalender konvertieren
@@ -733,5 +733,4 @@ def sort_schichten_in_templates(asn, date):
             if schicht_counter == 0:
                 table_array[datakey][template_counter] = []
             template_counter += 1
-
     return splitted_templates, table_array

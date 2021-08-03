@@ -36,13 +36,13 @@
         <script>
             function showListView()
             {
-                document.getElementById("calendar-view").style.display = "none";
-                document.getElementById("list-view").style.display = "block";
+                document.getElementById("eb-calendar-view").style.display = "none";
+                document.getElementById("eb-list-view").style.display = "inline-block";
             }
             function showCalendarView()
             {
-                document.getElementById("calendar-view").style.display = "block";
-                document.getElementById("list-view").style.display = "none";
+                document.getElementById("eb-calendar-view").style.display = "inline-block";
+                document.getElementById("eb-list-view").style.display = "none";
             }
 
         </script>
@@ -51,13 +51,15 @@
         <a class="inline" onclick="showCalendarView()">Zeige Kalenderansicht</a>
 
     </div>
-    <div>
-        test
-        {% for asn in asn_liste %}
-            <li><a href="{% url 'eb_dienstplan' asn.0 %}">{{ asn.1 }}</a></li>
-        {% endfor %}
+    <div class="asn-liste">
+        <ul class="asn-menu" role="menu">
+            {% for asn in asn_liste %}
+                <li><a href="{% url 'eb_dienstplan' asn.0 %}">{{ asn.1 }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
-    <div id="calendar-view">
+
+    <div id="eb-calendar-view">
         <table class="calendar_table">
             <tr>
                 <td class="weekday">Mo</td>
@@ -120,7 +122,7 @@
     </div>
 
 
-    <div id="list-view">
+    <div id="eb-list-view">
         <table border="1">
         <tr>
             <td>Tag</td>
