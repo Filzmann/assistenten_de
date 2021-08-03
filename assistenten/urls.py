@@ -9,6 +9,7 @@ from assistenten.views.asn.asn_edit_as_view import AsnCreateAsView, AsnEditAsVie
 from assistenten.views.asn.asn_edit_asn_view import AsnEditAsnView
 from assistenten.views.asn.asn_edit_schicht_view import AsnCreateSchichtView, AsnEditSchichtView
 from assistenten.views.ebs.eb_dienstplan_view import EbDienstplanView
+from assistenten.views.ebs.eb_edit_schicht_view import EbCreateSchichtView, EbEditSchichtView
 from assistenten.views.edit_au_view import CreateAUView, EditAUView, DeleteAUView
 from assistenten.views.assistenten.as_edit_schicht_view import AsCreateSchichtView, AsEditSchichtView, DeleteSchichtView
 from assistenten.views.edit_feste_sperrzeit_view import CreateFesteSperrzeitView, EditFesteSperrzeitView, \
@@ -52,6 +53,9 @@ urlpatterns = [
     path('eb_dienstplan', EbDienstplanView.as_view(), name='eb_dienstplan'),
     path('eb_dienstplan/<int:asn_id>', EbDienstplanView.as_view(), name='eb_dienstplan'),
     path('eb_dienstplan/<int:year>/<int:month>', EbDienstplanView.as_view(), name='eb_dienstplan'),
+    path('eb_create_schicht', EbCreateSchichtView.as_view(), name='eb_create_schicht'),
+    path('eb_create_schicht/<str:y>/<str:m>/<str:d>', EbCreateSchichtView.as_view(), name='eb_create_schicht'),
+    path('eb_edit_schicht/<int:pk>', EbEditSchichtView.as_view(), name='eb_edit_schicht'),
 
 
     path('del_feste_schicht/<int:pk>', DeleteFesteSchichtenView.as_view(), name='del_feste_schicht'),

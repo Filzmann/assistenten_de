@@ -52,6 +52,7 @@
 
     </div>
     <div class="asn-liste">
+        <h4>ASN auswählen</h4>
         <ul class="asn-menu" role="menu">
             {% for asn in asn_liste %}
                 <li><a href="{% url 'eb_dienstplan' asn.0 %}">{{ asn.1 }}</a></li>
@@ -95,7 +96,7 @@
                                                onClick="return confirm('Wollen Sie wirklich löschen?')"
                                         >
                                     </form>
-                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
+                                    <a href="{% url 'eb_edit_schicht' schicht.schicht_id %}">
                                         <img src="{% static 'images/edit.png'%}">
                                     </a>
 
@@ -106,7 +107,7 @@
                         {% endfor %}
                     {% endif %}
                     <div>
-                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                        <a href="{% url 'eb_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                             <img src="{% static 'images/add.png'%}">
                         </a>
                     </div>
@@ -140,7 +141,7 @@
                     ">
                 <td class="center">
                     {{ tag|localtime|date:"D d" }}
-                    <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                    <a href="{% url 'eb_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                         <img src="{% static 'images/add.png'%}">
                     </a>
                 </td>
@@ -160,7 +161,7 @@
                                                    onClick="return confirm('Wollen Sie wirklich löschen?')"
                                             >
                                         </form>
-                                        <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}"  class="inline">
+                                        <a href="{% url 'eb_edit_schicht' schicht.schicht_id %}"  class="inline">
                                             <img src="{% static 'images/edit.png'%}">
                                         </a>
                                     </div>

@@ -63,9 +63,13 @@ class AsnEditSchichtForm(BetterModelForm):
 
         super(AsnEditSchichtForm, self).__init__(*args, **kwargs)
         self.fields['assistent'].queryset = get_objects_for_user(
-            self.request.user, 'view_assistent', klass=Assistent, with_superuser=False)
+            self.request.user, 'view_assistent', klass=Assistent, accept_global_perms=True)
+        print(self.fields['assistent'].queryset)
         # wenn irgendwelche Daten schon in der instance sind, nehme ich die von da
-        asn = self.request.user.assistenznehmer
+        if hasattr(self.request.user, 'assistenznehmer'):
+            asn = self.request.user.assistenznehmer
+        elif 'instance' in kwargs:
+            asn = kwargs['instance'].asn
 
         # get ASN Templates & addresses
         self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=asn.id)
