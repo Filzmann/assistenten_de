@@ -163,14 +163,15 @@ legend
 {
     display:inline-block;
 }
-#list-view, #eb-list-view
-{
-    display: none;
-}
+
 #eb-calendar-view, #eb-list-view
 {
     width: calc(100% - 220px);
     display:inline-block;
+}
+#list-view, #eb-list-view
+{
+    display: none;
 }
 .asn-liste
 {

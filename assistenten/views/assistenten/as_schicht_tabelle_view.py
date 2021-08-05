@@ -1,78 +1,26 @@
 from datetime import timedelta
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils import timezone
 from django.utils.datetime_safe import datetime
-from django.views.generic import TemplateView
 
 from assistenten.functions.schicht_functions import berechne_sa_so_weisil_feiertagszuschlaege, berechne_stunden, \
-    berechne_urlaub_au_saetze, brutto_in_db, check_schicht, \
-    get_lohn, get_nachtstunden, get_sliced_schichten_by_as, sort_schicht_data_by_beginn, add_feste_schichten_as
-from assistenten.models import Schicht, Urlaub, AU
+    berechne_urlaub_au_saetze, brutto_in_db, get_lohn, get_nachtstunden, get_sliced_schichten_by_as, sort_schicht_data_by_beginn, add_feste_schichten_as
+from assistenten.models import Urlaub, AU
 from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
-    shift_month
+    shift_month, calc_freie_sonntage
+from assistenten.views.abstract_dienstplan_view import AbstractDienstplanView
 
 
-class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
-    model = Schicht
+class AsSchichtTabellenView(AbstractDienstplanView):
     context_object_name = 'as_schicht_tabellen_monat'
     template_name = 'assistenten/assistenten/show_AsSchichtTabelle.html'
-    act_date = timezone.now()
-    schichten_view_data = {}
-    summen = {
-        'arbeitsstunden': 0,
-        'stundenlohn': 0,
-        'lohn': 0,
-        'nachtstunden': 0,
-        'nachtzuschlag': 0,
-        'nachtzuschlag_kumuliert': 0,
-        'bsd': 0,
-        'bsd_stunden': 0,
-        'bsd_kumuliert': 0,
-        'wegegeld_bsd': 0,
-        'orga_zuschlag': 0,
-        'orga_zuschlag_kumuliert': 0,
-        'wechselschicht_zuschlag': 0,
-        'wechselschicht_zuschlag_kumuliert': 0,
-        'freizeitausgleich': 0,
-        'bruttolohn': 0,
-        'anzahl_feiertage': 0,
-        'freie_sonntage': 52,
-        'moegliche_arbeitssonntage': 37,
-        'urlaubsstunden': 0,
-        'stundenlohn_urlaub': 0,
-        'urlaubslohn': 0,
-        'austunden': 0,
-        'stundenlohn_au': 0,
-        'aulohn': 0,
-        'ueberstunden': 0,
-        'ueberstunden_pro_stunde': 0,
-        'ueberstunden_kumuliert': 0,
-        'zuschlaege': {}
-
-    }
+    summen = {}
 
     def get_context_data(self, **kwargs):
+        self.assistent = self.request.user.assistent
         self.reset()
         # Call the base implementation first to get a context
-        if 'year' in self.request.GET:
-            self.act_date = timezone.make_aware(datetime(year=int(self.request.GET['year']),
-                                                         month=int(self.request.GET['month']),
-                                                         day=1))
-        elif 'year' in kwargs:
-            self.act_date = timezone.make_aware(datetime(year=int(kwargs['year']),
-                                                         month=int(kwargs['month']),
-                                                         day=1))
-        else:
-            self.act_date = get_monatserster(timezone.now())
-
-        context = super().get_context_data(**kwargs)
-        context['nav_timedelta'] = self.get_time_navigation_data()
-        context['schichttabelle'] = self.get_table_data()
+        context = super(AsSchichtTabellenView, self).get_context_data(**kwargs)
         self.calc_add_sum_data()
         context['summen'] = self.summen
-        context['first_of_month'] = self.act_date
-        context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
-
         # brutto in db speichern
         brutto_in_db(
             brutto=self.summen['bruttolohn'],
@@ -80,20 +28,14 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             monat=self.act_date,
             assistent=self.request.user.assistent
         )
-
         self.reset()
         return context
 
     def calc_add_sum_data(self):
-        # print(self.summen)
         self.calc_freizeitausgleich()
-        # print(self.summen)
         self.calc_ueberstunden_zuschlag()
-        # print(self.summen)
-        self.summen['freie_sonntage'] = self.calc_freie_sonntage()
+        self.summen['freie_sonntage'] = calc_freie_sonntage(act_date=self.act_date, assistent=self.assistent)
         self.summen['moegliche_arbeitssonntage'] = self.summen['freie_sonntage'] - 15
-        # print(self.summen)
-
         self.summen['bruttolohn'] = float(
             self.summen['lohn']) + float(
             self.summen['nachtzuschlag_kumuliert']) + float(
@@ -115,9 +57,9 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
         letzter_tag = (end - timedelta(seconds=1)).day
         ausgleichsstunden = berechne_urlaub_au_saetze(datum=start,
-                                                      assistent=self.request.user.assistent)['stunden_pro_tag']
+                                                      assistent=self.assistent)['stunden_pro_tag']
         ausgleichslohn = berechne_urlaub_au_saetze(datum=start,
-                                                   assistent=self.request.user.assistent)['pro_stunde']
+                                                   assistent=self.assistent)['pro_stunde']
         for tag in range(1, letzter_tag + 1):
             if check_feiertag(datetime(year=start.year, month=start.month, day=tag)):
                 self.summen['anzahl_feiertage'] += 1
@@ -132,54 +74,22 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['ueberstunden_pro_stunde'] = float(lohn.ueberstunden_zuschlag)
             self.summen['ueberstunden_kumuliert'] = float(lohn.ueberstunden_zuschlag) * ueberstunden
 
-    def calc_freie_sonntage(self):
-
-        year = self.act_date.year
-        # erster sonntag
-        janfirst = datetime(year, 1, 1)
-        sunday = (7 - janfirst.weekday()) % 7
-        sunday = 7 if sunday == 0 else sunday
-        sunday = timezone.make_aware(datetime(year=year,
-                                              month=1,
-                                              day=sunday))
-
-        wochencounter = 0
-        sontagsschichtcounter = 0
-        for kw in range(1, 54):
-            if sunday.year == year:
-                wochencounter += 1
-                if check_schicht(
-                        beginn=sunday,
-                        ende=sunday + timedelta(hours=23, minutes=59, seconds=59),
-                        assistent=self.request.user.assistent
-                ):
-                    sontagsschichtcounter += 1
-
-            sunday = sunday + timedelta(days=7)
-
-        return wochencounter - sontagsschichtcounter
-
     def calc_schichten(self, start, ende):
-
-        schichten = get_sliced_schichten_by_as(
-            start=self.act_date,
-            end=ende,
-            assistent=self.request.user.assistent
-        )
-
         # feste Schichten
         add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
 
         schichten = get_sliced_schichten_by_as(
             start=self.act_date,
             end=ende,
-            assistent=self.request.user.assistent
+            assistent=self.assistent
         )
 
         for schicht in schichten:
             if not schicht['beginn'].strftime('%d') in self.schichten_view_data.keys():
                 self.schichten_view_data[schicht['beginn'].strftime('%d')] = []
 
+            schicht_id = schicht['schicht_id']
+            # zusätzlich
             # at etc
             asn_add = ''
             asn_add += 'AT ' if 'ist_assistententreffen' in schicht and schicht['ist_assistententreffen'] else ''
@@ -190,7 +100,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             # stunden
             stunden = berechne_stunden(schicht)
 
-            lohn = get_lohn(assistent=self.request.user.assistent, datum=schicht['beginn'])
+            lohn = get_lohn(assistent=self.assistent, datum=schicht['beginn'])
 
             nachtstunden = get_nachtstunden(schicht)
 
@@ -224,8 +134,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                 'pro_stunde': stundenzuschlag,
                                 'kumuliert': schichtzuschlag
                             }
-
-            schicht_id = schicht['schicht_id']
 
             asn_add += schicht['asn'].kuerzel if schicht['asn'] else ''
             self.schichten_view_data[schicht['beginn'].strftime('%d')].append(
@@ -405,39 +313,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
         return table_array
 
-    def get_time_navigation_data(self):
-        # test
-        if 'act_date' in self.request.POST:
-            self.act_date = self.request.POST['act_date']
-
-        if 'year' in self.request.POST:
-            self.act_date = timezone.make_aware(datetime(year=self.request.POST['year'],
-                                                         month=self.request.POST['month'],
-                                                         day=1))
-
-        act_date = get_monatserster(self.act_date)
-        vormonat_date = shift_month(get_monatserster(self.act_date), step=-1)
-        nachmonat_date = shift_month(get_monatserster(self.act_date), step=1)
-        monatsliste = {}
-        for i in range(1, 13):
-            monatsliste[
-                datetime(month=i,
-                         year=1,
-                         day=1).strftime('%m')] = datetime(month=i,
-                                                           year=1,
-                                                           day=1).strftime('%b')
-        jahresliste = []
-        for j in range(datetime.now().year + 2, datetime.now().year - 40, -1):
-            jahresliste.append(str(j))
-
-        return {
-            'act_date': act_date,
-            'vormonat_date': vormonat_date,
-            'nachmonat_date': nachmonat_date,
-            'monatsliste': monatsliste,
-            'jahresliste': jahresliste
-        }
-
     def reset(self):
         self.schichten_view_data = {}
         self.summen = {
@@ -470,5 +345,4 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             'ueberstunden_pro_stunde': 0,
             'ueberstunden_kumuliert': 0,
             'zuschlaege': {}
-
         }
