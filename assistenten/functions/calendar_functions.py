@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 
-from assistenten.functions.schicht_functions import check_schicht
+from assistenten.functions.constants import FEIERTAGE
 
 
 def berechne_ostern(jahr):
@@ -31,24 +31,8 @@ def berechne_ostern(jahr):
     return timezone.make_aware(datetime(year=jahr, month=3 + m, day=tmp))
 
 
-def check_feiertag(datum):
-    jahr = datum.year
-    feiertage = []
-    feiertag = {'name': 'Neujahr', 'd': 1, 'm': 1, 'Y': 0}
-    feiertage.append(feiertag)
-    feiertag = {'name': 'Internationaler Frauentag', 'd': 8, 'm': 3, 'Y': 0}
-    feiertage.append(feiertag)
-    feiertag = {'name': 'Tag der Arbeit', 'd': 1, 'm': 5, 'Y': 0}
-    feiertage.append(feiertag)
-    feiertag = {'name': 'Tag der deutschen Einheit', 'd': 3, 'm': 10, 'Y': 0}
-    feiertage.append(feiertag)
-    feiertag = {'name': '1. Weihnachtsfeiertagt', 'd': 25, 'm': 12, 'Y': 0}
-    feiertage.append(feiertag)
-    feiertag = {'name': '2. Weihnachtsfeiertag', 'd': 26, 'm': 12, 'Y': 0}
-    feiertage.append(feiertag)
-    feiertag = {'name': 'Tag der Befreiung', 'd': 26, 'm': 12, 'Y': 2020}
-    feiertage.append(feiertag)
-
+def get_feiertage(jahr):
+    feiertage = FEIERTAGE
     # kein Feiertag in Berlin TODO Prio = 1000, andere Bundesländer
     ostersonntag = berechne_ostern(jahr)
     karfreitag = ostersonntag - timedelta(days=2)
@@ -71,6 +55,13 @@ def check_feiertag(datum):
     feiertag = {'name': 'Pfingstmontag', 'd': int(pfingstmontag.strftime('%d')),
                 'm': int(pfingstmontag.strftime('%m')), 'Y': 0}
     feiertage.append(feiertag)
+
+    return feiertage
+
+
+def check_feiertag(datum):
+    feiertage = get_feiertage(jahr=datum.year)
+
     ausgabe = ''
     for feiertag in feiertage:
         if feiertag['Y'] > 0:
@@ -184,29 +175,3 @@ def shift_month(date: datetime, step: int = 1):
             act_date = timezone.make_aware(datetime(year=nachmonat['year'], month=nachmonat['month'], day=1))
 
     return act_date
-
-
-def calc_freie_sonntage(act_date, assistent):
-    year = act_date.year
-    # erster sonntag
-    janfirst = datetime(year, 1, 1)
-    sunday = (7 - janfirst.weekday()) % 7
-    sunday = 7 if sunday == 0 else sunday
-    sunday = timezone.make_aware(datetime(year=year,
-                                          month=1,
-                                          day=sunday))
-    wochencounter = 0
-    sontagsschichtcounter = 0
-    for kw in range(1, 54):
-        if sunday.year == year:
-            wochencounter += 1
-            if check_schicht(
-                    beginn=sunday,
-                    ende=sunday + timedelta(hours=23, minutes=59, seconds=59),
-                    assistent=assistent
-            ):
-                sontagsschichtcounter += 1
-
-        sunday = sunday + timedelta(days=7)
-
-    return wochencounter - sontagsschichtcounter

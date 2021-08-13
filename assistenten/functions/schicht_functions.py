@@ -734,3 +734,29 @@ def sort_schichten_in_templates(asn, date):
                 table_array[datakey][template_counter] = []
             template_counter += 1
     return splitted_templates, table_array
+
+
+def calc_freie_sonntage(act_date, assistent):
+    year = act_date.year
+    # erster sonntag
+    janfirst = datetime(year, 1, 1)
+    sunday = (7 - janfirst.weekday()) % 7
+    sunday = 7 if sunday == 0 else sunday
+    sunday = timezone.make_aware(datetime(year=year,
+                                          month=1,
+                                          day=sunday))
+    wochencounter = 0
+    sontagsschichtcounter = 0
+    for kw in range(1, 54):
+        if sunday.year == year:
+            wochencounter += 1
+            if check_schicht(
+                    beginn=sunday,
+                    ende=sunday + timedelta(hours=23, minutes=59, seconds=59),
+                    assistent=assistent
+            ):
+                sontagsschichtcounter += 1
+
+        sunday = sunday + timedelta(days=7)
+
+    return wochencounter - sontagsschichtcounter

@@ -43,7 +43,7 @@ class AbstractDienstplanView(LoginRequiredMixin, TemplateView):
         else:
             context['templates'], context['schichten_nach_templates'] = [], []
 
-        self.reset()
+
         return context
 
     def calc_schichten(self, start, ende):

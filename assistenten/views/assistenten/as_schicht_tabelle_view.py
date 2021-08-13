@@ -2,10 +2,11 @@ from datetime import timedelta
 from django.utils.datetime_safe import datetime
 
 from assistenten.functions.schicht_functions import berechne_sa_so_weisil_feiertagszuschlaege, berechne_stunden, \
-    berechne_urlaub_au_saetze, brutto_in_db, get_lohn, get_nachtstunden, get_sliced_schichten_by_as, sort_schicht_data_by_beginn, add_feste_schichten_as
+    berechne_urlaub_au_saetze, brutto_in_db, get_lohn, get_nachtstunden, get_sliced_schichten_by_as, \
+    sort_schicht_data_by_beginn, add_feste_schichten_as, calc_freie_sonntage
 from assistenten.models import Urlaub, AU
 from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
-    shift_month, calc_freie_sonntage
+    shift_month
 from assistenten.views.abstract_dienstplan_view import AbstractDienstplanView
 
 

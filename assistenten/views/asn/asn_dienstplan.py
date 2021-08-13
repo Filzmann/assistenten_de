@@ -8,4 +8,5 @@ class AsnDienstplanView(AbstractDienstplanView):
     def get_context_data(self, **kwargs):
         self.asn = self.request.user.assistenznehmer
         context = super(AsnDienstplanView, self).get_context_data(**kwargs)
+        self.reset()
         return context
