@@ -1,5 +1,4 @@
 from django.db import models
-
 from assistenten.models.assistenznehmer import ASN
 
 

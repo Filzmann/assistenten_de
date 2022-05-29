@@ -8,14 +8,10 @@ from django.urls import reverse
 from django.utils import timezone
 from guardian.conf import settings
 from guardian.shortcuts import assign_perm
-from assistenten.models import ASN
+from assistenten.models import ASN, AbstractPerson
 
 
-class Assistent(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=30)
-    vorname = models.CharField(max_length=30)
-    email = models.CharField(max_length=30)
+class Assistent(AbstractPerson):
     einstellungsdatum = models.DateTimeField(default=timezone.now)
     asns = models.ManyToManyField(ASN, through='AssociationAsAsn', related_name='assistents')
 
@@ -28,6 +24,8 @@ class Assistent(models.Model):
     def __str__(self):
         return f"{self.name}, {self.vorname} (AS)"
 
+
+# TODO refactor, find better place in code
 
 @receiver(m2m_changed)
 def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk_set, model, **kwargs):
@@ -65,5 +63,3 @@ def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk
                     assign_perm("change_asn", user, asn)
 
             # TODO Bei weiteren Nutzergruppen erweitern
-
-

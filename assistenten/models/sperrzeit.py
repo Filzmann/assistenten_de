@@ -1,15 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import BooleanField
-
-from assistenten.models import ASN, Assistent
+from assistenten.models import AbstractZeitraum, ASN, Assistent
 
 
-class Sperrzeit(models.Model):
+class Sperrzeit(AbstractZeitraum):
     assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE, null=True, blank=True)
     asn = models.ForeignKey(ASN, on_delete=models.CASCADE, null=True, blank=True)
-    beginn = models.DateTimeField()
-    ende = models.DateTimeField()
 
     def __repr__(self):
         return f"Sperrzeit({self.beginn!r}, " \

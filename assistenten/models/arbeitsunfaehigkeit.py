@@ -1,10 +1,7 @@
-from django.db import models
+from django.db.models import ForeignKey, CASCADE
+from assistenten.models import AbstractZeitraum, Assistent
 
-from assistenten.models import Assistent
 
-
-class AU(models.Model):
-    assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE)
-    beginn = models.DateField()
-    ende = models.DateField()
+class AU(AbstractZeitraum):
+    assistent = ForeignKey(Assistent, on_delete=CASCADE)
 

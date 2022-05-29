@@ -1,12 +1,7 @@
-from django.contrib.auth.models import User
-from django.db import models
+from assistenten.models.abstract_person import AbstractPerson
 
 
-class EB(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=30)
-    vorname = models.CharField(max_length=30)
-    email = models.CharField(max_length=30)
+class EB(AbstractPerson):
 
     def __repr__(self):
         return f"{self.vorname} {self.name}"

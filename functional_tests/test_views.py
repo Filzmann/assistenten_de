@@ -1,24 +1,15 @@
 import time
-
-from selenium import webdriver
-from seleniumlogin import force_login
-import unittest
+from unittest import skip
 
 from selenium.webdriver.common.keys import Keys
+from functional_tests.base import FunctionalTest
 
 
-class NewVisitorTest(unittest.TestCase):
-    def setUp(self):
-        # Simon ist Assistent bei ambulante dienste
-        # er benutzt gerne den Chrome Browser
-        self.browser = webdriver.Chrome()
-
-    def tearDown(self):
-        self.browser.quit()
+class NewVisitorTest(FunctionalTest):
 
     def test_user_kann_kann_sich_einloggen(self):
         # er surft damit die Adresse der Assistenten-Software an
-        self.browser.get('http://127.0.0.1:8000')
+        self.browser.get(self.live_server_url)
         # Einmal auf der Seite gelandet stellt er fest, dass im Titel das Wort "Assistenten" steht
         self.assertIn('Assistenten', self.browser.title)
 
@@ -41,13 +32,14 @@ class NewVisitorTest(unittest.TestCase):
         passwortbox.send_keys('22test00')
         # danach klickt er auf den Login-button oder drückt Enter
         passwortbox.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(5)
 
         # nachdem er eingeloggt ist sieht er, dass oben rechts sein benutzername "simon" steht
         hauptmenu = self.browser.find_element_by_id('navbar')
         rows = hauptmenu.find_elements_by_tag_name('a')
         self.assertTrue(any(row.text == 'simon' for row in rows))
 
+    @skip
     def test_user_navigiert_zu_Assistent_bearbeiten_und_kann_seine_daten_aendern(self):
         # Simon sieht das App-Menü auf der rechten Seite
         self.browser.find_element_by_link_text('Menue').click()
@@ -68,17 +60,12 @@ class NewVisitorTest(unittest.TestCase):
         time.sleep(1)
         self.browser.find_element_by_id('success message')
 
-
-
         # Simon ist weiterhin auf der gleichen Seite
 
+    @skip
     def test_user_kann_sich_wieder_ausloggen(self):
         # Simon ist vorbildlich und loggt sich vor dem verlassen der Seite wieder aus
         pass
 
     def test_fail(self):
         self.fail('Mach den Test fertsch!')
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -5,14 +5,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime
 from django.utils.timezone import localtime
-from assistenten.models import Adresse, Urlaub, AU
+from assistenten.models import Adresse, Urlaub, AU, AbstractZeitraum
 from assistenten.models.assistent import Assistent
 from assistenten.models.assistenznehmer import ASN
 
 
-class Schicht(models.Model):
-    beginn = models.DateTimeField()
-    ende = models.DateTimeField()
+class Schicht(AbstractZeitraum):
     asn = models.ForeignKey(ASN, on_delete=models.CASCADE)
     assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE)
     ist_kurzfristig = models.BooleanField(default=0)
