@@ -177,20 +177,20 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         )
 
         for schicht in schichten:
-            if not schicht['beginn'].strftime('%d') in self.schichten_view_data.keys():
-                self.schichten_view_data[schicht['beginn'].strftime('%d')] = []
+            if not schicht.beginn.strftime('%d') in self.schichten_view_data.keys():
+                self.schichten_view_data[schicht.beginn.strftime('%d')] = []
 
             # at etc
             asn_add = ''
-            asn_add += 'AT ' if 'ist_assistententreffen' in schicht and schicht['ist_assistententreffen'] else ''
-            asn_add += 'PCG ' if 'ist_pcg' in schicht and schicht['ist_pcg'] else ''
-            asn_add += 'RB/BSD ' if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else ''
-            asn_add += 'AFG ' if 'ist_ausfallgeld' in schicht and schicht['ist_ausfallgeld'] else ''
+            asn_add += 'AT ' if hasattr(schicht, 'ist_assistententreffen') and schicht.ist_assistententreffen else ''
+            asn_add += 'PCG ' if hasattr(schicht, 'ist_pcg') and schicht.ist_pcg else ''
+            asn_add += 'RB/BSD ' if hasattr(schicht, 'ist_kurzfristig') and schicht.ist_kurzfristig else ''
+            asn_add += 'AFG ' if hasattr(schicht, 'ist_ausfallgeld') and schicht.ist_ausfallgeld else ''
 
             # stunden
-            stunden = berechne_stunden(schicht)
+            stunden = schicht.stunden
 
-            lohn = get_lohn(assistent=self.request.user.assistent, datum=schicht['beginn'])
+            lohn = get_lohn(assistent=self.request.user.assistent, datum=schicht.beginn)
 
             nachtstunden = get_nachtstunden(schicht)
 
@@ -225,21 +225,21 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                                 'kumuliert': schichtzuschlag
                             }
 
-            schicht_id = schicht['schicht_id']
+            schicht_id = schicht.id
 
-            asn_add += schicht['asn'].kuerzel if schicht['asn'] else ''
-            self.schichten_view_data[schicht['beginn'].strftime('%d')].append(
+            asn_add += schicht.asn.kuerzel if schicht.asn else ''
+            self.schichten_view_data[schicht.beginn.strftime('%d')].append(
                 {
                     'schicht_id': schicht_id,
-                    'von': schicht['beginn'],
-                    'bis': schicht['ende'],
+                    'von': schicht.beginn,
+                    'bis': schicht.ende,
                     'asn': asn_add,
                     'stunden': stunden,
                     'stundenlohn': lohn.grundlohn,
                     'schichtlohn': float(lohn.grundlohn) * stunden,
                     'bsd': float(lohn.grundlohn) * stunden * (
-                            lohn.kurzfristig_zuschlag_prozent / 100) if 'ist_kurzfristig' in schicht and schicht[
-                        'ist_kurzfristig'] else 0,
+                            lohn.kurzfristig_zuschlag_prozent / 100) if hasattr(
+                        schicht, 'ist_kurzfristig') and schicht.ist_kurzfristig else 0,
                     'orgazulage': lohn.orga_zuschlag,
                     'orgazulage_schicht': float(lohn.orga_zuschlag) * stunden,
                     'wechselzulage': lohn.wechselschicht_zuschlag,
@@ -260,12 +260,13 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             self.summen['nachtstunden'] += nachtstunden
             self.summen['nachtzuschlag'] = lohn.nacht_zuschlag
             self.summen['nachtzuschlag_kumuliert'] += nachtstunden * float(lohn.nacht_zuschlag)
-            self.summen['bsd_stunden'] += stunden if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
+            self.summen['bsd_stunden'] += stunden if hasattr(
+                schicht, 'ist_kurzfristig') and schicht.ist_kurzfristig else 0
             self.summen['bsd_lohn'] = (lohn.kurzfristig_zuschlag_prozent / 100) * lohn.grundlohn \
-                if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
+                if hasattr(schicht, 'ist_kurzfristig') and schicht.ist_kurzfristig else 0
             self.summen['bsd_kumuliert'] += (float(
                 lohn.kurzfristig_zuschlag_prozent / 100 * lohn.grundlohn) * stunden) \
-                if 'ist_kurzfristig' in schicht and schicht['ist_kurzfristig'] else 0
+                if hasattr(schicht, 'ist_kurzfristig') and schicht.ist_kurzfristig else 0
             # self.summen['bsd_wegegeld'] += 0  # TODO
             self.summen['orga_zuschlag'] = lohn.orga_zuschlag
             self.summen['orga_zuschlag_kumuliert'] += float(lohn.orga_zuschlag) * stunden

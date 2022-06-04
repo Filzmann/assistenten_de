@@ -171,11 +171,11 @@ def get_schicht_hauptanteil(schicht):
     maxschicht = None
     max_duration = 0
     for teilschicht in teilschichten:
-        dauer = get_duration(teilschicht['beginn'], teilschicht['ende'], 'hours')
+        dauer = get_duration(teilschicht.beginn, teilschicht.ende, 'hours')
         if dauer > max_duration:
             max_duration = dauer
             maxschicht = teilschicht
-    return maxschicht['beginn']
+    return maxschicht.beginn
 
 
 def get_weg_id(adresse1, adresse2):
@@ -233,8 +233,8 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht):
     feiertagsarray = {}
     zuschlagsgrund = ''
 
-    anfang = schicht['beginn']
-    ende = schicht['ende']
+    anfang = schicht.beginn
+    ende = schicht.ende
 
     if check_feiertag(anfang) != '':
         feiertagsstunden = berechne_stunden(schicht=schicht)
@@ -321,7 +321,7 @@ def berechne_sa_so_weisil_feiertagszuschlaege(schicht):
 
 
 def berechne_stunden(schicht):
-    return get_duration(schicht['beginn'], schicht['ende'], "minutes") / 60
+    return schicht.stunden
 
 
 def berechne_urlaub_au_saetze(datum, assistent):
@@ -469,42 +469,42 @@ def get_nachtstunden(schicht):
 
     nachtstunden = 0
 
-    null_uhr = timezone.make_aware(datetime(year=schicht['beginn'].year,
-                                            month=schicht['beginn'].month,
-                                            day=schicht['beginn'].day,
+    null_uhr = timezone.make_aware(datetime(year=schicht.beginn.year,
+                                            month=schicht.beginn.month,
+                                            day=schicht.beginn.day,
                                             hour=0, minute=0, second=0))
-    sechs_uhr = timezone.make_aware(datetime(year=schicht['beginn'].year,
-                                             month=schicht['beginn'].month,
-                                             day=schicht['beginn'].day,
+    sechs_uhr = timezone.make_aware(datetime(year=schicht.beginn.year,
+                                             month=schicht.beginn.month,
+                                             day=schicht.beginn.day,
                                              hour=6, minute=0, second=0))
-    einundzwanzig_uhr = timezone.make_aware(datetime(year=schicht['beginn'].year,
-                                                     month=schicht['beginn'].month,
-                                                     day=schicht['beginn'].day,
+    einundzwanzig_uhr = timezone.make_aware(datetime(year=schicht.beginn.year,
+                                                     month=schicht.beginn.month,
+                                                     day=schicht.beginn.day,
                                                      hour=21, minute=0, second=0))
 
     # schicht beginnt zwischen 0 und 6 uhr
-    if null_uhr <= schicht['beginn'] <= sechs_uhr:
-        if schicht['ende'] <= sechs_uhr:
+    if null_uhr <= schicht.beginn <= sechs_uhr:
+        if schicht.ende <= sechs_uhr:
             # schicht endet spätestens 6 uhr
-            nachtstunden += get_duration(schicht['beginn'], schicht['ende'], 'minutes') / 60
+            nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60
 
-        elif sechs_uhr <= schicht['ende'] <= einundzwanzig_uhr:
+        elif sechs_uhr <= schicht.ende <= einundzwanzig_uhr:
             # schicht endet nach 6 uhr aber vor 21 uhr
-            nachtstunden += get_duration(schicht['beginn'], sechs_uhr, 'minutes') / 60
+            nachtstunden += get_duration(schicht.beginn, sechs_uhr, 'minutes') / 60
 
         else:
             # schicht beginnt vor 6 uhr und geht über 21 Uhr hinaus
             # das bedeutet ich ziehe von der kompletten schicht einfach die 15 Stunden Tagschicht ab.
             # es bleibt der Nacht-An
-            nachtstunden += get_duration(schicht['beginn'], schicht['ende'], 'minutes') / 60 - 15
+            nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60 - 15
     # schicht beginnt zwischen 6 und 21 uhr
-    elif sechs_uhr <= schicht['beginn'] <= einundzwanzig_uhr:
+    elif sechs_uhr <= schicht.beginn <= einundzwanzig_uhr:
         # fängt am tag an, geht aber bis in die nachtstunden
-        if schicht['ende'] > einundzwanzig_uhr:
-            nachtstunden += get_duration(einundzwanzig_uhr, schicht['ende'], 'minutes') / 60
+        if schicht.ende > einundzwanzig_uhr:
+            nachtstunden += get_duration(einundzwanzig_uhr, schicht.ende, 'minutes') / 60
     else:
         # schicht beginnt nach 21 uhr - die komplette schicht ist in der nacht
-        nachtstunden += get_duration(schicht['beginn'], schicht['ende'], 'minutes') / 60
+        nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60
 
     return nachtstunden
 
@@ -533,7 +533,8 @@ def get_sliced_schichten(start, end, assistent=False, asn=False):
 
     sliced_schichten = []
     for schicht in schichten:
-        ergebnisse = split_by_null_uhr_asn(schicht)
+        ergebnisse = schicht.split_by_null_uhr()
+        print(ergebnisse)
         for ergebnis in ergebnisse:
             sliced_schichten.append(ergebnis)
 
