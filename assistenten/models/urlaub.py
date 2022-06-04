@@ -1,15 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
+from assistenten.models import AbstractZeitraum
 from assistenten.models.assistent import Assistent
 
 
-class Urlaub(models.Model):
+class Urlaub(AbstractZeitraum):
     assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE)
-    beginn = models.DateField()
-    ende = models.DateField()
     status = models.CharField(max_length=10)
 
     def __repr__(self):

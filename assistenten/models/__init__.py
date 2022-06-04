@@ -1,3 +1,4 @@
+from.abstract_zeitraum import *
 from .einsatzbegleitung import *
 from .pflegefachkraft import *
 from .assistenznehmer import *

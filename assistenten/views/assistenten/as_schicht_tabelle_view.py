@@ -292,8 +292,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
                 ende__gte=ende).filter(assistent=self.request.user.assistent)
 
         for urlaub in urlaube:
-            erster_tag = urlaub.beginn.day if urlaub.beginn > start.date() else start.day
-            letzter_tag = urlaub.ende.day if urlaub.ende < ende.date() else (ende - timedelta(days=1)).day
+            erster_tag = urlaub.beginn.day if urlaub.beginn > start else start.day
+            letzter_tag = urlaub.ende.day if urlaub.ende < ende else (ende - timedelta(days=1)).day
             urlaubsstunden = berechne_urlaub_au_saetze(datum=start,
                                                        assistent=self.request.user.assistent)['stunden_pro_tag']
             urlaubslohn = berechne_urlaub_au_saetze(datum=start,
@@ -341,8 +341,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             AU.objects.filter(beginn__lte=start).filter(ende__gte=ende).filter(assistent=self.request.user.assistent)
 
         for au in aus:
-            erster_tag = au.beginn.day if au.beginn > start.date() else start.day
-            letzter_tag = au.ende.day if au.ende < ende.date() else (ende - timedelta(days=1)).day
+            erster_tag = au.beginn.day if au.beginn > start else start.day
+            letzter_tag = au.ende.day if au.ende < ende else (ende - timedelta(days=1)).day
             austunden = berechne_urlaub_au_saetze(datum=start,
                                                   assistent=self.request.user.assistent)['stunden_pro_tag']
             aulohn = berechne_urlaub_au_saetze(datum=start,

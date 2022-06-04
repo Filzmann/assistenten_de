@@ -52,7 +52,7 @@ def get_feste_schichten(asn=None, assistent=None):
 def split_by_null_uhr_asn(schicht):
     ausgabe = []
 
-    if check_mehrtaegig(schicht):
+    if schicht.check_mehrtaegig():
         rest = dict(start=schicht.beginn, ende=schicht.ende)
         while rest['start'] <= rest['ende']:
             r_start = rest['start']
@@ -373,12 +373,6 @@ def brutto_in_db(brutto, stunden, monat, assistent):
         insertbrutto.save()
 
 
-def check_mehrtaegig(schicht):
-    pseudoende = schicht.ende - timedelta(minutes=2)
-    if schicht.beginn.strftime("%Y%m%d") == pseudoende.strftime("%Y%m%d"):
-        return 0
-    else:
-        return 1
 
 
 def check_au(datum, assistent):
@@ -555,7 +549,7 @@ def sort_schicht_data_by_beginn(schichten: list):
 def split_by_null_uhr(schicht):
     ausgabe = []
 
-    if check_mehrtaegig(schicht):
+    if schicht.check_mehrtaegig():
         rest = dict(start=schicht.beginn, ende=schicht.ende)
         while rest['start'] <= rest['ende']:
             r_start = rest['start']
