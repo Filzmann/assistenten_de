@@ -1,30 +1,10 @@
 from datetime import timedelta
-
-import googlemaps
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.db.models import Q
-from assistenten.models import SchichtTemplate, FesteSchicht, Schicht, Adresse, Weg, Brutto, AU, Urlaub
-from assistenten.functions.calendar_functions import check_feiertag, get_ersten_xxtag, get_duration
-from assistenten_de.settings import GOOGLE_API_KEY
+from assistenten.models import FesteSchicht, Schicht, Adresse, Brutto, AU, Urlaub
+from assistenten.functions.calendar_functions import get_ersten_xxtag, get_duration
 
-
-def get_schicht_templates(asn, order_by=False):
-    # alle schicht_templates des asn
-    schicht_template_liste = []
-    schicht_templates = SchichtTemplate.objects.filter(
-        asn=asn.id)
-    if order_by:
-        schicht_templates = schicht_templates.order_by(order_by)
-    for schicht_template in schicht_templates:
-        schicht_template_liste.append({
-            'id': schicht_template.id,
-            'bezeichner': schicht_template.bezeichner,
-            'beginn': schicht_template.beginn,
-            'ende': schicht_template.ende,
-        })
-
-    return schicht_templates
 
 
 def get_feste_schichten(asn=None, assistent=None):
@@ -47,51 +27,6 @@ def get_feste_schichten(asn=None, assistent=None):
             'ende': feste_schicht.ende.strftime("%H:%M"),
         })
     return feste_schichten_liste
-
-
-def split_by_null_uhr_asn(schicht):
-    ausgabe = []
-
-    if schicht.check_mehrtaegig():
-        rest = dict(start=schicht.beginn, ende=schicht.ende)
-        while rest['start'] <= rest['ende']:
-            r_start = rest['start']
-            neuer_start_rest = timezone.make_aware(datetime(year=r_start.year,
-                                                            month=r_start.month,
-                                                            day=r_start.day
-                                                            )) + timedelta(days=1)
-
-            if neuer_start_rest <= rest['ende']:
-                ausgabe.append({'beginn': rest['start'],
-                                'ende': neuer_start_rest,
-                                'asn': schicht.asn,
-                                'assistent': schicht.assistent,
-                                'schicht_id': schicht.id,
-                                'beginn_adresse': schicht.beginn_adresse,
-                                'ende_adresse': schicht.ende_adresse
-                                })
-            else:
-                ausgabe.append({'beginn': rest['start'],
-                                'ende': rest['ende'],
-                                'asn': schicht.asn,
-                                'assistent': schicht.assistent,
-                                'schicht_id': schicht.id,
-                                'beginn_adresse': schicht.beginn_adresse,
-                                'ende_adresse': schicht.ende_adresse
-                                })
-
-            rest['start'] = neuer_start_rest
-    else:
-        ausgabe.append({
-            'beginn': schicht.beginn,
-            'ende': schicht.ende,
-            'asn': schicht.asn,
-            'assistent': schicht.assistent,
-            'schicht_id': schicht.id,
-            'beginn_adresse': schicht.beginn_adresse,
-            'ende_adresse': schicht.ende_adresse
-        })
-    return ausgabe
 
 
 def add_feste_schichten_asn(erster_tag, letzter_tag, asn):
@@ -178,182 +113,9 @@ def get_schicht_hauptanteil(schicht):
     return maxschicht.beginn
 
 
-def get_weg_id(adresse1, adresse2):
-    # prüfen ob weg in Modell wege vorhanden
-    wege = Weg.objects.filter(adresse1=adresse1, adresse2=adresse2) | Weg.objects.filter(adresse1=adresse2,
-                                                                                         adresse2=adresse1)
-    # print(wege)
-    if wege:
-        return wege[0].pk
-    else:
-        weg = make_weg(adresse1, adresse2)
-        if weg:
-            return weg
-        else:
-            return False
-    # bei Bedarf insert, werte für Weg + Zeit per google api ermitteln
 
 
-def make_weg(adresse1, adresse2):
-    gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
-    adresse1_string = \
-        adresse1.strasse + ' ' \
-        + adresse1.hausnummer + ', ' \
-        + adresse1.plz + ' ' \
-        + adresse1.stadt
-
-    adresse2_string = \
-        adresse2.strasse + ' ' \
-        + adresse2.hausnummer + ', ' \
-        + adresse2.plz + ' ' \
-        + adresse2.stadt
-
-    directions_result = gmaps.directions(adresse1_string,
-                                         adresse2_string,
-                                         mode="transit",
-                                         departure_time=timezone.now())
-
-    if directions_result:
-        distance = directions_result[0]['legs'][0]['distance']['value'] / 1000
-        duration = round(directions_result[0]['legs'][0]['duration']['value'] / 60 + 0.5)
-
-        weg = Weg(adresse1=adresse1, adresse2=adresse2, entfernung=distance, dauer_in_minuten=duration)
-        weg.save()
-
-        return weg.pk
-    else:
-        return False
-
-
-def berechne_sa_so_weisil_feiertagszuschlaege(schicht):
-    feiertagsstunden = 0
-    feiertagsstunden_steuerfrei = 0
-    feiertagsstunden_steuerpflichtig = 0
-    feiertagsarray = {}
-    zuschlagsgrund = ''
-
-    anfang = schicht.beginn
-    ende = schicht.ende
-
-    if check_feiertag(anfang) != '':
-        feiertagsstunden = berechne_stunden(schicht=schicht)
-
-        feiertagsarray = {'zuschlagsgrund': 'Feiertag',
-                          'stunden_gesamt': feiertagsstunden,
-                          'stunden_steuerfrei': feiertagsstunden,
-                          'stunden_steuerpflichtig': 0,
-                          'add_info': check_feiertag(anfang)
-                          }
-    elif timezone.make_aware(datetime(year=anfang.year, month=anfang.month, day=anfang.day)) == \
-            timezone.make_aware(datetime(anfang.year, 12, 24)) or \
-            timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day)) == \
-            timezone.make_aware(datetime(anfang.year, 12, 31)):
-        if timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day)) == \
-                timezone.make_aware(datetime(anfang.year, 12, 24)):
-            zuschlagsgrund = 'Hl. Abend'
-        if timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day)) == \
-                timezone.make_aware(datetime(anfang.year, 12, 31)):
-            zuschlagsgrund = 'Silvester'
-
-        sechsuhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 6, 0, 0))
-        vierzehn_uhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 14, 0, 0))
-
-        if anfang < sechsuhr:
-            if ende <= sechsuhr:
-                feiertagsstunden_steuerfrei = feiertagsstunden_steuerpflichtig = 0
-            elif sechsuhr < ende <= vierzehn_uhr:
-                feiertagsstunden_steuerpflichtig = get_duration(ende, sechsuhr, 'hours')
-                feiertagsstunden_steuerfrei = 0
-            elif vierzehn_uhr < ende:
-                feiertagsstunden_steuerpflichtig = 8
-                feiertagsstunden_steuerfrei = get_duration(vierzehn_uhr, ende, 'hours')
-        elif sechsuhr <= anfang:
-            if ende <= vierzehn_uhr:
-                feiertagsstunden_steuerpflichtig = get_duration(ende, anfang, 'hours')
-                feiertagsstunden_steuerfrei = 0
-            elif vierzehn_uhr < ende:
-                feiertagsstunden_steuerpflichtig = get_duration(anfang, vierzehn_uhr, 'hours')
-                feiertagsstunden_steuerfrei = get_duration(vierzehn_uhr, ende, 'hours')
-
-        feiertagsstunden = feiertagsstunden_steuerfrei + feiertagsstunden_steuerpflichtig
-        feiertagsarray = {'zuschlagsgrund': zuschlagsgrund,
-                          'stunden_gesamt': feiertagsstunden,
-                          'stunden_steuerfrei': feiertagsstunden_steuerfrei,
-                          'stunden_steuerpflichtig': feiertagsstunden_steuerpflichtig,
-                          'add_info': '13:00 - 21:00 Uhr'
-                          }
-    elif anfang.weekday() == 6:
-        feiertagsstunden = berechne_stunden(schicht=schicht)
-        feiertagsarray = {'zuschlagsgrund': 'Sonntag',
-                          'stunden_gesamt': feiertagsstunden,
-                          'stunden_steuerfrei': feiertagsstunden,
-                          'stunden_steuerpflichtig': 0,
-                          'add_info': ''
-                          }
-    elif anfang.weekday() == 5:
-        dreizehn_uhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 13, 0, 0))
-        einundzwanzig_uhr = timezone.make_aware(datetime(anfang.year, anfang.month, anfang.day, 21, 0, 0))
-
-        if anfang < dreizehn_uhr:
-            if ende < dreizehn_uhr:
-                feiertagsstunden = 0
-            elif dreizehn_uhr < ende <= einundzwanzig_uhr:
-                feiertagsstunden = get_duration(dreizehn_uhr, ende, 'hours')
-            else:  # ende > einundzwanzig_uhr:
-                feiertagsstunden = 8  # 21 - 13
-        elif dreizehn_uhr <= anfang < einundzwanzig_uhr:
-            if ende < einundzwanzig_uhr:
-                feiertagsstunden = berechne_stunden(schicht=schicht)
-            elif ende > einundzwanzig_uhr:
-                feiertagsstunden = get_duration(anfang, einundzwanzig_uhr, 'hours')
-        else:
-            feiertagsstunden = 0
-
-        feiertagsarray = {'zuschlagsgrund': 'Samstag',
-                          'stunden_gesamt': feiertagsstunden,
-                          'stunden_steuerfrei': 0,
-                          'stunden_steuerpflichtig': feiertagsstunden,
-                          'add_info': '13:00 - 21:00 Uhr'
-                          }
-
-    return feiertagsarray
-
-
-def berechne_stunden(schicht):
-    return schicht.stunden
-
-
-def berechne_urlaub_au_saetze(datum, assistent):
-    akt_monat = timezone.make_aware(datetime(year=datum.year, month=datum.month, day=1))
-    for zaehler in range(1, 7):
-        vormonat_letzter = akt_monat - timedelta(days=1)
-        akt_monat = timezone.make_aware(datetime(year=vormonat_letzter.year, month=vormonat_letzter.month, day=1))
-    startmonat = akt_monat
-    endmonat = timezone.make_aware(datetime(year=datum.year, month=datum.month, day=1))
-
-    bruttosumme = 0
-    stundensumme = 0
-    zaehler = 0
-
-    bruttoloehne = Brutto.objects.filter(
-        monat__range=(startmonat, endmonat)).filter(
-        assistent=assistent
-    )
-
-    for brutto in bruttoloehne:
-        bruttosumme += brutto.bruttolohn
-        stundensumme += brutto.stunden_gesamt
-        zaehler += 1
-    if zaehler == 0 or stundensumme == 0:
-        return {
-            'stunden_pro_tag': 1,
-            'pro_stunde': 5
-        }
-    return {
-        'stunden_pro_tag': float((stundensumme / zaehler) / 30),
-        'pro_stunde': float(bruttosumme / stundensumme)
-    }
 
 
 def brutto_in_db(brutto, stunden, monat, assistent):
@@ -428,50 +190,6 @@ def check_schicht(beginn, ende, assistent=False, asn=False, speak=False):
         return True
     return False
 
-
-def get_nachtstunden(schicht):
-    """Gibt die Anzahl der Stunden einer Schicht zurück, die vor 6 Uhr und nach 21 Uhr stattfinden"""
-
-    nachtstunden = 0
-
-    null_uhr = timezone.make_aware(datetime(year=schicht.beginn.year,
-                                            month=schicht.beginn.month,
-                                            day=schicht.beginn.day,
-                                            hour=0, minute=0, second=0))
-    sechs_uhr = timezone.make_aware(datetime(year=schicht.beginn.year,
-                                             month=schicht.beginn.month,
-                                             day=schicht.beginn.day,
-                                             hour=6, minute=0, second=0))
-    einundzwanzig_uhr = timezone.make_aware(datetime(year=schicht.beginn.year,
-                                                     month=schicht.beginn.month,
-                                                     day=schicht.beginn.day,
-                                                     hour=21, minute=0, second=0))
-
-    # Schicht beginnt zwischen 0 und 6 uhr
-    if null_uhr <= schicht.beginn <= sechs_uhr:
-        if schicht.ende <= sechs_uhr:
-            # Schicht endet spätestens 6 uhr
-            nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60
-
-        elif sechs_uhr <= schicht.ende <= einundzwanzig_uhr:
-            # Schicht endet nach 6 uhr aber vor 21 uhr
-            nachtstunden += get_duration(schicht.beginn, sechs_uhr, 'minutes') / 60
-
-        else:
-            # schicht beginnt vor 6 uhr und geht über 21 Uhr hinaus
-            # das bedeutet ich ziehe von der kompletten schicht einfach die 15 Stunden Tagschicht ab.
-            # es bleibt der Nacht-An
-            nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60 - 15
-    # Schicht beginnt zwischen 6 und 21 uhr
-    elif sechs_uhr <= schicht.beginn <= einundzwanzig_uhr:
-        # fängt am tag an, geht aber bis in die nachtstunden
-        if schicht.ende > einundzwanzig_uhr:
-            nachtstunden += get_duration(einundzwanzig_uhr, schicht.ende, 'minutes') / 60
-    else:
-        # schicht beginnt nach 21 uhr - die komplette schicht ist in der nacht
-        nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60
-
-    return nachtstunden
 
 
 def sort_schicht_data_by_beginn(schichten: list):

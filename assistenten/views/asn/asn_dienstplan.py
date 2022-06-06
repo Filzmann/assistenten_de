@@ -4,8 +4,7 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime, time
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import (add_feste_schichten_asn,
-                                                     get_schicht_templates, sort_schicht_data_by_beginn)
+from assistenten.functions.schicht_functions import (add_feste_schichten_asn, sort_schicht_data_by_beginn)
 from assistenten.models import Schicht, SchichtTemplate
 from assistenten.functions.calendar_functions import (get_monatserster, get_first_of_next_month, shift_month)
 
@@ -43,7 +42,7 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
 
     def sort_schichten_in_templates(self):
         splitted_templates = []
-        templates = get_schicht_templates(asn=self.request.user.assistenznehmer, order_by='beginn')
+        templates = SchichtTemplate.get_by_asn(self.request.user.assistenznehmer, order_by='beginn')
         # Todo Sub-Templates und verschobene Templates
         for template in templates:
             if template.beginn < template.ende:

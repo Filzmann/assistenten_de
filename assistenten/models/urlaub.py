@@ -1,10 +1,7 @@
 from django.db import models
-from assistenten.models import AbstractZeitraum
-from assistenten.models.assistent import Assistent
+from assistenten.models import AU
 
-
-class Urlaub(AbstractZeitraum):
-    assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE)
+class Urlaub(AU):
     status = models.CharField(max_length=10)
 
     def __repr__(self):

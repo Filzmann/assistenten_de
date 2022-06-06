@@ -24,6 +24,42 @@ class AbstractZeitraum(models.Model):
     def stunden(self):
         return get_duration(self.beginn, self.ende, "minutes") / 60
 
+    @property
+    def nachtstunden(self):
+        """Gibt die Anzahl der Stunden einer Schicht zurück, die vor 6 Uhr und nach 21 Uhr stattfinden"""
+
+        nachtstunden = 0
+
+        null_uhr = timezone.make_aware(datetime.combine(self.beginn.date(), time(0, 0)))
+        sechs_uhr = timezone.make_aware(datetime.combine(self.beginn.date(), time(6, 0)))
+        einundzwanzig_uhr = timezone.make_aware(datetime.combine(self.beginn.date(), time(21, 0)))
+
+        # Schicht beginnt zwischen 0 und 6 uhr
+        if null_uhr <= self.beginn <= sechs_uhr:
+            if self.ende <= sechs_uhr:
+                # Schicht endet spätestens 6 uhr
+                nachtstunden += get_duration(self.beginn, self.ende, 'minutes') / 60
+
+            elif sechs_uhr <= self.ende <= einundzwanzig_uhr:
+                # Schicht endet nach 6 uhr aber vor 21 uhr
+                nachtstunden += get_duration(self.beginn, sechs_uhr, 'minutes') / 60
+
+            else:
+                # schicht beginnt vor 6 uhr und geht über 21 Uhr hinaus
+                # das bedeutet ich ziehe von der kompletten schicht einfach die 15 Stunden Tagschicht ab.
+                # es bleibt der Nacht-An
+                nachtstunden += get_duration(self.beginn, self.ende, 'minutes') / 60 - 15
+        # Schicht beginnt zwischen 6 und 21 uhr
+        elif sechs_uhr <= self.beginn <= einundzwanzig_uhr:
+            # fängt am tag an, geht aber bis in die nachtstunden
+            if self.ende > einundzwanzig_uhr:
+                nachtstunden += get_duration(einundzwanzig_uhr, self.ende, 'minutes') / 60
+        else:
+            # schicht beginnt nach 21 uhr - die komplette schicht ist in der nacht
+            nachtstunden += get_duration(self.beginn, self.ende, 'minutes') / 60
+
+        return nachtstunden
+
     def check_mehrtaegig(self):
         # wenn schicht um 0 uhr endet, ist es noch der alte Tag
         if self.ende.hour == 0 and self.ende.minute == 0:
@@ -94,3 +130,5 @@ class AbstractZeitraum(models.Model):
 
     def __str__(self):
         return f"Zeitraum: {self.beginn} - {self.ende}"
+
+

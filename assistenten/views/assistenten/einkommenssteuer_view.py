@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import get_schicht_hauptanteil, get_weg_id
+from assistenten.functions.schicht_functions import get_schicht_hauptanteil
 from assistenten.models import Schicht, Adresse, Weg
 from assistenten.functions.calendar_functions import get_duration
 

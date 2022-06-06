@@ -1,12 +1,11 @@
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
+from django.utils.datetime_safe import datetime, time
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import berechne_sa_so_weisil_feiertagszuschlaege, \
-    berechne_urlaub_au_saetze, brutto_in_db, check_schicht, \
-     get_nachtstunden, sort_schicht_data_by_beginn, add_feste_schichten_as
+from assistenten.functions.schicht_functions import brutto_in_db, check_schicht, \
+     sort_schicht_data_by_beginn, add_feste_schichten_as
 from assistenten.models import Schicht, Urlaub, AU
 from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
     shift_month
@@ -114,10 +113,15 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         end = get_first_of_next_month(start)
 
         letzter_tag = (end - timedelta(seconds=1)).day
-        ausgleichsstunden = berechne_urlaub_au_saetze(datum=start,
-                                                      assistent=self.request.user.assistent)['stunden_pro_tag']
-        ausgleichslohn = berechne_urlaub_au_saetze(datum=start,
-                                                   assistent=self.request.user.assistent)['pro_stunde']
+
+        fiktiver_urlaubstag = AU(
+            beginn=timezone.make_aware(datetime.combine(start, time(0, 0))),
+            ende=timezone.make_aware(datetime.combine(start + timedelta(days=1), time(0, 0))),
+            assistent=self.request.user.assistent
+        )
+
+        ausgleichsstunden = fiktiver_urlaubstag.stunden
+        ausgleichslohn = fiktiver_urlaubstag.lohn
         for tag in range(1, letzter_tag + 1):
             if check_feiertag(datetime(year=start.year, month=start.month, day=tag)):
                 self.summen['anzahl_feiertage'] += 1
@@ -192,10 +196,10 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
             lohn = schicht.lohn
 
-            nachtstunden = get_nachtstunden(schicht)
+            nachtstunden = schicht.nachtstunden
 
             # zuschläge
-            zuschlaege = berechne_sa_so_weisil_feiertagszuschlaege(schicht)
+            zuschlaege = schicht.zuschlaege
             zuschlaege_text = ''
 
             if zuschlaege:
@@ -295,10 +299,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         for urlaub in urlaube:
             erster_tag = urlaub.beginn.day if urlaub.beginn > start else start.day
             letzter_tag = urlaub.ende.day if urlaub.ende < ende else (ende - timedelta(days=1)).day
-            urlaubsstunden = berechne_urlaub_au_saetze(datum=start,
-                                                       assistent=self.request.user.assistent)['stunden_pro_tag']
-            urlaubslohn = berechne_urlaub_au_saetze(datum=start,
-                                                    assistent=self.request.user.assistent)['pro_stunde']
+            urlaubsstunden = urlaub.stunden
+            urlaubslohn = urlaub.lohn
             for tag in range(erster_tag, letzter_tag + 2):
                 # print(tag)
                 if tag not in self.schichten_view_data.keys():
@@ -344,10 +346,8 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         for au in aus:
             erster_tag = au.beginn.day if au.beginn > start else start.day
             letzter_tag = au.ende.day if au.ende < ende else (ende - timedelta(days=1)).day
-            austunden = berechne_urlaub_au_saetze(datum=start,
-                                                  assistent=self.request.user.assistent)['stunden_pro_tag']
-            aulohn = berechne_urlaub_au_saetze(datum=start,
-                                               assistent=self.request.user.assistent)['pro_stunde']
+            austunden = au.stunden
+            aulohn = au.lohn
 
             for tag in range(erster_tag, letzter_tag + 1):
                 # print(tag)

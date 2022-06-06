@@ -5,8 +5,7 @@ from django.utils import timezone
 from django.views.generic.edit import UpdateView
 from guardian.mixins import PermissionRequiredMixin
 from assistenten.forms.asn.asn_edit_asn_multiform import AsnEditAsnMultiForm
-from assistenten.functions.schicht_functions import get_schicht_templates
-from assistenten.models import ASN
+from assistenten.models import ASN, SchichtTemplate
 
 
 class AsnEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
@@ -26,7 +25,7 @@ class AsnEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        kwargs['schicht_template_liste'] = get_schicht_templates(self.object)
+        kwargs['schicht_template_liste'] = SchichtTemplate.get_by_asn(self.object)
         context = super(AsnEditAsnView, self).get_context_data(**kwargs)
         return context
 

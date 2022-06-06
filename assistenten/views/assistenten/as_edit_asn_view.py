@@ -6,7 +6,7 @@ from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from assistenten.forms.assistent.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
-from assistenten.functions.schicht_functions import get_feste_schichten, get_schicht_templates
+from assistenten.functions.schicht_functions import get_feste_schichten
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
 
@@ -70,7 +70,7 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         # feste schichten und templates gibt es nur in der update-view
         kwargs['feste_schichten_liste'] = get_feste_schichten(asn=self.object, assistent=self.request.user.assistent)
         # alle schicht_templates des asn
-        kwargs['schicht_template_liste'] = get_schicht_templates(self.object)
+        kwargs['schicht_template_liste'] = self.object.schicht_templates()
 
         context = super(AsEditAsnView, self).get_context_data(**kwargs)
         return context
@@ -118,7 +118,6 @@ class DeleteFesteSchichtenView(LoginRequiredMixin, DeleteView):
 class DeleteSchichtTemplateView(LoginRequiredMixin, DeleteView):
     model = SchichtTemplate
     success_url = reverse_lazy('as_create_asn')
-
 
     def get_success_url(self):
         success_url = super(DeleteSchichtTemplateView, self).get_success_url()
