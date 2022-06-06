@@ -4,9 +4,9 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import berechne_sa_so_weisil_feiertagszuschlaege, berechne_stunden, \
+from assistenten.functions.schicht_functions import berechne_sa_so_weisil_feiertagszuschlaege, \
     berechne_urlaub_au_saetze, brutto_in_db, check_schicht, \
-    get_lohn, get_nachtstunden, get_sliced_schichten_by_as, sort_schicht_data_by_beginn, add_feste_schichten_as
+     get_nachtstunden, sort_schicht_data_by_beginn, add_feste_schichten_as
 from assistenten.models import Schicht, Urlaub, AU
 from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
     shift_month
@@ -127,7 +127,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         # überstunden
         ueberstunden = self.summen['arbeitsstunden'] + self.summen['urlaubsstunden'] + self.summen['austunden'] - 168.5
         if ueberstunden > 0:
-            lohn = get_lohn(assistent=self.request.user.assistent, datum=self.act_date)
+            lohn = self.request.user.assistent.lohn(datum=self.act_date)
             self.summen['ueberstunden'] = ueberstunden
             self.summen['ueberstunden_pro_stunde'] = float(lohn.ueberstunden_zuschlag)
             self.summen['ueberstunden_kumuliert'] = float(lohn.ueberstunden_zuschlag) * ueberstunden
@@ -161,7 +161,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
     def calc_schichten(self, start, ende):
 
-        schichten = get_sliced_schichten_by_as(
+        schichten = Schicht.get_by_person_and_date_range_splitted(
             start=self.act_date,
             end=ende,
             assistent=self.request.user.assistent
@@ -170,7 +170,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         # feste Schichten
         add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
 
-        schichten = get_sliced_schichten_by_as(
+        schichten = Schicht.get_by_person_and_date_range_splitted(
             start=self.act_date,
             end=ende,
             assistent=self.request.user.assistent
@@ -190,7 +190,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             # stunden
             stunden = schicht.stunden
 
-            lohn = get_lohn(assistent=self.request.user.assistent, datum=schicht.beginn)
+            lohn = schicht.lohn
 
             nachtstunden = get_nachtstunden(schicht)
 

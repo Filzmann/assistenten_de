@@ -37,6 +37,7 @@ class AbstractZeitraum(models.Model):
             return True
 
     def split_by_null_uhr(self):
+
         ausgabe = []
         rest = self.clone()
         if not self.ende:
@@ -52,12 +53,44 @@ class AbstractZeitraum(models.Model):
                                  time(0, 0)
                                  )
             )
-            print(f"Rest: Beginn: {rest.beginn} Ende: {rest.ende} ")
             out.ende = rest.beginn
             ausgabe.append(out)
         if rest.stunden > 0:
             ausgabe.append(rest)
         return ausgabe
+
+    @classmethod
+    def get_by_person_and_date_range_splitted(cls, start, end, assistent=False, asn=False):
+        if not end:
+            raise ValueError(f"{__class__} hat kein Ende")
+        if not start:
+            raise ValueError(f"{__class__} hat keinen Beginn")
+        if end < start:
+            raise ValueError(f'end {end} is before start{start}')
+
+        schichten = \
+            cls.objects.filter(beginn__range=(start, end)) | \
+            cls.objects.filter(ende__range=(start, end))
+
+        if assistent:
+            schichten = schichten.filter(assistent=assistent)
+
+        if asn:
+            schichten = schichten.filter(asn=asn)
+
+        sliced_schichten = []
+        for schicht in schichten:
+            ergebnisse = schicht.split_by_null_uhr()
+            sliced_schichten.extend(ergebnisse)
+
+        return cls.clean_shifts_in_period(sliced_schichten, start, end)
+
+    @staticmethod
+    def clean_shifts_in_period(schichts: list, start: datetime, end: datetime):
+        for schicht in schichts:
+            if schicht.beginn >= end or schicht.ende <= start:
+                schichts.remove(schicht)
+        return schichts
 
     def __str__(self):
         return f"Zeitraum: {self.beginn} - {self.ende}"

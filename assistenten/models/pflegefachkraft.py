@@ -1,10 +1,9 @@
 from django.db import models
 
+from assistenten.models import AbstractMitarbeiter
 
-class PFK(models.Model):
-    name = models.CharField(max_length=30)
-    vorname = models.CharField(max_length=30)
-    email = models.CharField(max_length=30)
+
+class PFK(AbstractMitarbeiter):
 
     def __repr__(self):
         return f"{self.name!r}, {self.vorname!r})"

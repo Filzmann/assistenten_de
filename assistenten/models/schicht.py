@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.datetime_safe import datetime
 from django.utils.timezone import localtime
-from assistenten.models import Adresse, Urlaub, AU
+from assistenten.models import Adresse, Urlaub, AU, Lohn
 from assistenten.models.abstract_zeitraum import AbstractZeitraum
 from assistenten.models.assistent import Assistent
 from assistenten.models.assistenznehmer import ASN
@@ -21,6 +21,11 @@ class Schicht(AbstractZeitraum):
     ist_schulung = models.BooleanField(default=0)
     beginn_adresse = models.ForeignKey(Adresse, on_delete=models.CASCADE, related_name='+')
     ende_adresse = models.ForeignKey(Adresse, on_delete=models.CASCADE, related_name='+')
+
+
+    @property
+    def lohn(self):
+        return self.assistent.lohn(self.beginn)
 
     def __repr__(self):
         return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, ASN: {self.asn!r}  - AS: {self.assistent})"

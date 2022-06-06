@@ -2,15 +2,14 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from assistenten.models import EB, PFK
+from assistenten.models.abstract_person import AbstractPerson
 
 
-class ASN(models.Model):
+class ASN(AbstractPerson):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='assistenznehmer')
     kuerzel = models.CharField(max_length=30)
-    name = models.CharField(max_length=30)
-    vorname = models.CharField(max_length=30)
-    email = models.CharField(max_length=30)
     einsatzbuero = models.CharField(max_length=30)
+
 
     einsatzbegleitung = models.ForeignKey(EB, on_delete=models.CASCADE, related_name='asns', null=True)
     pflegefachkraft = models.ForeignKey(PFK, on_delete=models.CASCADE, related_name='asns', null=True)

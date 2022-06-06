@@ -4,7 +4,7 @@ import googlemaps
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from django.db.models import Q
-from assistenten.models import SchichtTemplate, FesteSchicht, Schicht, Adresse, Weg, Brutto, AU, Urlaub, Lohn
+from assistenten.models import SchichtTemplate, FesteSchicht, Schicht, Adresse, Weg, Brutto, AU, Urlaub
 from assistenten.functions.calendar_functions import check_feiertag, get_ersten_xxtag, get_duration
 from assistenten_de.settings import GOOGLE_API_KEY
 
@@ -148,11 +148,11 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
                 # TODO Sperrzeiten des AS checken
 
-                if not (check_au(datum=start, assistent=feste_schicht.assistent) \
-                        or check_urlaub(datum=start, assistent=feste_schicht.assistent) \
-                        or check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent) \
-                        or check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent) \
-                        or check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False) \
+                if not (check_au(datum=start, assistent=feste_schicht.assistent)
+                        or check_urlaub(datum=start, assistent=feste_schicht.assistent)
+                        or check_au(datum=end - timedelta(minutes=1), assistent=feste_schicht.assistent)
+                        or check_urlaub(datum=end - timedelta(minutes=1), assistent=assistent)
+                        or check_schicht(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False)
                         or check_schicht(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)):
                     # TODO Sperrzeiten des AS checken
                     home = Adresse.objects.filter(is_home=True).filter(asn=feste_schicht.asn)[0]
@@ -167,7 +167,7 @@ def add_feste_schichten(erster_tag, letzter_tag, assistent=None, asn=None):
 
 def get_schicht_hauptanteil(schicht):
     # TODO: Reisebegleitungen/mehrtägig
-    teilschichten = split_by_null_uhr_asn(schicht)
+    teilschichten = schicht.split_by_null_uhr()
     maxschicht = None
     max_duration = 0
     for teilschicht in teilschichten:
@@ -191,7 +191,7 @@ def get_weg_id(adresse1, adresse2):
             return weg
         else:
             return False
-    # bei bedarf insert, werte für weg + zeit per google api ermitteln
+    # bei Bedarf insert, werte für Weg + Zeit per google api ermitteln
 
 
 def make_weg(adresse1, adresse2):
@@ -357,7 +357,7 @@ def berechne_urlaub_au_saetze(datum, assistent):
 
 
 def brutto_in_db(brutto, stunden, monat, assistent):
-    # check ob für diesen monat vorhanden
+    # check, ob für diesen monat vorhanden
     updatebrutto = Brutto.objects.filter(monat=monat)
     if updatebrutto:
         updatebrutto[0].bruttolohn = brutto
@@ -371,8 +371,6 @@ def brutto_in_db(brutto, stunden, monat, assistent):
             assistent=assistent
         )
         insertbrutto.save()
-
-
 
 
 def check_au(datum, assistent):
@@ -390,7 +388,7 @@ def check_urlaub(datum, assistent):
 
 
 def check_schicht(beginn, ende, assistent=False, asn=False, speak=False):
-    """prüft, ob an einem gegeben Datum eine Schicht ist.
+    """prüft, ob an einem gegebenen Datum eine Schicht ist.
     wenn speak = true gibt es mehrer print-Ausgaben zur Analyse"""
     # anfang eine minute später und ende eine minute früher, um den Schichtwechsel zu vermeiden
 
@@ -431,39 +429,6 @@ def check_schicht(beginn, ende, assistent=False, asn=False, speak=False):
     return False
 
 
-def get_erfahrungsstufe(assistent, datum=timezone.now()):
-    delta = get_duration(assistent.einstellungsdatum, datum, 'years')
-    # einstieg mit 1
-    # nach 1 Jahr insgesamt 2
-    # nach 3 jahren insgesamt 3
-    # nach 6 jahren insg. 4
-    # nach 10 Jahren insg. 5
-    # nach 15 Jahren insg. 6
-    if delta == 0:
-        return 1
-    elif 1 <= delta < 3:
-        return 2
-    elif 3 <= delta < 6:
-        return 3
-    elif 6 <= delta < 10:
-        return 4
-    elif 10 <= delta < 15:
-        return 5
-    else:
-        return 6
-
-
-def get_lohn(assistent, datum):
-    erfahrungsstufe = get_erfahrungsstufe(assistent=assistent, datum=datum)
-    lohn = Lohn.objects.filter(erfahrungsstufe=erfahrungsstufe).filter(
-        gueltig_ab__lte=datum).filter(
-        eingruppierung=5
-    ).order_by('gueltig_ab')[0:1].get()
-    if lohn:
-        return lohn
-    return False
-
-
 def get_nachtstunden(schicht):
     """Gibt die Anzahl der Stunden einer Schicht zurück, die vor 6 Uhr und nach 21 Uhr stattfinden"""
 
@@ -482,14 +447,14 @@ def get_nachtstunden(schicht):
                                                      day=schicht.beginn.day,
                                                      hour=21, minute=0, second=0))
 
-    # schicht beginnt zwischen 0 und 6 uhr
+    # Schicht beginnt zwischen 0 und 6 uhr
     if null_uhr <= schicht.beginn <= sechs_uhr:
         if schicht.ende <= sechs_uhr:
-            # schicht endet spätestens 6 uhr
+            # Schicht endet spätestens 6 uhr
             nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60
 
         elif sechs_uhr <= schicht.ende <= einundzwanzig_uhr:
-            # schicht endet nach 6 uhr aber vor 21 uhr
+            # Schicht endet nach 6 uhr aber vor 21 uhr
             nachtstunden += get_duration(schicht.beginn, sechs_uhr, 'minutes') / 60
 
         else:
@@ -497,7 +462,7 @@ def get_nachtstunden(schicht):
             # das bedeutet ich ziehe von der kompletten schicht einfach die 15 Stunden Tagschicht ab.
             # es bleibt der Nacht-An
             nachtstunden += get_duration(schicht.beginn, schicht.ende, 'minutes') / 60 - 15
-    # schicht beginnt zwischen 6 und 21 uhr
+    # Schicht beginnt zwischen 6 und 21 uhr
     elif sechs_uhr <= schicht.beginn <= einundzwanzig_uhr:
         # fängt am tag an, geht aber bis in die nachtstunden
         if schicht.ende > einundzwanzig_uhr:
@@ -509,99 +474,7 @@ def get_nachtstunden(schicht):
     return nachtstunden
 
 
-def get_sliced_schichten_by_as(start, end, assistent):
-    """wrapper for get_sliced_schichten"""
-    return get_sliced_schichten(start=start, end=end, assistent=assistent)
-
-
-def get_sliced_schichten_by_asn(start, end, asn):
-    """wrapper for get_sliced_schichten"""
-    return get_sliced_schichten(start=start, end=end, asn=asn)
-
-
-def get_sliced_schichten(start, end, assistent=False, asn=False):
-    """returns all shifts of specificated as/asn. Splits all nightshifts at midnight"""
-    schichten = \
-        Schicht.objects.filter(beginn__range=(start, end)) | \
-        Schicht.objects.filter(ende__range=(start, end))
-
-    if assistent:
-        schichten = schichten.filter(assistent=assistent)
-
-    if asn:
-        schichten = schichten.filter(asn=asn)
-
-    sliced_schichten = []
-    for schicht in schichten:
-        ergebnisse = schicht.split_by_null_uhr()
-        print(ergebnisse)
-        for ergebnis in ergebnisse:
-            sliced_schichten.append(ergebnis)
-
-    return sliced_schichten
-
-
 def sort_schicht_data_by_beginn(schichten: list):
     """sortiert die schichten an einem tag (in Form einer Liste von dicts von strings)
     nach ihrem beginn"""
     return sorted(schichten, key=lambda j: j['von'])
-
-
-def split_by_null_uhr(schicht):
-    ausgabe = []
-
-    if schicht.check_mehrtaegig():
-        rest = dict(start=schicht.beginn, ende=schicht.ende)
-        while rest['start'] <= rest['ende']:
-            r_start = rest['start']
-            neuer_start_rest = timezone.make_aware(datetime(year=r_start.year,
-                                                            month=r_start.month,
-                                                            day=r_start.day
-                                                            )) + timedelta(days=1)
-
-            if neuer_start_rest <= rest['ende']:
-                ausgabe.append({'beginn': rest['start'],
-                                'ende': neuer_start_rest,
-                                'asn': schicht.asn,
-                                'assistent': schicht.assistent,
-                                'schicht_id': schicht.id,
-                                'ist_assistententreffen': schicht.ist_assistententreffen,
-                                'ist_kurzfristig': schicht.ist_kurzfristig,
-                                'ist_ausfallgeld': schicht.ist_ausfallgeld,
-                                'ist_pcg': schicht.ist_pcg,
-                                'ist_schulung': schicht.ist_schulung,
-                                'beginn_adresse': schicht.beginn_adresse,
-                                'ende_adresse': schicht.ende_adresse
-                                })
-            else:
-                ausgabe.append({'beginn': rest['start'],
-                                'ende': rest['ende'],
-                                'asn': schicht.asn,
-                                'assistent': schicht.assistent,
-                                'schicht_id': schicht.id,
-                                'ist_assistententreffen': schicht.ist_assistententreffen,
-                                'ist_kurzfristig': schicht.ist_kurzfristig,
-                                'ist_ausfallgeld': schicht.ist_ausfallgeld,
-                                'ist_pcg': schicht.ist_pcg,
-                                'ist_schulung': schicht.ist_schulung,
-                                'beginn_adresse': schicht.beginn_adresse,
-                                'ende_adresse': schicht.ende_adresse
-                                })
-
-            rest['start'] = neuer_start_rest
-    else:
-        ausgabe.append({
-            'beginn': schicht.beginn,
-            'ende': schicht.ende,
-            'asn': schicht.asn,
-            'assistent': schicht.assistent,
-            'schicht_id': schicht.id,
-            'ist_assistententreffen': schicht.ist_assistententreffen,
-            'ist_kurzfristig': schicht.ist_kurzfristig,
-            'ist_ausfallgeld': schicht.ist_ausfallgeld,
-            'ist_pcg': schicht.ist_pcg,
-            'ist_schulung': schicht.ist_schulung,
-            'beginn_adresse': schicht.beginn_adresse,
-            'ende_adresse': schicht.ende_adresse
-        })
-    return ausgabe

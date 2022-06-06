@@ -1,26 +1,30 @@
-from datetime import datetime
-
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils import timezone
 from guardian.conf import settings
 from guardian.shortcuts import assign_perm
-from assistenten.models import ASN
+from assistenten.models import ASN, Lohn
+from assistenten.models.abstract_person import AbstractMitarbeiter
 
 
-class Assistent(models.Model):
+class Assistent(AbstractMitarbeiter):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=30)
-    vorname = models.CharField(max_length=30)
-    email = models.CharField(max_length=30)
-    einstellungsdatum = models.DateTimeField(default=timezone.now)
     asns = models.ManyToManyField(ASN, through='AssociationAsAsn', related_name='assistents')
 
     def get_absolute_url(self):
         return reverse('as_edit_as', kwargs={'pk': self.pk})
+
+    def lohn(self, datum):
+        erfahrungsstufe = self.erfahrungsstufe(datum)
+        lohn = Lohn.objects.filter(erfahrungsstufe=erfahrungsstufe).filter(
+            gueltig_ab__lte=datum).filter(
+            eingruppierung=5
+        ).order_by('gueltig_ab')[0:1].get()
+        if lohn:
+            return lohn
+        return False
 
     def __repr__(self):
         return f"{self.name}, {self.vorname} (AS)"
