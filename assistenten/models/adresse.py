@@ -28,12 +28,22 @@ class Adresse(models.Model):
         else:
             return f"{self.strasse} {self.hausnummer}, {self.plz} {self.stadt}"
 
+    @classmethod
+    def find_by_person(cls, assistent: Assistent or bool = False, asn: ASN or bool = False, is_home=False):
+        adressen = cls.objects
+        if assistent:
+            adressen = adressen.filter(assistent=assistent)
+        if asn:
+            adressen = adressen.filter(asn=asn)
+        if is_home:
+            adressen = adressen.filter(is_home=True)
 
-# wird ein neuer Assistent gespeichert bekommt er erstmal eine leere Adresse
+        return adressen
+
+
+# wird ein neuer Assistent gespeichert, bekommt er erstmal eine leere Adresse
 # sein "home"
 @receiver(post_save, sender=Assistent)
 def create_adresse(sender, instance, created, **kwargs):
     if created:
         Adresse.objects.create(assistent=instance, is_home=True, bezeichner='Zu Hause')
-
-

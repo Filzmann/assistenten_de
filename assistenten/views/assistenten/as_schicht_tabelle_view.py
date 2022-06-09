@@ -4,8 +4,7 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime, time
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import check_schicht, \
-     sort_schicht_data_by_beginn
+from assistenten.functions.schicht_functions import sort_schicht_data_by_beginn
 from assistenten.models import Schicht, Urlaub, AU, Brutto
 from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
     shift_month
@@ -152,7 +151,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         for kw in range(1, 54):
             if sunday.year == year:
                 wochencounter += 1
-                if check_schicht(
+                if Schicht.is_occupied(
                         beginn=sunday,
                         ende=sunday + timedelta(hours=23, minutes=59, seconds=59),
                         assistent=self.request.user.assistent

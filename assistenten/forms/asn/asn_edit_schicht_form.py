@@ -1,9 +1,7 @@
 from betterforms.forms import BetterModelForm
 from django import forms
 from guardian.shortcuts import get_objects_for_user
-
-from assistenten.functions.person_functions import get_address
-from assistenten.models import Schicht, SchichtTemplate, Assistent
+from assistenten.models import Schicht, SchichtTemplate, Assistent, Adresse
 from assistenten.widgets import XDSoftDateTimePickerInput
 
 
@@ -71,7 +69,7 @@ class AsnEditSchichtForm(BetterModelForm):
         self.fields['templates'].queryset = SchichtTemplate.objects.filter(asn__id=asn.id)
 
         # und seine Adresslisten
-        asn_addresses = get_address(asn=asn)
-        asn_home = get_address(asn=asn, is_home=True).first()
+        asn_addresses = Adresse.find_by_person(asn=asn)
+        asn_home = Adresse.find_by_person(asn=asn, is_home=True).first()
         self.fields['beginn_adresse'].queryset = asn_addresses
         self.fields['ende_adresse'].queryset = asn_addresses

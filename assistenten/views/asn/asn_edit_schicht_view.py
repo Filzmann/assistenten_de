@@ -5,8 +5,7 @@ from django.views.generic import UpdateView, CreateView, DeleteView
 from django.shortcuts import redirect
 from guardian.shortcuts import assign_perm
 from assistenten.forms.asn.asn_edit_schicht_multiform import AsnCreateSchichtMultiForm, AsnEditSchichtMultiForm
-from assistenten.functions.person_functions import get_address
-from assistenten.models import Schicht
+from assistenten.models import Schicht, Adresse
 
 
 class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
@@ -19,8 +18,6 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
         kwargs = super(AsnCreateSchichtView, self).get_form_kwargs()
         # übergebe den request in die kwargs, damit er im Form verfügbar ist.
         kwargs.update({'request': self.request})
-
-
 
         # haben wir schon daten im Objekt? dann kommen diese in die kwargs
         if self.object:
@@ -39,9 +36,8 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
             local_kwargs_data['schicht-beginn'] = beginnende
             local_kwargs_data['schicht-ende'] = beginnende
 
-
         local_post = self.request.POST.copy()
-        home_address_id = get_address(asn=self.request.user.assistenznehmer, is_home=True).first()
+        home_address_id = Adresse.find_by_person(asn=self.request.user.assistenznehmer, is_home=True).first()
         local_post['schicht-beginn_adresse'] = home_address_id
         local_post['schicht-ende_adresse'] = home_address_id
         # local kwargs wird ergänzt und für einige keys überschrieben,
@@ -62,8 +58,8 @@ class AsnCreateSchichtView(LoginRequiredMixin, CreateView):
 
         schicht.asn = self.request.user.assistenznehmer
 
-        schicht.beginn_adresse = get_address(asn=schicht.asn, is_home=True).first()
-        schicht.ende_adresse = get_address(asn=schicht.asn, is_home=True).first()
+        schicht.beginn_adresse = Adresse.find_by_person(asn=schicht.asn, is_home=True).first()
+        schicht.ende_adresse = Adresse.find_by_person(asn=schicht.asn, is_home=True).first()
         schicht.save()
         return redirect('asn_edit_schicht', pk=schicht.id)
 
@@ -85,7 +81,6 @@ class AsnEditSchichtView(LoginRequiredMixin, UpdateView):
             kwargs.update(
                 instance={'schicht': self.object, },
             )
-
 
         return kwargs
 

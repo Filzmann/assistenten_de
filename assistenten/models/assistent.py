@@ -16,7 +16,6 @@ class Assistent(AbstractMitarbeiter):
     def get_absolute_url(self):
         return reverse('as_edit_as', kwargs={'pk': self.pk})
 
-
     def lohn(self, datum):
         erfahrungsstufe = self.erfahrungsstufe(datum)
         lohn = Lohn.objects.filter(erfahrungsstufe=erfahrungsstufe).filter(
@@ -70,5 +69,3 @@ def signal_handler_when_user_is_added_or_removed_from_group(action, instance, pk
                     assign_perm("change_asn", user, asn)
 
             # TODO Bei weiteren Nutzergruppen erweitern
-
-

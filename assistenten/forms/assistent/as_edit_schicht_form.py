@@ -1,8 +1,6 @@
 from betterforms.forms import BetterModelForm
 from django import forms
 from guardian.shortcuts import get_objects_for_user
-
-from assistenten.functions.person_functions import get_address
 from assistenten.models import ASN, Adresse, Schicht, SchichtTemplate, Assistent
 from assistenten.widgets import XDSoftDateTimePickerInput
 
@@ -97,8 +95,8 @@ class AsEditSchichtForm(BetterModelForm):
                             asn__id=kwargs['data']['schicht-asn'])
 
                         # und seine Adresslisten
-                        self.fields['beginn_adresse'].queryset = get_address(asn=kwargs['data']['schicht-asn'])
+                        self.fields['beginn_adresse'].queryset = Adresse.find_by_person(asn=kwargs['data']['schicht-asn'])
                         # damit fliegt das empty_label raus und muss neu rangehangen werden...
                         self.fields['beginn_adresse'].empty_label = 'Neue Adresse eingeben'
-                        self.fields['ende_adresse'].queryset = get_address(asn=kwargs['data']['schicht-asn'])
+                        self.fields['ende_adresse'].queryset = Adresse.find_by_person(asn=kwargs['data']['schicht-asn'])
                         self.fields['ende_adresse'].empty_label = 'Neue Adresse eingeben'
