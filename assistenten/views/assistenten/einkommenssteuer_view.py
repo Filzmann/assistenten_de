@@ -3,7 +3,6 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import get_schicht_hauptanteil
 from assistenten.models import Schicht, Adresse, Weg
 from assistenten.functions.calendar_functions import get_duration
 
@@ -61,7 +60,7 @@ class EinkommenssteuerView(LoginRequiredMixin, TemplateView):
         # wenn nicht fliegt die schicht aus der liste
         for schicht in schichten:
             if schicht.beginn.year != schicht.ende.year:
-                if get_schicht_hauptanteil(schicht).year != self.act_year:
+                if schicht.get_year_of_biggest_part() != self.act_year:
                     schichten.remove(schicht)
 
         user_home = Adresse.objects.get(assistent=self.request.user.assistent, is_home=True)

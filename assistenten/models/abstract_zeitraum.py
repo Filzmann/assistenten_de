@@ -95,6 +95,8 @@ class AbstractZeitraum(models.Model):
             ausgabe.append(rest)
         return ausgabe
 
+
+
     @classmethod
     def get_by_person_and_date_range_splitted(cls, start, end, assistent=False, asn=False):
         if not end:

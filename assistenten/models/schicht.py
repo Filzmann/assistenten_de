@@ -3,19 +3,17 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from assistenten.functions.calendar_functions import check_feiertag, get_duration
-from assistenten.models import Adresse, Urlaub, AU
-from assistenten.models.abstract_zeitraum import AbstractZeitraum
+from assistenten.functions.calendar_functions import check_feiertag, get_duration, get_ersten_xxtag
+from assistenten.models import Adresse, Urlaub, AU, FesteSchicht, AbstractCalendarEntry
 from assistenten.models.assistent import Assistent
 from assistenten.models.assistenznehmer import ASN
 
 from django.utils import timezone
-from django.utils.datetime_safe import datetime, time
+from django.utils.datetime_safe import datetime, time, date
 
 
-class Schicht(AbstractZeitraum):
+class Schicht(AbstractCalendarEntry):
     asn = models.ForeignKey(ASN, on_delete=models.CASCADE)
-    assistent = models.ForeignKey(Assistent, on_delete=models.CASCADE)
     ist_kurzfristig = models.BooleanField(default=0)
     ist_ausfallgeld = models.BooleanField(default=0)
     ist_assistententreffen = models.BooleanField(default=0)
@@ -120,13 +118,79 @@ class Schicht(AbstractZeitraum):
 
         return feiertagsarray
 
+    def get_year_of_biggest_part(self):
+        teilschichten = self.split_by_null_uhr()
+        maxschicht = None
+        max_duration = 0
+        for teilschicht in teilschichten:
+            dauer = get_duration(teilschicht.beginn, teilschicht.ende, 'hours')
+            if dauer > max_duration:
+                max_duration = dauer
+                maxschicht = teilschicht
+        return maxschicht.beginn.year
+
+    @classmethod
+    def add_feste_schichten_in_period(cls,
+                                      erster_tag: datetime, letzter_tag: datetime,
+                                      assistent: Assistent or bool = False,
+                                      asn: ASN or bool = False):
+        feste_schichten = FesteSchicht.objects
+
+        if assistent:
+            feste_schichten = feste_schichten.filter(assistent=assistent)
+
+        if asn:
+            feste_schichten = feste_schichten.filter(asn=asn)
+
+        for feste_schicht in feste_schichten:
+
+            wtag_int = int(feste_schicht.wochentag) - 1
+            erster_xxtag_des_monats = get_ersten_xxtag(wtag_int, erster_tag)
+            monat = erster_tag.month
+            year = erster_tag.year
+            maxday = (letzter_tag - timedelta(days=1)).date()
+
+            schichtbeginn_zeit = feste_schicht.beginn
+            schichtende_zeit = feste_schicht.ende
+
+            for woche in range(0, 5):
+                tag = date(
+                    year=year,
+                    month=monat,
+                    day=woche * 7 + erster_xxtag_des_monats
+                )
+
+                if tag <= maxday:
+                    if feste_schicht.beginn < feste_schicht.ende:
+                        start = timezone.make_aware(datetime.combine(tag, schichtbeginn_zeit))
+                        end = timezone.make_aware(datetime.combine(tag, schichtende_zeit))
+                    # nachtschicht. es gibt keine regelmäßigen dienstreisen!
+                    else:
+                        start = timezone.make_aware(datetime.combine(tag, schichtbeginn_zeit))
+                        end = timezone.make_aware(datetime.combine(tag + timedelta(days=1),
+                                                                   schichtende_zeit))
+
+                    # TODO Sperrzeiten des AS checken
+
+                    if not (AU.is_occupied(beginn=start, ende=end, assistent=feste_schicht.assistent)
+                            or Urlaub.is_occupied(beginn=start, ende=end, assistent=feste_schicht.assistent)
+                            or Schicht.is_occupied(beginn=start, ende=end, assistent=feste_schicht.assistent, asn=False)
+                            or Schicht.is_occupied(beginn=start, ende=end, assistent=False, asn=feste_schicht.asn)):
+                        # TODO Sperrzeiten des AS checken
+                        home = Adresse.objects.filter(is_home=True).filter(asn=feste_schicht.asn)[0]
+                        schicht_neu = Schicht(beginn=start,
+                                              ende=end,
+                                              asn=feste_schicht.asn,
+                                              assistent=feste_schicht.assistent,
+                                              beginn_adresse=home,
+                                              ende_adresse=home)
+                        schicht_neu.save()
+
     def __repr__(self):
         return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, ASN: {self.asn!r}  - AS: {self.assistent})"
 
     def __str__(self):
         return f"Schicht({self.beginn} - {self.ende} - ASN: {self.asn} - AS: {self.assistent}"
-
-
 
 
 # Lösche Schicht, wenn Urlaub gespeichert wird.

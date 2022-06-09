@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime, time
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import (add_feste_schichten_asn, sort_schicht_data_by_beginn)
+from assistenten.functions.schicht_functions import sort_schicht_data_by_beginn
 from assistenten.models import Schicht, SchichtTemplate
 from assistenten.functions.calendar_functions import (get_monatserster, get_first_of_next_month, shift_month)
 
@@ -123,7 +123,13 @@ class AsnDienstplanView(LoginRequiredMixin, TemplateView):
     def calc_schichten(self, start, ende):
 
         # feste Schichten
-        add_feste_schichten_asn(erster_tag=start, letzter_tag=ende, asn=self.request.user.assistenznehmer)
+
+        Schicht.add_feste_schichten_in_period(
+            erster_tag=start,
+            letzter_tag=ende,
+            asn=self.request.user.assistenznehmer)
+
+
 
         schichten = Schicht.get_by_person_and_date_range_splitted(
             start=self.act_date,

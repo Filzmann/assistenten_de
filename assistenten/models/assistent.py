@@ -16,6 +16,7 @@ class Assistent(AbstractMitarbeiter):
     def get_absolute_url(self):
         return reverse('as_edit_as', kwargs={'pk': self.pk})
 
+
     def lohn(self, datum):
         erfahrungsstufe = self.erfahrungsstufe(datum)
         lohn = Lohn.objects.filter(erfahrungsstufe=erfahrungsstufe).filter(

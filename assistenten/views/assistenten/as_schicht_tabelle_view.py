@@ -4,9 +4,9 @@ from django.utils import timezone
 from django.utils.datetime_safe import datetime, time
 from django.views.generic import TemplateView
 
-from assistenten.functions.schicht_functions import brutto_in_db, check_schicht, \
-     sort_schicht_data_by_beginn, add_feste_schichten_as
-from assistenten.models import Schicht, Urlaub, AU
+from assistenten.functions.schicht_functions import check_schicht, \
+     sort_schicht_data_by_beginn
+from assistenten.models import Schicht, Urlaub, AU, Brutto
 from assistenten.functions.calendar_functions import check_feiertag, get_monatserster, get_first_of_next_month, \
     shift_month
 
@@ -73,7 +73,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         context['days_before_first'] = (int(self.act_date.strftime("%w")) + 6) % 7
 
         # brutto in db speichern
-        brutto_in_db(
+        Brutto.new_or_update(
             brutto=self.summen['bruttolohn'],
             stunden=self.summen['arbeitsstunden'],
             monat=self.act_date,
@@ -172,7 +172,11 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
         )
 
         # feste Schichten
-        add_feste_schichten_as(erster_tag=start, letzter_tag=ende, assistent=self.request.user.assistent)
+        Schicht.add_feste_schichten_in_period(
+            erster_tag=start,
+            letzter_tag=ende,
+            assistent=self.request.user.assistent
+        )
 
         schichten = Schicht.get_by_person_and_date_range_splitted(
             start=self.act_date,

@@ -6,7 +6,6 @@ from guardian.mixins import PermissionRequiredMixin
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from assistenten.forms.assistent.as_edit_asn_multiform import AsEditAsnMultiForm, AsCreateAsnMultiForm
-from assistenten.functions.schicht_functions import get_feste_schichten
 from assistenten.models import ASN, FesteSchicht, SchichtTemplate
 
 
@@ -68,7 +67,7 @@ class AsEditAsnView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
             asn_liste.append((asn.id, asn.kuerzel))
         kwargs['asn_liste'] = asn_liste
         # feste schichten und templates gibt es nur in der update-view
-        kwargs['feste_schichten_liste'] = get_feste_schichten(asn=self.object, assistent=self.request.user.assistent)
+        kwargs['feste_schichten_liste'] = FesteSchicht.get_list(asn=self.object, assistent=self.request.user.assistent)
         # alle schicht_templates des asn
         kwargs['schicht_template_liste'] = self.object.schicht_templates()
 

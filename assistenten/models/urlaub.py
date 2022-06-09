@@ -1,7 +1,8 @@
 from django.db import models
-from assistenten.models import AU
+from assistenten.models import AU, AbstractCalendarEntry
 
-class Urlaub(AU):
+
+class Urlaub(AbstractCalendarEntry):
     status = models.CharField(max_length=10)
 
     def __repr__(self):
