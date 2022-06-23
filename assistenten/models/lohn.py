@@ -18,7 +18,7 @@ class Lohn(models.Model):
     silvester_zuschlag = models.DecimalField(decimal_places=2, max_digits=5)
 
     def __repr__(self):
-        return f"Lohn( gültig ab: {self.gueltig_ab!r}, EG {self.eingruppierung!r} , Stufe {self.erfahrungsstufe!r} )"
+        return f"Lohn( gültig ab: {self.gueltig_ab!r}, Grundlohn: {self.grundlohn} EG {self.eingruppierung!r} , Stufe {self.erfahrungsstufe!r} )"
 
     def __str__(self):
-        return f"Lohn( gültig ab: {self.gueltig_ab!r}, EG {self.eingruppierung!r} , Stufe {self.erfahrungsstufe!r} )"
+        return f"Lohn( gültig ab: {self.gueltig_ab!r}, Grundlohn: {self.grundlohn}, EG {self.eingruppierung!r} , Stufe {self.erfahrungsstufe!r} )"

@@ -21,7 +21,8 @@ class Assistent(AbstractMitarbeiter):
         lohn = Lohn.objects.filter(erfahrungsstufe=erfahrungsstufe).filter(
             gueltig_ab__lte=datum).filter(
             eingruppierung=5
-        ).order_by('gueltig_ab')[0:1].get()
+        ).order_by('-gueltig_ab').first()
+
         if lohn:
             return lohn
         return False

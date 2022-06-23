@@ -52,69 +52,10 @@
 
     </div>
 
-    <div id="calendar-view" class="inline">
-        <table class="calendar_table">
-            <tr>
-                <td class="weekday">Mo</td>
-                <td class="weekday">Di</td>
-                <td class="weekday">Mi</td>
-                <td class="weekday">Do</td>
-                <td class="weekday">Fr</td>
-                <td class="weekday">Sa</td>
-                <td class="weekday">So</td>
-            </tr>
-            <tr>
-            {% for i in days_before_first|times %}
-                <td><!-- empty filler cells --></td>
-            {% endfor %}
-
-            {% for tag, schichten in schichttabelle.items %}
-                <td class="day">
-                    <div class="calendar-day">
-                                {{ tag|localtime|date:"d" }}
-                    </div>
-                    {% if schichten %}
-                        {% for schicht in schichten %}
-                            <div class="calendar-schicht">
-                                <div class="calendar-schicht-zeit">{{ schicht.von|localtime|date:"H:i" }} - {{ schicht.bis|localtime|date:"H:i" }}</div>
-                                <div class="calendar-schicht-person">{{ schicht.asn }}</div>
-                                <div>
-                                    <form method="post">
-                                         {% csrf_token %}
-                                        <input type="image"
-                                               src="{% static 'images/del.png'%}"
-                                               formaction="{% url 'del_schicht' schicht.schicht_id %}"
-                                               value=""
-                                               onClick="return confirm('Wollen Sie wirklich löschen?')"
-                                        >
-                                    </form>
-                                    <a href="{% url 'asn_edit_schicht' schicht.schicht_id %}">
-                                        <img src="{% static 'images/edit.png'%}">
-                                    </a>
 
 
 
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    <div>
-                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
-                            <img src="{% static 'images/add.png'%}">
-                        </a>
-                    </div>
-                </td>
-                {% if forloop.counter|add:days_before_first|modulo:7 == 0 %}
-                    </tr>
-                    <tr>
-                {% endif %}
-            {% endfor %}
-            </tr>
-        </table>
-
-    </div>
-
-    <div class="inline" id="list-view">
+<div class="inline" id="list-view">
         <table border="1">
         <tr>
             <td></td>
@@ -142,67 +83,70 @@
                         {% endif %}
                     ">
                         <td>
-
-                            {% if schicht.type == 'schicht' %}
                             <form method="post">
                                  {% csrf_token %}
-                                <input type="image"
-                                       src="{% static 'images/del.png'%}"
-                                       formaction="{% url 'del_schicht' schicht.schicht_id %}"
-                                       value=""
-                                       onClick="return confirm('Wollen Sie wirklich löschen?')"
-                                >
-                                <a href="{% url 'as_edit_schicht' schicht.schicht_id %}">
-                                    <img src="{% static 'images/edit.png'%}">
-                                </a>
+
+                                {% if schicht|class_name == 'schicht' %}
+                                    <input type="image"
+                                           src="{% static 'images/del.png'%}"
+                                           formaction="{% url 'del_schicht' schicht.pk %}"
+                                           value=""
+                                           onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                    >
+                                    <a href="{% url 'as_edit_schicht' schicht.pk %}">
+                                        <img src="{% static 'images/edit.png'%}">
+                                    </a>
+
+                                {% elif schicht|class_name == 'urlaub' %}
+                                    <input type="image"
+                                           src="{% static 'images/del.png'%}"
+                                           formaction="{% url 'del_urlaub' schicht.pk %}"
+                                           value=""
+                                           onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                    >
+                                    <a href="{% url 'edit_urlaub' schicht.pk %}">
+                                        <img src="{% static 'images/edit.png'%}">
+                                    </a>
+                                {% elif schicht|class_name == 'au' %}
+                                    <input type="image"
+                                           src="{% static 'images/del.png'%}"
+                                           formaction="{% url 'del_au' schicht.pk %}"
+                                           value=""
+                                           onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                    >
+                                    <a href="{% url 'edit_au' schicht.pk %}">
+                                        <img src="{% static 'images/edit.png'%}">
+                                    </a>
+                                {% endif %}
+
+
+
                                 <a href="{% url 'as_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
                                     <img src="{% static 'images/add.png'%}">
                                 </a>
 
                             </form>
-                            {% elif schicht.type == 'urlaub' %}
-                            <form method="post">
-                                 {% csrf_token %}
-                                <input type="image"
-                                       src="{% static 'images/del.png'%}"
-                                       formaction="{% url 'del_urlaub' schicht.schicht_id %}"
-                                       value=""
-                                       onClick="return confirm('Wollen Sie wirklich löschen?')"
-                                >
-                                <a href="{% url 'edit_urlaub' schicht.schicht_id %}">
-                                    <img src="{% static 'images/edit.png'%}">
-                                </a>
-                            </form>
-                            {% elif schicht.type == 'au' %}
-                            <form method="post">
-                                 {% csrf_token %}
-                                <input type="image"
-                                       src="{% static 'images/del.png'%}"
-                                       formaction="{% url 'del_au' schicht.schicht_id %}"
-                                       value=""
-                                       onClick="return confirm('Wollen Sie wirklich löschen?')"
-                                >
-                                <a href="{% url 'edit_au' schicht.schicht_id %}">
-                                    <img src="{% static 'images/edit.png'%}">
-                                </a>
-                            </form>
-                            {% endif %}
+
                         </td>
 
                         <td class="center">
                             {{ tag|localtime|date:"D d" }}
                         </td>
-                        <td>{{ schicht.von|localtime|date:"H:i" }}</td>
-                        <td>{{ schicht.bis|localtime|date:"H:i" }}</td>
-                        <td>{{ schicht.asn }}</td>
+                        <td>{{ schicht.beginn|localtime|date:"H:i" }}</td>
+                        <td>{{ schicht.ende|localtime|date:"H:i" }}</td>
+                        <td>{% if schicht.ist_kurzfristig %}BSD {% endif %}
+                            {% if schicht.ist_pcg %}PCG {% endif %}
+                            {% if schicht.ist_assistententreffen %}AT {% endif %}
+                            {% if schicht.ist_ausfallgeld %}AFG {% endif %}
+                            {{ schicht.asn.kuerzel }}</td>
                         <td class="right">{% if schicht.stunden %}{{ schicht.stunden|floatformat:1}}{% endif %}</td>
-                        <td class="right">{% if schicht.schichtlohn %}{{ schicht.schichtlohn|floatformat:2}}€{% endif %}</td>
-                        <td class="right">{% if schicht.bsd %}{{ schicht.bsd|floatformat:2}}€{% endif %}</td>
+                        <td class="right">{% if schicht.lohn %}{{ schicht.lohn|floatformat:2}}€{% endif %}</td>
+                        <td class="right">{% if schicht.kurzfristig %}{{ schicht.kurzfristig|floatformat:2}}€{% endif %}</td>
                         <td class="right">{% if schicht.nachtstunden %}{{ schicht.nachtstunden|floatformat:1}}{% endif %}</td>
-                        <td class="right">{% if schicht.nachtzuschlag_schicht %}{{ schicht.nachtzuschlag_schicht|floatformat:2}}€{% endif %}</td>
-                        <td class="right">{% if schicht.orgazulage_schicht %}{{ schicht.orgazulage_schicht|floatformat:2}}€{% endif %}</td>
-                        <td class="right">{% if schicht.wechselzulage_schicht %}{{ schicht.wechselzulage_schicht|floatformat:2}}€{% endif %}</td>
-                        <td>{% if schicht.zuschlaege %}{{schicht.zuschlaege}}{% endif %}</td>
+                        <td class="right">{% if schicht.nachtzuschlag %}{{ schicht.nachtzuschlag|floatformat:2}}€{% endif %}</td>
+                        <td class="right">{% if schicht.orgazulage %}{{ schicht.orgazulage|floatformat:2}}€{% endif %}</td>
+                        <td class="right">{% if schicht.wechselzulage %}{{ schicht.wechselzulage|floatformat:2}}€{% endif %}</td>
+                        <td>{% if schicht.zuschlaege %}{{schicht.zuschlaege.text}}{% endif %}</td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -226,6 +170,84 @@
         {% endfor %}
     </table>
     </div>
+
+
+
+
+
+
+
+
+
+
+    <div id="calendar-view" class="inline">
+        <table class="calendar_table">
+            <tr>
+                <td class="weekday">Mo</td>
+                <td class="weekday">Di</td>
+                <td class="weekday">Mi</td>
+                <td class="weekday">Do</td>
+                <td class="weekday">Fr</td>
+                <td class="weekday">Sa</td>
+                <td class="weekday">So</td>
+            </tr>
+            <tr>
+            {% for i in days_before_first|times %}
+                <td><!-- empty filler cells --></td>
+            {% endfor %}
+
+            {% for tag, schichten in schichttabelle.items %}
+                <td class="day">
+                    <div class="calendar-day">
+                                {{ tag|localtime|date:"d" }}
+                    </div>
+                    {% if schichten %}
+                        {% for schicht in schichten %}
+                            <div class="calendar-schicht">
+                                <div class="calendar-schicht-zeit">{{ schicht.beginn|localtime|date:"H:i" }} - {{ schicht.ende|localtime|date:"H:i" }}</div>
+                                <div class="calendar-schicht-person">{% if schicht.ist_kurzfristig %}BSD {% endif %}
+                            {% if schicht.ist_pcg %}PCG {% endif %}
+                            {% if schicht.ist_assistententreffen %}AT {% endif %}
+                            {% if schicht.ist_ausfallgeld %}AFG {% endif %}
+                            {{ schicht.asn.kuerzel }}</div>
+                                <div>
+                                    <form method="post">
+                                         {% csrf_token %}
+                                        <input type="image"
+                                               src="{% static 'images/del.png'%}"
+                                               formaction="{% url 'del_schicht' schicht.pk %}"
+                                               value=""
+                                               onClick="return confirm('Wollen Sie wirklich löschen?')"
+                                        >
+                                    </form>
+                                    <a href="{% url 'asn_edit_schicht' schicht.pk %}">
+                                        <img src="{% static 'images/edit.png'%}">
+                                    </a>
+
+
+
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'asn_create_schicht' tag|localtime|date:'Y' tag|localtime|date:'m'  tag|localtime|date:'d' %}">
+                            <img src="{% static 'images/add.png'%}">
+                        </a>
+                    </div>
+                </td>
+                {% if forloop.counter|add:days_before_first|modulo:7 == 0 %}
+                    </tr>
+                    <tr>
+                {% endif %}
+            {% endfor %}
+            </tr>
+        </table>
+
+    </div>
+
+
+
     <div class="inline">
         <div>
             <table>

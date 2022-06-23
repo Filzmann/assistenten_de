@@ -24,7 +24,25 @@ class Schicht(AbstractCalendarEntry):
 
     @property
     def lohn(self):
-        return self.assistent.lohn(self.beginn)
+        return self.assistent.lohn(self.beginn).grundlohn
+
+    @property
+    def nachtzuschlag(self):
+        return float(self.assistent.lohn(self.beginn).nacht_zuschlag) * self.nachtstunden
+
+    @property
+    def orgazulage(self):
+        return float(self.assistent.lohn(self.beginn).orga_zuschlag) * self.stunden
+
+    @property
+    def wechselzulage(self):
+        return float(self.assistent.lohn(self.beginn).wechselschicht_zuschlag) * self.stunden
+
+    @property
+    def kurzfristig(self):
+        lohn = self.assistent.lohn(self.beginn)
+        return float(lohn.grundlohn) * float(self.stunden) * (
+                float(lohn.kurzfristig_zuschlag_prozent) / 100) if self.ist_kurzfristig else None
 
     @property
     def zuschlaege(self):
@@ -113,10 +131,19 @@ class Schicht(AbstractCalendarEntry):
                               'stunden_gesamt': feiertagsstunden,
                               'stunden_steuerfrei': 0,
                               'stunden_steuerpflichtig': feiertagsstunden,
-                              'add_info': '13:00 - 21:00 Uhr'
+                              'add_info': '13:00 - 21:00 Uhr',
                               }
 
-        return feiertagsarray
+        if feiertagsstunden > 0:
+            grund_formatiert = feiertagsarray['zuschlagsgrund'].lower().replace('.', '').replace(' ', '_')
+            spaltenname = grund_formatiert + '_zuschlag'
+            stundenzuschlag = float(getattr(self.assistent.lohn(self.beginn), spaltenname))
+            schichtzuschlag = feiertagsarray['stunden_gesamt'] * stundenzuschlag
+            feiertagsarray['text'] = feiertagsarray['zuschlagsgrund'] + ': ' + "{:,.2f}".format(
+                feiertagsarray['stunden_gesamt']
+            ) + ' Std = ' + "{:,.2f}€".format(schichtzuschlag)
+            return feiertagsarray
+        return None
 
     def get_year_of_biggest_part(self):
         teilschichten = self.split_by_null_uhr()
@@ -154,20 +181,21 @@ class Schicht(AbstractCalendarEntry):
             schichtende_zeit = feste_schicht.ende
 
             for woche in range(0, 5):
-                tag = date(
-                    year=year,
-                    month=monat,
-                    day=woche * 7 + erster_xxtag_des_monats
-                )
 
-                if tag <= maxday:
+                tag_zahl = woche * 7 + erster_xxtag_des_monats
+                if tag_zahl <= maxday.day:
+                    tag_datum = date(
+                        year=year,
+                        month=monat,
+                        day=tag_zahl
+                    )
                     if feste_schicht.beginn < feste_schicht.ende:
-                        start = timezone.make_aware(datetime.combine(tag, schichtbeginn_zeit))
-                        end = timezone.make_aware(datetime.combine(tag, schichtende_zeit))
+                        start = timezone.make_aware(datetime.combine(tag_datum, schichtbeginn_zeit))
+                        end = timezone.make_aware(datetime.combine(tag_datum, schichtende_zeit))
                     # nachtschicht. es gibt keine regelmäßigen dienstreisen!
                     else:
-                        start = timezone.make_aware(datetime.combine(tag, schichtbeginn_zeit))
-                        end = timezone.make_aware(datetime.combine(tag + timedelta(days=1),
+                        start = timezone.make_aware(datetime.combine(tag_datum, schichtbeginn_zeit))
+                        end = timezone.make_aware(datetime.combine(tag_datum + timedelta(days=1),
                                                                    schichtende_zeit))
 
                     # TODO Sperrzeiten des AS checken
@@ -187,7 +215,7 @@ class Schicht(AbstractCalendarEntry):
                         schicht_neu.save()
 
     def __repr__(self):
-        return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, ASN: {self.asn!r}  - AS: {self.assistent})"
+        return f"Schicht( Beginn: {self.beginn!r}, Ende: {self.ende!r}, Stunden: {self.stunden}, Lohn: {self.lohn}, ASN: {self.asn!r}  - AS: {self.assistent})"
 
     def __str__(self):
         return f"Schicht({self.beginn} - {self.ende} - ASN: {self.asn} - AS: {self.assistent}"

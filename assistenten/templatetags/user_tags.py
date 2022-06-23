@@ -22,6 +22,10 @@ def times(number):
 def modulo(num, val):
     return num % val
 
+@register.filter
+def class_name(instance):
+    return instance._meta.verbose_name
+
 @register.filter('has_group')
 def has_group(user, group_name):
     """

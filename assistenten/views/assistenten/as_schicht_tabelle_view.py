@@ -1,4 +1,6 @@
 from datetime import timedelta
+from pprint import pprint
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.utils.datetime_safe import datetime, time
@@ -65,6 +67,7 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['nav_timedelta'] = self.get_time_navigation_data()
+
         context['schichttabelle'] = self.get_table_data()
         self.calc_add_sum_data()
         context['summen'] = self.summen
@@ -164,12 +167,6 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
 
     def calc_schichten(self, start, ende):
 
-        schichten = Schicht.get_by_person_and_date_range_splitted(
-            start=self.act_date,
-            end=ende,
-            assistent=self.request.user.assistent
-        )
-
         # feste Schichten
         Schicht.add_feste_schichten_in_period(
             erster_tag=start,
@@ -182,8 +179,13 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
             end=ende,
             assistent=self.request.user.assistent
         )
+        schichten.sort(key=lambda x: x.beginn)
+        pprint(schichten)
+
+        summe_stunden = sum(schicht.stunden for schicht in schichten)
 
         for schicht in schichten:
+
             if not schicht.beginn.strftime('%d') in self.schichten_view_data.keys():
                 self.schichten_view_data[schicht.beginn.strftime('%d')] = []
 
@@ -384,28 +386,60 @@ class AsSchichtTabellenView(LoginRequiredMixin, TemplateView):
     def get_table_data(self):
         # TODO optimieren!!!
 
+
+        # -------------------------------
         start = self.act_date
         ende = get_first_of_next_month(this_month=start)
 
         # schichten berechnen und in schicht_view_data bzw. summen einsortieren
-        self.calc_schichten(start=start, ende=ende)
+        # self.calc_schichten(start=start, ende=ende)
+
+        # feste Schichten
+        Schicht.add_feste_schichten_in_period(
+            erster_tag=start,
+            letzter_tag=ende,
+            assistent=self.request.user.assistent
+        )
+
+        schichten = Schicht.get_by_person_and_date_range_splitted(
+            start=self.act_date,
+            end=ende,
+            assistent=self.request.user.assistent
+        )
+
+        urlaube = Urlaub.get_by_person_and_date_range_splitted(
+            start=self.act_date,
+            end=ende,
+            assistent=self.request.user.assistent
+        )
+
+        aus = AU.get_by_person_and_date_range_splitted(
+            start=self.act_date,
+            end=ende,
+            assistent=self.request.user.assistent
+        )
+
+        schichten = schichten + urlaube + aus
+
+        schichten.sort(key=lambda x: x.beginn)
+
+        # ---------------------------------------
+
+
 
         # urlaube berechnen und in schicht_view_data bzw. summen einsortieren
-        self.calc_urlaube(start=start, ende=ende)
+        # self.calc_urlaube(start=start, ende=ende)
 
         # au/krank berechnen und in schicht_view_data bzw. summen einsortieren
-        self.calc_au(start=start, ende=ende)
+        # self.calc_au(start=start, ende=ende)
 
         # schichtsammlung durch ergänzung von leeren Tagen zu Kalender konvertieren
         monatsletzter = (shift_month(self.act_date, step=1) - timedelta(days=1)).day
         table_array = {}
         for i in range(1, monatsletzter + 1):
-            key = str(i).zfill(2)
+            schichten_am_tag = list(filter(lambda schicht: schicht.beginn.day == i, schichten))
             datakey = datetime(year=self.act_date.year, month=self.act_date.month, day=i)
-            if key in self.schichten_view_data:
-                table_array[datakey] = self.schichten_view_data[key]
-            else:
-                table_array[datakey] = []
+            table_array[datakey] = schichten_am_tag
 
         return table_array
 

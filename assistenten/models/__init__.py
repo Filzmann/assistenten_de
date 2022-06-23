@@ -1,4 +1,4 @@
-from .abstract_zeitraum import *
+
 from .abstract_person import *
 from .lohn import *
 from .einsatzbegleitung import *
@@ -6,6 +6,8 @@ from .pflegefachkraft import *
 from .assistenznehmer import *
 from .assistent import *
 from .brutto import *
+from .abstract_zeitraum import *
+
 from .adresse import *
 from .arbeitsunfaehigkeit import *
 from .association_as_asn import *

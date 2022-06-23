@@ -100,7 +100,6 @@ def get_ersten_xxtag(int_weekday, erster=datetime.now()):
 def get_duration(then, now=timezone.now(), interval="default"):
     # Returns a duration as specified by variable interval
     # Functions, except totalDuration, returns [quotient, remainder]
-
     duration = now - then  # For build-in functions
     duration_in_s = duration.total_seconds()
 

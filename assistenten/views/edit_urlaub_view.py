@@ -13,7 +13,6 @@ class CreateUrlaubView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('as_schicht_tabelle')
 
     def form_valid(self, form):
-
         urlaub = form.save(commit=False)
         assistent = self.request.user.assistent
         urlaub.assistent = assistent
